@@ -148,7 +148,6 @@ export default function RegisterScreen() {
       }
 
       const email = nomorWaToEmail(trimmedNomorWa)
-
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -173,9 +172,11 @@ export default function RegisterScreen() {
 
       const profileUpdate: {
         nomor_wa: string
+        email_auth: string
         direferensikan_oleh?: string
       } = {
         nomor_wa: normalizedWa,
+        email_auth: email,
       }
 
       if (masterId) {
