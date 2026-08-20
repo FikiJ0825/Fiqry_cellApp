@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,12 +18,14 @@ import {
   mapSupabaseError,
   normalizeNomorWa,
 } from '../../../lib/auth-utils'
+import { NOMOR_WA_ADMIN } from '../../../constants/config'
 import { Colors, FontSize, Radius } from '../../../constants/theme'
 
 type Profile = {
   nama: string | null
   nomor_wa: string | null
   saldo: number | null
+  saldo_bonus_pending: number | null
   tier: string | null
   aktif: boolean | null
   dibuat_pada: string | null
@@ -69,6 +72,7 @@ export default function ProfilScreen() {
   const [editNama, setEditNama] = useState('')
   const [editNomorWa, setEditNomorWa] = useState('')
   const [saving, setSaving] = useState(false)
+  const [claimingBonus, setClaimingBonus] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -94,7 +98,9 @@ export default function ProfilScreen() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('nama, nomor_wa, saldo, tier, aktif, dibuat_pada, kode_referral')
+        .select(
+          'nama, nomor_wa, saldo, saldo_bonus_pending, tier, aktif, dibuat_pada, kode_referral',
+        )
         .eq('id', user.id)
         .single()
 
@@ -238,6 +244,75 @@ export default function ProfilScreen() {
     performSave(trimmedNama, normalizedWa, false)
   }
 
+  const performClaimBonus = async (jumlah: number) => {
+    setClaimingBonus(true)
+    setErrorMessage('')
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+
+      if (userError || !user) {
+        showError('Sesi tidak valid, silakan masuk kembali')
+        return
+      }
+
+      const { error: insertError } = await supabase.from('klaim_bonus').insert({
+        agen_id: user.id,
+        jumlah,
+        status: 'pending',
+      })
+
+      if (insertError) {
+        showError(mapSupabaseError(insertError.message))
+        return
+      }
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ saldo_bonus_pending: 0 })
+        .eq('id', user.id)
+
+      if (updateError) {
+        showError(mapSupabaseError(updateError.message))
+        return
+      }
+
+      const nama = profile?.nama ?? 'Agen'
+      const pesan = `Halo Admin, saya ${nama} ingin klaim bonus referral sebesar Rp${jumlah.toLocaleString('id-ID')}`
+      await Linking.openURL(
+        `https://wa.me/${NOMOR_WA_ADMIN}?text=${encodeURIComponent(pesan)}`,
+      )
+
+      await fetchProfile()
+    } catch {
+      showError('Terjadi kesalahan, silakan coba lagi')
+    } finally {
+      setClaimingBonus(false)
+    }
+  }
+
+  const handleClaimBonus = () => {
+    if (!profile) return
+
+    const jumlah = profile.saldo_bonus_pending ?? 0
+    if (jumlah <= 0) return
+
+    Alert.alert(
+      'Klaim Bonus',
+      `Klaim bonus sebesar ${formatRupiah(jumlah)}? Kamu akan diarahkan ke WhatsApp Admin untuk proses lebih lanjut.`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Ya, Klaim',
+          onPress: () => performClaimBonus(jumlah),
+        },
+      ],
+    )
+  }
+
   const handleCopyReferral = async () => {
     if (!profile?.kode_referral) return
 
@@ -287,6 +362,8 @@ export default function ProfilScreen() {
 
   const isMaster = profile.tier?.toLowerCase() === 'master'
   const isInactive = profile.aktif === false
+  const bonusPending = profile.saldo_bonus_pending ?? 0
+  const hasBonusPending = bonusPending > 0
 
   return (
     <ScrollView
@@ -443,10 +520,35 @@ export default function ProfilScreen() {
         </>
       )}
 
+      {!isEditing && hasBonusPending ? (
+        <View style={styles.bonusCard}>
+          <Text style={styles.bonusTitle}>🎉 Bonus Tersedia</Text>
+          <Text style={styles.bonusAmount}>{formatRupiah(bonusPending)}</Text>
+          <TouchableOpacity
+            style={[
+              styles.bonusClaimButton,
+              claimingBonus && styles.buttonDisabled,
+            ]}
+            onPress={handleClaimBonus}
+            disabled={claimingBonus || saving || loggingOut}
+            activeOpacity={0.8}
+          >
+            {claimingBonus ? (
+              <View style={styles.buttonContent}>
+                <ActivityIndicator color={Colors.textWhite} size="small" />
+                <Text style={styles.bonusClaimButtonText}>Memproses...</Text>
+              </View>
+            ) : (
+              <Text style={styles.bonusClaimButtonText}>Klaim Sekarang</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
       <TouchableOpacity
         style={[styles.logoutButton, loggingOut && styles.buttonDisabled]}
         onPress={handleLogout}
-        disabled={loggingOut || saving}
+        disabled={loggingOut || saving || claimingBonus}
         activeOpacity={0.8}
       >
         {loggingOut ? (
@@ -676,6 +778,35 @@ const styles = StyleSheet.create({
   editButtonText: {
     color: Colors.textWhite,
     fontSize: FontSize.lg,
+    fontWeight: 'bold',
+  },
+  bonusCard: {
+    backgroundColor: Colors.success,
+    borderRadius: Radius.lg,
+    padding: 20,
+    marginBottom: 24,
+  },
+  bonusTitle: {
+    fontSize: FontSize.md,
+    fontWeight: '700',
+    color: Colors.textWhite,
+    marginBottom: 8,
+  },
+  bonusAmount: {
+    fontSize: FontSize.xxl,
+    fontWeight: 'bold',
+    color: Colors.textWhite,
+    marginBottom: 16,
+  },
+  bonusClaimButton: {
+    backgroundColor: Colors.textWhite,
+    borderRadius: Radius.md,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  bonusClaimButtonText: {
+    color: Colors.success,
+    fontSize: FontSize.md,
     fontWeight: 'bold',
   },
   editActions: {

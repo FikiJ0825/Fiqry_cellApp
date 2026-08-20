@@ -25,7 +25,12 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "supabase:login": "supabase login",
+    "supabase:link": "supabase link --project-ref clbinerltxwxobbtxfad",
+    "supabase:functions:list": "supabase functions list",
+    "supabase:functions:pull": "supabase functions download wa-webhook",
+    "supabase:functions:deploy:wa-webhook": "supabase functions deploy wa-webhook"
   },
   "private": true
 }
