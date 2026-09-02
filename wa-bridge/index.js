@@ -28,7 +28,7 @@ const SKIP_PATTERN_FILTER_FOR_TESTING = false;
  * @param {string} nomor
  * @returns {string}
  */
-function normalizeToJid(nomor) {
+function normalizeToJid(nomor) {1
   let digits = nomor.replace(/\D/g, '');
   if (digits.startsWith('0')) {
     digits = '62' + digits.slice(1);
