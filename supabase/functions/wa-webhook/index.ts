@@ -60,6 +60,17 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Webhook ini verify_jwt = false (lihat config.toml) dan URL-nya publik. Tanpa pengecekan
+  // ini siapa pun bisa mengirim balasan "gagal"/"SUCCESS" palsu dan memicu refund / bonus.
+  // wa-bridge sudah mengirim Authorization: Bearer <SERVICE_ROLE_KEY>.
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!serviceKey || req.headers.get("Authorization") !== `Bearer ${serviceKey}`) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,

@@ -35,7 +35,8 @@
     "supabase:link": "supabase link --project-ref clbinerltxwxobbtxfad",
     "supabase:functions:list": "supabase functions list",
     "supabase:functions:pull": "supabase functions download wa-webhook",
-    "supabase:functions:deploy:wa-webhook": "supabase functions deploy wa-webhook"
+    "supabase:functions:deploy:wa-webhook": "supabase functions deploy wa-webhook",
+    "supabase:functions:deploy:create-transaction": "supabase functions deploy create-transaction"
   },
   "private": true
 }
