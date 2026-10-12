@@ -249,39 +249,19 @@ export default function ProfilScreen() {
     setErrorMessage('')
 
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser()
+      // Atomik di server: kunci baris, buat klaim, kosongkan bonus, kembalikan jumlah yang diklaim.
+      // Jumlah dari server dipakai untuk pesan WA, bukan nilai lokal yang bisa sudah usang.
+      const { data: jumlahDiklaim, error: rpcError } = await supabase.rpc('klaim_bonus_referral')
 
-      if (userError || !user) {
-        showError('Sesi tidak valid, silakan masuk kembali')
+      if (rpcError) {
+        showError(mapSupabaseError(rpcError.message))
+        await fetchProfile()
         return
       }
 
-      const { error: insertError } = await supabase.from('klaim_bonus').insert({
-        agen_id: user.id,
-        jumlah,
-        status: 'pending',
-      })
-
-      if (insertError) {
-        showError(mapSupabaseError(insertError.message))
-        return
-      }
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ saldo_bonus_pending: 0 })
-        .eq('id', user.id)
-
-      if (updateError) {
-        showError(mapSupabaseError(updateError.message))
-        return
-      }
-
+      const nominal = Number(jumlahDiklaim ?? jumlah)
       const nama = profile?.nama ?? 'Agen'
-      const pesan = `Halo Admin, saya ${nama} ingin klaim bonus referral sebesar Rp${jumlah.toLocaleString('id-ID')}`
+      const pesan = `Halo Admin, saya ${nama} ingin klaim bonus referral sebesar Rp${nominal.toLocaleString('id-ID')}`
       await Linking.openURL(
         `https://wa.me/${NOMOR_WA_ADMIN}?text=${encodeURIComponent(pesan)}`,
       )

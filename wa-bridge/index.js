@@ -28,7 +28,7 @@ const SKIP_PATTERN_FILTER_FOR_TESTING = false;
  * @param {string} nomor
  * @returns {string}
  */
-function normalizeToJid(nomor) {1
+function normalizeToJid(nomor) {
   let digits = nomor.replace(/\D/g, '');
   if (digits.startsWith('0')) {
     digits = '62' + digits.slice(1);
@@ -104,7 +104,10 @@ async function forwardTransactionReplyToWebhook(pesan) {
         Authorization: `Bearer ${serviceKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ pesan }),
+      body: JSON.stringify({
+        nomor: process.env.WA_CENTER_LID ? `${process.env.WA_CENTER_LID}@lid` : null,
+        pesan,
+      }),
     });
 
     if (response.ok) {
