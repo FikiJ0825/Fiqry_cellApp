@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# catatan internal (berisi ID akun/nomor, jangan dipublikasikan)
+AdePulsa.md

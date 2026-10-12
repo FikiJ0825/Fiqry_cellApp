@@ -8,7 +8,7 @@ Aplikasi penjualan pulsa, paket data, dan produk digital untuk jaringan agen **F
 
 | Layer | Teknologi |
 |-------|-----------|
-| Mobile | Expo SDK 54, React Native 0.81, React 19 |
+| Mobile | Expo SDK 57, React Native 0.86, React 19 |
 | Navigasi | Expo Router (file-based routing) |
 | Bahasa | TypeScript |
 | Backend | Supabase (Auth + PostgreSQL) |
@@ -85,11 +85,11 @@ Layar berikut sudah dibuat strukturnya, tetapi isinya masih placeholder:
 
 | Layar | File | Status |
 |-------|------|--------|
-| Login | `(auth)/login.tsx` | ⏳ Placeholder |
+| Login | `(auth)/login.tsx` | ✅ Selesai |
 | Beranda | `(tabs)/index.tsx` | ⏳ Placeholder |
 | Produk | `(tabs)/produk.tsx` | ⏳ Placeholder |
 | Riwayat | `(tabs)/riwayat.tsx` | ⏳ Placeholder |
-| Profil | `(tabs)/profil.tsx` | ⏳ Placeholder |
+| Profil | `(tabs)/profil.tsx` | ✅ Selesai |
 | Produk per Kategori | `produk/[kategori].tsx` | ⏳ Placeholder |
 | Pembelian | `produk/beli.tsx` | ⏳ Placeholder |
 | Komponen UI reusable | `components/` | ⏳ Kosong |
@@ -156,7 +156,7 @@ npm run web       # Web (preview)
 
 ## Catatan Pengembangan
 
-- Baca dokumentasi Expo versi proyek di [docs.expo.dev](https://docs.expo.dev/versions/v54.0.0/) sebelum menulis kode baru.
+- Baca dokumentasi Expo versi proyek di [docs.expo.dev](https://docs.expo.dev/versions/v57.0.0/) sebelum menulis kode baru.
 - Autentikasi menggunakan email sintetis dari nomor WA; tidak perlu verifikasi email terpisah.
 - Tier `master` memiliki `kode_referral` yang bisa dipakai agen baru saat registrasi.
 
