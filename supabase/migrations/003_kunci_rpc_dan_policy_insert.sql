@@ -33,3 +33,6 @@ DROP POLICY IF EXISTS "user insert klaim miliknya"    ON public.klaim_bonus;
 --   GRANT EXECUTE ON FUNCTION public.<nama>(<args>) TO anon, authenticated;
 --   CREATE POLICY "Agen insert transaksi sendiri" ON public.transaksi FOR INSERT WITH CHECK (agen_id = auth.uid());
 --   CREATE POLICY "user insert klaim miliknya"    ON public.klaim_bonus FOR INSERT WITH CHECK (agen_id = auth.uid());
+
+-- Tambahan: klaim_bonus_referral hanya untuk user login
+REVOKE EXECUTE ON FUNCTION public.klaim_bonus_referral() FROM anon;
