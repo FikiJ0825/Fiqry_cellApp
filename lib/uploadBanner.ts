@@ -4,15 +4,15 @@ const BUCKET_NAME = 'banner-promo'
 
 export type BannerTampilan = 'carousel_tetap' | 'carousel_promo' | 'popup'
 
+// Harus sama dengan konfigurasi bucket banner-promo (png/jpeg/webp, maks 2 MB)
 const MIME_BY_EXTENSION: Record<string, string> = {
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
   png: 'image/png',
-  gif: 'image/gif',
   webp: 'image/webp',
-  heic: 'image/heic',
-  heif: 'image/heif',
 }
+
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024
 
 function getExtensionFromUri(imageUri: string): string {
   const withoutQuery = imageUri.split('?')[0] ?? imageUri
@@ -42,6 +42,10 @@ export async function uploadBannerImage(
 ): Promise<string> {
   const folder = resolveStorageFolder(tampilan)
   const extension = getExtensionFromUri(imageUri)
+  if (!(extension in MIME_BY_EXTENSION)) {
+    throw new Error('Format gambar harus JPG, PNG, atau WebP')
+  }
+
   const fileName = generateUniqueFileName(extension)
   const path = `${folder}/${fileName}`
 
@@ -51,6 +55,10 @@ export async function uploadBannerImage(
   }
 
   const arrayBuffer = await response.arrayBuffer()
+
+  if (arrayBuffer.byteLength > MAX_FILE_SIZE_BYTES) {
+    throw new Error('Ukuran gambar maksimal 2 MB')
+  }
 
   const { error } = await supabase.storage.from(BUCKET_NAME).upload(path, arrayBuffer, {
     contentType: getMimeType(extension),

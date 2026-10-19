@@ -46,7 +46,7 @@ interface BannerPromoRow {
 
 interface ProdukOption {
   id: string
-  nama_produk: string
+  nama: string
 }
 
 const TAMPILAN_OPTIONS: { value: BannerTampilan; label: string }[] = [
@@ -75,6 +75,15 @@ function formatDateLabel(date: Date | null): string {
     month: 'long',
     year: 'numeric',
   })
+}
+
+// Picker hanya memberi tanggal; banner harus tayang penuh dari awal hari mulai sampai akhir hari berakhir
+function awalHari(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
+}
+
+function akhirHari(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999)
 }
 
 function parseDate(value: string | null): Date | null {
@@ -364,10 +373,10 @@ export default function BannerFormScreen() {
     try {
       const { data, error } = await supabase
         .from('produk')
-        .select('id, nama_produk')
+        .select('id, nama')
         .eq('kategori', kategori)
         .eq('aktif', true)
-        .order('nama_produk')
+        .order('nama')
 
       if (error) {
         throw new Error(`Gagal memuat produk: ${error.message}`)
@@ -582,8 +591,8 @@ export default function BannerFormScreen() {
         target_aksi: resolvedTarget,
         urutan: Number.parseInt(urutan, 10) || 0,
         aktif,
-        tanggal_mulai: tanggalMulai ? tanggalMulai.toISOString() : null,
-        tanggal_berakhir: tanggalBerakhir ? tanggalBerakhir.toISOString() : null,
+        tanggal_mulai: tanggalMulai ? awalHari(tanggalMulai).toISOString() : null,
+        tanggal_berakhir: tanggalBerakhir ? akhirHari(tanggalBerakhir).toISOString() : null,
       }
 
       if (isEditMode && id) {
@@ -737,7 +746,7 @@ export default function BannerFormScreen() {
                     value={targetAksi}
                     options={produkList.map((p) => ({
                       value: p.id,
-                      label: p.nama_produk,
+                      label: p.nama,
                     }))}
                     onChange={setTargetAksi}
                     disabled={saving || loadingProduk}
