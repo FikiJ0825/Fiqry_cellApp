@@ -12,7 +12,7 @@
       "runtimeVersion": {
         "policy": "appVersion"
       },
-      "bundleIdentifier": "com.maf_logictech.AppPulsa",
+      "bundleIdentifier": "com.maflogictech.AppPulsa",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
