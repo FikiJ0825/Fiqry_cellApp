@@ -16,6 +16,21 @@ export default function AdminProdukScreen() {
       <TouchableOpacity
         style={styles.navCard}
         activeOpacity={0.7}
+        onPress={() => router.push('/(app)/(admin)/katalog')}
+      >
+        <View style={styles.navIconWrap}>
+          <Ionicons name="cube-outline" size={24} color={Colors.primary} />
+        </View>
+        <View style={styles.navTextWrap}>
+          <Text style={styles.navTitle}>Kelola Katalog Produk</Text>
+          <Text style={styles.navSubtitle}>Tambah, edit harga, dan aktifkan produk</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.navCard}
+        activeOpacity={0.7}
         onPress={() => router.push('/(app)/(admin)/banner')}
       >
         <View style={styles.navIconWrap}>

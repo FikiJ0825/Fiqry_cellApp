@@ -18,6 +18,7 @@ import {
   mapSupabaseError,
   normalizeNomorWa,
 } from '../../../lib/auth-utils'
+import { formatRupiah } from '../../../lib/format'
 import { NOMOR_WA_ADMIN } from '../../../constants/config'
 import { Colors, FontSize, Radius } from '../../../constants/theme'
 
@@ -46,11 +47,6 @@ const BULAN_INDONESIA = [
   'November',
   'Desember',
 ]
-
-function formatRupiah(amount: number | null | undefined): string {
-  const value = amount ?? 0
-  return `Rp ${value.toLocaleString('id-ID')}`
-}
 
 function formatTanggalIndonesia(iso: string): string {
   const date = new Date(iso)

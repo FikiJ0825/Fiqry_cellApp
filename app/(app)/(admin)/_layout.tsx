@@ -111,6 +111,7 @@ export default function AdminTabLayout() {
         options={{ href: null }}
       />
       <Tabs.Screen name="banner" options={{ href: null }} />
+      <Tabs.Screen name="katalog" options={{ href: null }} />
     </Tabs>
   )
 }
