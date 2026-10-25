@@ -68,7 +68,7 @@ export default function AdminTabLayout() {
           tabBarLabel: 'Dashboard',
           headerTitle: () => <AdminHeaderTitle title="Dashboard" />,
           tabBarIcon: ({ color, size }) => (
-            <TabIcon name="grid-outline" color={color.toString()} size={size} />
+            <TabIcon name="grid-outline" color={String(color)} size={size} />
           ),
         }}
       />
@@ -79,7 +79,7 @@ export default function AdminTabLayout() {
           tabBarLabel: 'Agen',
           headerTitle: () => <AdminHeaderTitle title="Kelola Agen" />,
           tabBarIcon: ({ color, size }) => (
-            <TabIcon name="people-outline" color={color.toString()} size={size} />
+            <TabIcon name="people-outline" color={String(color)} size={size} />
           ),
         }}
       />
@@ -90,7 +90,7 @@ export default function AdminTabLayout() {
           tabBarLabel: 'Produk',
           headerTitle: () => <AdminHeaderTitle title="Kelola Produk" />,
           tabBarIcon: ({ color, size }) => (
-            <TabIcon name="cube-outline" color={color.toString()} size={size} />
+            <TabIcon name="cube-outline" color={String(color)} size={size} />
           ),
         }}
       />
@@ -101,7 +101,7 @@ export default function AdminTabLayout() {
           tabBarLabel: 'Transaksi',
           headerTitle: () => <AdminHeaderTitle title="Transaksi" />,
           tabBarIcon: ({ color, size }) => (
-            <TabIcon name="receipt-outline" color={color.toString()} size={size} />
+            <TabIcon name="receipt-outline" color={String(color)} size={size} />
           ),
         }}
       />
