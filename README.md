@@ -88,19 +88,19 @@ Berdasarkan implementasi registrasi, tabel yang sudah dipakai:
 
 ---
 
-## Belum Selesai (Placeholder)
+## Status Layar
 
 Layar berikut sudah dibuat strukturnya, tetapi isinya masih placeholder:
 
 | Layar | File | Status |
 |-------|------|--------|
 | Login | `(auth)/login.tsx` | ✅ Selesai |
-| Beranda | `(tabs)/index.tsx` | ⏳ Placeholder |
-| Produk | `(tabs)/produk.tsx` | ⏳ Placeholder |
-| Riwayat | `(tabs)/riwayat.tsx` | ⏳ Placeholder |
+| Beranda | `(tabs)/index.tsx` | ✅ Selesai |
+| Produk | `(tabs)/produk.tsx` | ✅ Selesai |
+| Riwayat | `(tabs)/riwayat.tsx` | ✅ Selesai |
 | Profil | `(tabs)/profil.tsx` | ✅ Selesai |
-| Produk per Kategori | `produk/[kategori].tsx` | ⏳ Placeholder |
-| Pembelian | `produk/beli.tsx` | ⏳ Placeholder |
+| Produk per Kategori | `produk/[kategori].tsx` | ✅ Selesai |
+| Pembelian | `produk/beli.tsx` | ✅ Selesai |
 | Komponen UI reusable | `components/` | ⏳ Kosong |
 
 ---
