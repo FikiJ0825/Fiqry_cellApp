@@ -522,6 +522,14 @@ export default function ProfilScreen() {
       ) : null}
 
       <TouchableOpacity
+        style={styles.pinButton}
+        onPress={() => router.push('/(app)/pin')}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.pinButtonText}>PIN Transaksi</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
         style={[styles.logoutButton, loggingOut && styles.buttonDisabled]}
         onPress={handleLogout}
         disabled={loggingOut || saving || claimingBonus}
@@ -823,6 +831,19 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.7,
+  },
+  pinButton: {
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderRadius: Radius.md,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  pinButtonText: {
+    color: Colors.primary,
+    fontSize: FontSize.md,
+    fontWeight: '600',
   },
   logoutButton: {
     borderWidth: 1,

@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { periksaPin } from "../_shared/pin.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -90,6 +91,15 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Akun Anda dinonaktifkan, hubungi admin" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // PIN transaksi agen (6 digit) diverifikasi sebelum saldo disentuh
+    const hasilPin = await periksaPin(supabase, user.id, body?.pin);
+    if (!hasilPin.ok) {
+      return new Response(
+        JSON.stringify({ error: hasilPin.error, kode: hasilPin.kode }),
+        { status: hasilPin.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

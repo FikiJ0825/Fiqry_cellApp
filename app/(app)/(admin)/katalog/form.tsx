@@ -29,7 +29,7 @@ interface ProdukRow {
   aktif: boolean
 }
 
-// Kode dipakai di pesan perintah JW ({KODE.TUJUAN}.PIN) dan dicocokkan dengan balasan JW,
+// Kode dipakai di pesan perintah JW (KODE.TUJUAN.PIN) dan dicocokkan dengan balasan JW,
 // jadi hanya huruf besar dan angka.
 const KODE_PATTERN = /^[A-Z0-9]{2,20}$/
 
