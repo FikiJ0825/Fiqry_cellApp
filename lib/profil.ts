@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 export interface ProfilSaya {
   id: string
   nama: string | null
+  nomor_wa: string | null
   saldo: number
   tier: string | null
   aktif: boolean | null
@@ -20,7 +21,7 @@ export async function ambilProfilSaya(): Promise<ProfilSaya> {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, nama, saldo, tier, aktif')
+    .select('id, nama, nomor_wa, saldo, tier, aktif')
     .eq('id', user.id)
     .single()
 

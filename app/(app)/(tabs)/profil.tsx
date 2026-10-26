@@ -19,6 +19,7 @@ import {
   normalizeNomorWa,
 } from '../../../lib/auth-utils'
 import { formatRupiah } from '../../../lib/format'
+import { bukaTopupWa } from '../../../lib/topup'
 import { NOMOR_WA_ADMIN } from '../../../constants/config'
 import { Colors, FontSize, Radius } from '../../../constants/theme'
 
@@ -520,6 +521,14 @@ export default function ProfilScreen() {
           </TouchableOpacity>
         </View>
       ) : null}
+
+      <TouchableOpacity
+        style={styles.pinButton}
+        onPress={() => bukaTopupWa(profile.nama, profile.nomor_wa)}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.pinButtonText}>Top-up Saldo via WhatsApp Admin</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.pinButton}
