@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { Colors, FontSize, Radius } from '../../../constants/theme'
+import { Colors, FontSize, Radius } from '../../../../constants/theme'
 import  AdminPlaceholderScreen  from './_components/AdminPlaceholderScreen'
 
 export default function AdminProdukScreen() {

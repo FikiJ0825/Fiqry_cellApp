@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { ReactNode } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
-import { Colors, FontSize, Radius } from '../../../../constants/theme'
+import { Colors, FontSize, Radius } from '../../../../../constants/theme'
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
 
