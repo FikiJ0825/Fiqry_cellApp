@@ -8,10 +8,10 @@ Aplikasi penjualan pulsa, paket data, dan produk digital untuk jaringan agen **F
 
 | Layer | Teknologi |
 |-------|-----------|
-| Mobile | Expo SDK 57, React Native 0.86, React 19 |
+| Mobile | Expo SDK 58, React Native 0.88, React 19.3 |
 | Navigasi | Expo Router (file-based routing) |
 | Bahasa | TypeScript |
-| Backend | Supabase (Auth + PostgreSQL) |
+| Backend | Supabase (Auth, PostgreSQL, Edge Functions) + WA Bridge (Baileys) ke JW Administrasi |
 | Penyimpanan sesi | AsyncStorage |
 
 ---
@@ -30,14 +30,23 @@ app/
     │   ├── produk.tsx       # Daftar kategori produk
     │   ├── riwayat.tsx      # Riwayat transaksi
     │   └── profil.tsx       # Profil agen
-    └── produk/
-        ├── [kategori].tsx   # Daftar produk per kategori
-        └── beli.tsx         # Form pembelian produk
+    ├── produk/
+    │   ├── [kategori].tsx   # Daftar produk per kategori
+    │   └── beli.tsx         # Form pembelian produk
+    └── (admin)/             # Area admin (hanya role admin)
+        ├── (panel)/         # Tab admin: Dashboard, Agen, Produk, Transaksi
+        ├── katalog/         # Kelola katalog produk (stack di atas tab)
+        └── banner/          # Kelola banner promo (stack di atas tab)
 
 constants/theme.ts           # Warna, ukuran font, radius
 lib/supabase.ts              # Klien Supabase
 components/                  # Komponen UI (belum diisi)
+supabase/functions/          # Edge Function: create-transaction, wa-webhook
+supabase/migrations/         # Migrasi SQL (jalankan manual di SQL Editor)
+wa-bridge/                   # Server Express + Baileys (jalan di PC pulsa)
 ```
+
+> Jangan beri nama grup admin `(tabs)`: guard di `app/_layout.tsx` mengira itu area agen.
 
 ---
 
@@ -156,7 +165,7 @@ npm run web       # Web (preview)
 
 ## Catatan Pengembangan
 
-- Baca dokumentasi Expo versi proyek di [docs.expo.dev](https://docs.expo.dev/versions/v57.0.0/) sebelum menulis kode baru.
+- Baca dokumentasi Expo versi proyek di [docs.expo.dev](https://docs.expo.dev/versions/v58.0.0/) sebelum menulis kode baru.
 - Autentikasi menggunakan email sintetis dari nomor WA; tidak perlu verifikasi email terpisah.
 - Tier `master` memiliki `kode_referral` yang bisa dipakai agen baru saat registrasi.
 

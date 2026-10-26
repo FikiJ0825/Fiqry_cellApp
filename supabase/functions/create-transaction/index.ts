@@ -104,6 +104,16 @@ Deno.serve(async (req) => {
       );
     }
 
+    // PIN master wajib ada sebelum saldo dipotong; tanpa ini pesan terkirim dengan "undefined".
+    const pinMaster = Deno.env.get("PIN_MASTER");
+    if (!pinMaster) {
+      console.error("Env PIN_MASTER belum diatur");
+      return new Response(
+        JSON.stringify({ error: "Konfigurasi server belum lengkap, hubungi admin" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // 4. CEK & POTONG SALDO SECARA ATOMIC
     const { data: rpcData, error: rpcError } = await supabase.rpc("potong_saldo_atomic", {
       p_agen_id: user.id,
@@ -120,7 +130,10 @@ Deno.serve(async (req) => {
     const { saldo_sebelum, saldo_sesudah } = rpcData;
 
     // 5. BUAT BARIS TRANSAKSI
-    const pesan_request = `{${kode_produk}.${nomor_tujuan}}.${Deno.env.get("PIN_MASTER")}`;
+    // Format JW Administrasi: KODE.TUJUAN.PIN (tanpa kurung). PIN master hanya dikirim ke WA
+    // Center; yang disimpan di DB adalah versi tersamar supaya PIN tidak tercatat di tabel.
+    const pesan_request = `${kode_produk}.${nomor_tujuan}.${pinMaster}`;
+    const pesan_request_tersimpan = `${kode_produk}.${nomor_tujuan}.****`;
 
     const { data: transaksi, error: transaksiError } = await supabase
       .from("transaksi")
@@ -129,7 +142,7 @@ Deno.serve(async (req) => {
         kode_produk,
         nomor_tujuan,
         status: "pending",
-        pesan_request,
+        pesan_request: pesan_request_tersimpan,
         saldo_sebelum,
         saldo_sesudah,
       })
