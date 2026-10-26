@@ -24,15 +24,21 @@ export async function panggilFungsi<T = unknown>(
   let pesan = 'Terjadi kesalahan, silakan coba lagi'
   let kode: string | null = null
 
-  const context = (error as { context?: unknown }).context
-  if (context instanceof Response) {
+  // Jangan pakai `instanceof Response`: di React Native kelas Response bisa berbeda dari yang
+  // dipakai supabase-js, sehingga pesan asli server tidak pernah terbaca.
+  const context = (error as { context?: { text?: () => Promise<string> } }).context
+  if (context && typeof context.text === 'function') {
     try {
-      const json = (await context.json()) as { error?: string; kode?: string }
+      const json = JSON.parse(await context.text()) as { error?: string; kode?: string }
       if (json.error) pesan = json.error
       if (json.kode) kode = json.kode
     } catch {
       // body bukan JSON; pakai pesan default
     }
+  }
+
+  if (pesan === 'Terjadi kesalahan, silakan coba lagi') {
+    console.warn(`Edge function ${nama} gagal:`, error.message)
   }
 
   return { data: null, error: pesan, kode }
