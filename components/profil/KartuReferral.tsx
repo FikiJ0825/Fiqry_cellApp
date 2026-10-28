@@ -50,7 +50,7 @@ export default function KartuReferral({ kode, onSalin }: Props) {
           />
         </View>
       ) : (
-        <Text style={styles.kosong}>Kode referral akan muncul setelah akun Anda naik tier Master</Text>
+        <Text style={styles.kosong}>Kode referral Anda belum tersedia. Hubungi admin jika kode tidak muncul.</Text>
       )}
     </Card>
   )

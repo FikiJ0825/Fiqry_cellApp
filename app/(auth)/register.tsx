@@ -100,14 +100,14 @@ export default function RegisterScreen() {
         return
       }
 
-      let masterId: string | null = null
+      // Semua agen (Biasa maupun Master) punya kode referral, jadi kode dari tier mana pun valid
+      let referrerId: string | null = null
 
       if (trimmedKodeReferral) {
-        const { data: masterProfile, error: referralError } = await supabase
+        const { data: referrerProfile, error: referralError } = await supabase
           .from('profiles')
           .select('id')
           .eq('kode_referral', trimmedKodeReferral)
-          .eq('tier', 'master')
           .maybeSingle()
 
         if (referralError) {
@@ -115,12 +115,12 @@ export default function RegisterScreen() {
           return
         }
 
-        if (!masterProfile) {
+        if (!referrerProfile) {
           showError('Kode referral tidak valid')
           return
         }
 
-        masterId = masterProfile.id
+        referrerId = referrerProfile.id
       }
 
       const email = nomorWaToEmail(trimmedNomorWa)
@@ -155,8 +155,8 @@ export default function RegisterScreen() {
         email_auth: email,
       }
 
-      if (masterId) {
-        profileUpdate.direferensikan_oleh = masterId
+      if (referrerId) {
+        profileUpdate.direferensikan_oleh = referrerId
       }
 
       const { error: updateError } = await supabase
