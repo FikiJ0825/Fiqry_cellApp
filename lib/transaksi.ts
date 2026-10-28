@@ -1,4 +1,4 @@
-import { Colors } from '../constants/theme'
+import { Colors, PastelNama } from '../constants/theme'
 
 export type StatusTransaksi = 'pending' | 'diproses' | 'berhasil' | 'gagal'
 
@@ -24,6 +24,21 @@ export function getStatusColor(status: string): string {
       return Colors.warning
     default:
       return Colors.grey
+  }
+}
+
+/** Warna pastel untuk pil/ikon status transaksi */
+export function getStatusPastel(status: string): PastelNama {
+  switch (status) {
+    case 'berhasil':
+      return 'mint'
+    case 'gagal':
+      return 'rose'
+    case 'diproses':
+    case 'pending':
+      return 'butter'
+    default:
+      return 'sky'
   }
 }
 
