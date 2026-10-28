@@ -42,7 +42,8 @@ export default function RegisterScreen() {
 
     const trimmedNama = nama.trim()
     const trimmedNomorWa = nomorWa.trim()
-    const trimmedKodeReferral = kodeReferral.trim().toUpperCase()
+    // Kode referral dibuat huruf kecil di database; pencocokan tidak peka huruf besar/kecil di server
+    const trimmedKodeReferral = kodeReferral.trim()
 
     if (!trimmedNama) {
       showError('Nama lengkap wajib diisi')
@@ -100,27 +101,22 @@ export default function RegisterScreen() {
         return
       }
 
-      // Semua agen (Biasa maupun Master) punya kode referral, jadi kode dari tier mana pun valid
-      let referrerId: string | null = null
-
+      // Semua agen (Biasa maupun Master) punya kode referral, jadi kode dari tier mana pun valid.
+      // Dicek lewat RPC karena pendaftar belum login dan RLS profiles tidak mengizinkan membaca profil lain.
       if (trimmedKodeReferral) {
-        const { data: referrerProfile, error: referralError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('kode_referral', trimmedKodeReferral)
-          .maybeSingle()
+        const { data: kodeValid, error: referralError } = await supabase.rpc('cek_kode_referral', {
+          p_kode: trimmedKodeReferral,
+        })
 
         if (referralError) {
           showError(mapSupabaseError(referralError.message))
           return
         }
 
-        if (!referrerProfile) {
+        if (kodeValid !== true) {
           showError('Kode referral tidak valid')
           return
         }
-
-        referrerId = referrerProfile.id
       }
 
       const email = nomorWaToEmail(trimmedNomorWa)
@@ -146,22 +142,9 @@ export default function RegisterScreen() {
         return
       }
 
-      const profileUpdate: {
-        nomor_wa: string
-        email_auth: string
-        direferensikan_oleh?: string
-      } = {
-        nomor_wa: normalizedWa,
-        email_auth: email,
-      }
-
-      if (referrerId) {
-        profileUpdate.direferensikan_oleh = referrerId
-      }
-
       const { error: updateError } = await supabase
         .from('profiles')
-        .update(profileUpdate)
+        .update({ nomor_wa: normalizedWa, email_auth: email })
         .eq('id', userId)
 
       if (updateError) {
@@ -169,11 +152,20 @@ export default function RegisterScreen() {
         return
       }
 
+      // Akun sudah jadi; kegagalan memasang referral tidak boleh menggagalkan pendaftaran
+      let catatanReferral = ''
+      if (trimmedKodeReferral) {
+        const { error: pasangError } = await supabase.rpc('pasang_referral', { p_kode: trimmedKodeReferral })
+        if (pasangError) {
+          catatanReferral = ' Kode referral belum tercatat, hubungi admin bila perlu.'
+        }
+      }
+
       await supabase.auth.signOut()
 
       Alert.alert(
         'Berhasil',
-        'Akun berhasil dibuat. Silakan masuk dengan nomor WhatsApp dan password Anda.',
+        `Akun berhasil dibuat.${catatanReferral} Silakan masuk dengan nomor WhatsApp dan password Anda.`,
         [
           {
             text: 'OK',
@@ -261,9 +253,10 @@ export default function RegisterScreen() {
               label="Kode Referral (opsional)"
               ikon="gift-outline"
               value={kodeReferral}
-              onChangeText={(text) => setKodeReferral(text.toUpperCase())}
+              onChangeText={setKodeReferral}
               placeholder="Masukkan kode referral"
-              autoCapitalize="characters"
+              autoCapitalize="none"
+              autoCorrect={false}
               editable={!loading}
             />
 

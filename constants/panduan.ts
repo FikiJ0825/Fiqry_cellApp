@@ -88,14 +88,14 @@ export const BAGIAN_PANDUAN: BagianPanduan[] = [
         ikon: 'ribbon-outline',
         warna: 'butter',
         judul: 'Tier Agen Biasa & Master',
-        isi: 'Agen Master mendapat harga produk yang lebih murah daripada Agen Biasa. Semua agen punya kode referral. Anda naik otomatis menjadi Master ketika kode referral Anda sudah dipakai oleh sejumlah agen baru yang aktif bertransaksi. Tier Master kembali menjadi Biasa jika tidak ada transaksi selama 2 bulan.',
+        isi: 'Agen Master mendapat harga produk yang lebih murah daripada Agen Biasa. Semua agen punya kode referral. Anda naik otomatis menjadi Master ketika 5 agen yang mendaftar dengan kode referral Anda masing-masing sudah menyelesaikan 3 transaksi berhasil. Tier Master kembali menjadi Biasa jika tidak ada transaksi selama 2 bulan.',
       },
       {
         kunci: 'referral',
         ikon: 'gift-outline',
         warna: 'peach',
         judul: 'Kode Referral & Bonus',
-        isi: 'Setiap agen punya kode referral. Calon agen baru bisa memasukkan kode ini saat mendaftar (opsional). Kode Anda ada di tab Profil, tekan Salin lalu bagikan. Agen Master yang bertransaksi lebih dari 10 kali dalam sehari mendapat bonus saldo. Bonus yang tersedia muncul di Profil; tekan Klaim Sekarang dan Anda diarahkan ke WhatsApp Admin untuk prosesnya.',
+        isi: 'Setiap agen punya kode referral. Calon agen baru bisa memasukkan kode ini saat mendaftar (opsional). Kode Anda ada di tab Profil, tekan Salin lalu bagikan. Agen Master mendapat bonus Rp5.000 setiap 10 transaksi berhasil dalam sehari (transaksi ke-10, ke-20, dan seterusnya). Bonus yang tersedia muncul di Profil; tekan Klaim Sekarang dan Anda diarahkan ke WhatsApp Admin untuk prosesnya.',
       },
       {
         kunci: 'profil',
@@ -144,7 +144,7 @@ export const TANYA_JAWAB_PANDUAN: TanyaJawab[] = [
   },
   {
     tanya: 'Bagaimana cara naik menjadi Agen Master?',
-    jawab: 'Bagikan kode referral Anda (ada di tab Profil) ke calon agen baru. Setelah cukup banyak agen yang Anda ajak aktif bertransaksi, tier Anda naik otomatis menjadi Master.',
+    jawab: 'Bagikan kode referral Anda (ada di tab Profil) ke calon agen baru. Setelah 5 agen yang Anda ajak masing-masing menyelesaikan 3 transaksi berhasil, tier Anda naik otomatis menjadi Master.',
   },
 ]
 
