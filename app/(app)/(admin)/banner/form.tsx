@@ -466,6 +466,9 @@ export default function BannerFormScreen() {
     }
   }, [selectedKategori, tipeAksi, loadProdukByKategori])
 
+  // Pop-up berupa poster tegak (4:5); banner carousel mendatar (16:9). Pilih Tampilan dulu sebelum memilih gambar.
+  const rasioGambar = tampilan === 'popup' ? 4 / 5 : 16 / 9
+
   const handlePickImage = async () => {
     if (isBusy) return
 
@@ -478,7 +481,7 @@ export default function BannerFormScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      aspect: [16, 9],
+      aspect: tampilan === 'popup' ? [4, 5] : [16, 9],
       quality: 0.85,
     })
 
@@ -675,11 +678,19 @@ export default function BannerFormScreen() {
 
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>Gambar Banner</Text>
-              <Text style={styles.helperText}>Rasio 16:9 — carousel atau pop-up</Text>
+              <Text style={styles.helperText}>
+                {tampilan === 'popup'
+                  ? 'Rasio 4:5 (poster tegak) untuk pop-up. Ganti Tampilan di bawah dulu jika ingin banner carousel.'
+                  : 'Rasio 16:9 untuk carousel. Pilih Tampilan "Pop-up" dulu jika ingin poster tegak 4:5.'}
+              </Text>
 
               {previewUri ? (
                 <View style={styles.imagePreviewWrap}>
-                  <Image source={{ uri: previewUri }} style={styles.imagePreview} resizeMode="cover" />
+                  <Image
+                    source={{ uri: previewUri }}
+                    style={[styles.imagePreview, { aspectRatio: rasioGambar }]}
+                    resizeMode="cover"
+                  />
                   {hasNewImage ? (
                     <View style={styles.imageBadge}>
                       <Text style={styles.imageBadgeText}>Baru</Text>
@@ -687,7 +698,7 @@ export default function BannerFormScreen() {
                   ) : null}
                 </View>
               ) : (
-                <View style={styles.imagePlaceholder}>
+                <View style={[styles.imagePlaceholder, { aspectRatio: rasioGambar }]}>
                   <Text style={styles.imagePlaceholderIcon}>🖼️</Text>
                   <Text style={styles.imagePlaceholderText}>Belum ada gambar dipilih</Text>
                 </View>

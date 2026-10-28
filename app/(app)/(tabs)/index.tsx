@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import BannerCarousel from '../../../components/BannerCarousel'
 import PromoPopup from '../../../components/PromoPopup'
@@ -16,6 +16,7 @@ import { IoniconName, KATEGORI_PRODUK, TAMPILAN_KATEGORI } from '../../../consta
 import { Colors, FontSize, FontWeight, Pastel, PastelNama, Radius, Spacing } from '../../../constants/theme'
 import { BannerAktif, ambilBannerAktif, jalankanAksiBanner } from '../../../lib/banner'
 import { formatRupiah } from '../../../lib/format'
+import { sudahOnboarding } from '../../../lib/onboarding'
 import { ambilProfilSaya, ProfilSaya } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
 import { bukaTopupWa } from '../../../lib/topup'
@@ -82,6 +83,8 @@ export default function BerandaScreen() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [perluOnboarding, setPerluOnboarding] = useState(false)
+  const sudahDiarahkan = useRef(false)
 
   const muat = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true)
@@ -114,11 +117,13 @@ export default function BerandaScreen() {
       setRingkasan(hasil)
 
       // Bagian opsional: kegagalan memuatnya tidak boleh menutup seluruh Beranda
-      const [banners, kategori, transaksi] = await Promise.all([
+      const [banners, kategori, transaksi, onboardingSelesai] = await Promise.all([
         ambilBannerAktif().catch(() => null),
         ambilKategoriAktif().catch(() => null),
         ambilTransaksiTerakhir(profilSaya.id).catch(() => null),
+        sudahOnboarding(profilSaya.id),
       ])
+      setPerluOnboarding(!onboardingSelesai)
       setCarousel(banners ? banners.filter((b) => b.tampilan !== 'popup') : [])
       setPopup(banners ? (banners.find((b) => b.tampilan === 'popup') ?? null) : null)
       setKategoriAktif(kategori)
@@ -158,6 +163,14 @@ export default function BerandaScreen() {
       supabase.removeChannel(channel)
     }
   }, [profilId, muat])
+
+  // Slide sambutan: sekali per akun. Slide menandai dirinya sendiri saat dibuka, jadi tidak berulang.
+  useEffect(() => {
+    if (perluOnboarding && !sudahDiarahkan.current) {
+      sudahDiarahkan.current = true
+      router.push('/(app)/onboarding')
+    }
+  }, [perluOnboarding, router])
 
   const onPressBanner = async (banner: BannerAktif) => {
     const kode = await jalankanAksiBanner(banner)
@@ -209,6 +222,15 @@ export default function BerandaScreen() {
             </Text>
           </View>
           <Text style={styles.wordmark}>Ade Pulsa</Text>
+          <Pressable
+            onPress={() => router.push('/(app)/panduan')}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Buka panduan"
+            style={styles.bantuan}
+          >
+            <Ionicons name="help-circle-outline" size={22} color={Colors.textWhite} />
+          </Pressable>
         </View>
       </CurvedHeader>
 
@@ -284,6 +306,23 @@ export default function BerandaScreen() {
 
         {carousel.length > 0 ? <BannerCarousel banners={carousel} onPressBanner={onPressBanner} /> : null}
 
+        <Pressable
+          onPress={() => router.push('/(app)/panduan')}
+          accessibilityRole="button"
+          accessibilityLabel="Panduan AdePulsa"
+        >
+          {({ pressed }) => (
+            <Card style={[styles.panduan, pressed && styles.panduanTekan]}>
+              <IconTile ikon="book-outline" warna="sky" size={44} />
+              <View style={styles.panduanTeks}>
+                <Text style={styles.panduanJudul}>Panduan AdePulsa</Text>
+                <Text style={styles.panduanSub}>Pelajari fitur utama, promo, dan tanya jawab</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.grey} />
+            </Card>
+          )}
+        </Pressable>
+
         <View>
           <SectionHeader judul="Transaksi Hari Ini" />
           <View style={styles.statBaris}>
@@ -339,7 +378,7 @@ export default function BerandaScreen() {
         </View>
       </View>
 
-      <PromoPopup banner={popup} onPressBanner={onPressBanner} />
+      <PromoPopup banner={perluOnboarding ? null : popup} onPressBanner={onPressBanner} />
     </ScrollView>
   )
 }
@@ -409,6 +448,19 @@ const styles = StyleSheet.create({
   salamKecil: { color: Pastel.rose.bg, fontSize: FontSize.sm },
   nama: { color: Colors.textWhite, fontSize: FontSize.xl, fontWeight: FontWeight.bold, marginTop: 2 },
   wordmark: { color: Colors.textWhite, fontSize: FontSize.md, fontWeight: FontWeight.bold, opacity: 0.9 },
+  bantuan: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.full,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  panduan: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  panduanTekan: { opacity: 0.75 },
+  panduanTeks: { flex: 1 },
+  panduanJudul: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  panduanSub: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 2 },
   saldoWrap: { marginTop: -TINGGI_TUMPANG_TINDIH, marginHorizontal: Spacing.xl },
   saldoBaris: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md },
   saldoKolom: { flex: 1 },

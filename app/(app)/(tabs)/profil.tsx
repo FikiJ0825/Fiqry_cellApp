@@ -447,6 +447,14 @@ export default function ProfilScreen() {
                 keterangan: 'Buat atau ubah PIN 6 digit',
                 onPress: () => router.push('/(app)/pin'),
               },
+              {
+                kunci: 'panduan',
+                ikon: 'book-outline',
+                warna: 'lilac',
+                judul: 'Panduan',
+                keterangan: 'Cara memakai AdePulsa',
+                onPress: () => router.push('/(app)/panduan'),
+              },
             ]}
           />
 
