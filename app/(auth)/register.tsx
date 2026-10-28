@@ -1,49 +1,25 @@
+import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native'
-import { useRouter } from 'expo-router'
+import Button from '../../components/ui/Button'
+import Card from '../../components/ui/Card'
+import CurvedHeader from '../../components/ui/CurvedHeader'
+import Input from '../../components/ui/Input'
+import Logo from '../../components/ui/Logo'
+import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../constants/theme'
+import { mapSupabaseError, nomorWaToEmail, normalizeNomorWa } from '../../lib/auth-utils'
 import { supabase } from '../../lib/supabase'
-import { Colors, FontSize, Radius } from '../../constants/theme'
 
-function normalizeNomorWa(input: string): string {
-  let digits = input.replace(/\D/g, '')
-
-  if (digits.startsWith('0')) {
-    digits = '62' + digits.slice(1)
-  }
-
-  return digits
-}
-
-function nomorWaToEmail(nomorWa: string): string {
-  return `${normalizeNomorWa(nomorWa)}@apppulsa.app`
-}
-
-function mapSupabaseError(message: string): string {
-  const lower = message.toLowerCase()
-
-  if (lower.includes('already registered') || lower.includes('already been registered')) {
-    return 'Nomor WhatsApp sudah terdaftar'
-  }
-  if (lower.includes('password') && lower.includes('6')) {
-    return 'Password minimal 6 karakter'
-  }
-  if (lower.includes('invalid login credentials')) {
-    return 'Data login tidak valid'
-  }
-
-  return message || 'Terjadi kesalahan, silakan coba lagi'
-}
+const TINGGI_TUMPANG_TINDIH = 36
 
 export default function RegisterScreen() {
   const router = useRouter()
@@ -224,195 +200,102 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>App Pulsa</Text>
-        <Text style={styles.subtitle}>Daftar akun agen baru</Text>
-
-        {errorMessage ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{errorMessage}</Text>
+        <CurvedHeader ruangBawah={TINGGI_TUMPANG_TINDIH + Spacing.xxl}>
+          <View style={styles.hero}>
+            <Logo terang ukuran={52} />
+            <Text style={styles.subtitle}>Daftar akun agen baru</Text>
           </View>
-        ) : null}
+        </CurvedHeader>
 
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Nama Lengkap</Text>
-          <TextInput
-            style={styles.input}
-            value={nama}
-            onChangeText={setNama}
-            placeholder="Masukkan nama lengkap"
-            placeholderTextColor={Colors.textSecondary}
-            autoCapitalize="words"
-            editable={!loading}
-          />
+        <View style={styles.formWrap}>
+          <Card style={styles.form}>
+            {errorMessage ? (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            ) : null}
+
+            <Input
+              label="Nama Lengkap"
+              ikon="person-outline"
+              value={nama}
+              onChangeText={setNama}
+              placeholder="Masukkan nama lengkap"
+              autoCapitalize="words"
+              editable={!loading}
+            />
+
+            <Input
+              label="Nomor WhatsApp"
+              ikon="logo-whatsapp"
+              value={nomorWa}
+              onChangeText={setNomorWa}
+              placeholder="Contoh: 081234567890"
+              keyboardType="phone-pad"
+              editable={!loading}
+            />
+
+            <Input
+              label="Password"
+              ikon="lock-closed-outline"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Minimal 6 karakter"
+              kataSandi
+              autoCapitalize="none"
+              editable={!loading}
+            />
+
+            <Input
+              label="Konfirmasi Password"
+              ikon="lock-closed-outline"
+              value={konfirmasiPassword}
+              onChangeText={setKonfirmasiPassword}
+              placeholder="Ulangi password"
+              kataSandi
+              autoCapitalize="none"
+              editable={!loading}
+            />
+
+            <Input
+              label="Kode Referral (opsional)"
+              ikon="gift-outline"
+              value={kodeReferral}
+              onChangeText={(text) => setKodeReferral(text.toUpperCase())}
+              placeholder="Masukkan kode referral"
+              autoCapitalize="characters"
+              editable={!loading}
+            />
+
+            <Button label="Daftar" onPress={handleDaftar} loading={loading} />
+          </Card>
+
+          <Pressable
+            style={styles.link}
+            onPress={() => router.push('/(auth)/login')}
+            disabled={loading}
+            accessibilityRole="button"
+          >
+            <Text style={styles.linkTeks}>
+              Sudah punya akun? <Text style={styles.linkSorot}>Masuk di sini</Text>
+            </Text>
+          </Pressable>
         </View>
-
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Nomor WhatsApp</Text>
-          <TextInput
-            style={styles.input}
-            value={nomorWa}
-            onChangeText={setNomorWa}
-            placeholder="Contoh: 081234567890"
-            placeholderTextColor={Colors.textSecondary}
-            keyboardType="phone-pad"
-            editable={!loading}
-          />
-        </View>
-
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Minimal 6 karakter"
-            placeholderTextColor={Colors.textSecondary}
-            secureTextEntry
-            editable={!loading}
-          />
-        </View>
-
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Konfirmasi Password</Text>
-          <TextInput
-            style={styles.input}
-            value={konfirmasiPassword}
-            onChangeText={setKonfirmasiPassword}
-            placeholder="Ulangi password"
-            placeholderTextColor={Colors.textSecondary}
-            secureTextEntry
-            editable={!loading}
-          />
-        </View>
-
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Kode Referral (opsional)</Text>
-          <TextInput
-            style={styles.input}
-            value={kodeReferral}
-            onChangeText={(text) => setKodeReferral(text.toUpperCase())}
-            placeholder="Masukkan kode referral"
-            placeholderTextColor={Colors.textSecondary}
-            autoCapitalize="characters"
-            editable={!loading}
-          />
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleDaftar}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          {loading ? (
-            <View style={styles.buttonContent}>
-              <ActivityIndicator color={Colors.textWhite} size="small" />
-              <Text style={styles.buttonText}>Memproses...</Text>
-            </View>
-          ) : (
-            <Text style={styles.buttonText}>Daftar</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.loginLink}
-          onPress={() => router.push('/(auth)/login')}
-          disabled={loading}
-        >
-          <Text style={styles.loginLinkText}>
-            Sudah punya akun?{' '}
-            <Text style={styles.loginLinkHighlight}>Masuk di sini</Text>
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 32,
-  },
-  title: {
-    fontSize: FontSize.xxl,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: FontSize.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  errorBox: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radius.md,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: Colors.error,
-    fontSize: FontSize.sm,
-    textAlign: 'center',
-  },
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    marginBottom: 6,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: FontSize.md,
-    color: Colors.textPrimary,
-    backgroundColor: Colors.background,
-  },
-  button: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  buttonText: {
-    color: Colors.textWhite,
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-  },
-  loginLink: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  loginLinkText: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-  },
-  loginLinkHighlight: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
+  scrollContent: { flexGrow: 1, paddingBottom: Spacing.xxl },
+  hero: { alignItems: 'center', gap: Spacing.md, paddingTop: Spacing.lg },
+  subtitle: { color: Pastel.rose.bg, fontSize: FontSize.md },
+  formWrap: { marginTop: -TINGGI_TUMPANG_TINDIH, paddingHorizontal: Spacing.xl },
+  form: { gap: Spacing.lg },
+  errorBox: { backgroundColor: Pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
+  errorText: { color: Pastel.rose.teks, fontSize: FontSize.sm, fontWeight: FontWeight.semibold, textAlign: 'center' },
+  link: { marginTop: Spacing.xl, alignItems: 'center' },
+  linkTeks: { fontSize: FontSize.sm, color: Colors.textSecondary },
+  linkSorot: { color: Colors.primary, fontWeight: FontWeight.bold },
 })

@@ -19,7 +19,7 @@ import { formatRupiah } from '../../../lib/format'
 import { ambilProfilSaya, ProfilSaya } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
 import { bukaTopupWa } from '../../../lib/topup'
-import { awalHariIniIso, formatWaktu, getStatusPastel } from '../../../lib/transaksi'
+import { awalHariIniIso, formatWaktu, getStatusIkon, getStatusPastel } from '../../../lib/transaksi'
 
 interface RingkasanHariIni {
   total: number
@@ -44,11 +44,6 @@ const RINGKASAN_KOSONG: RingkasanHariIni = { total: 0, berhasil: 0, diproses: 0,
 // Grid menu 4 kolom x 2 baris; kalau kategori lebih banyak, slot terakhir menjadi "Lainnya"
 const SLOT_MENU = 8
 const TINGGI_TUMPANG_TINDIH = 44
-
-const IKON_STATUS: Record<string, IoniconName> = {
-  berhasil: 'checkmark-circle-outline',
-  gagal: 'close-circle-outline',
-}
 
 async function ambilKategoriAktif(): Promise<string[]> {
   const { data, error } = await supabase.from('produk').select('kategori').eq('aktif', true)
@@ -324,7 +319,7 @@ export default function BerandaScreen() {
             ) : (
               terakhir.map((t, i) => (
                 <View key={t.id} style={[styles.trxBaris, i > 0 && styles.trxGaris]}>
-                  <IconTile ikon={IKON_STATUS[t.status] ?? 'time-outline'} warna={getStatusPastel(t.status)} size={42} />
+                  <IconTile ikon={getStatusIkon(t.status)} warna={getStatusPastel(t.status)} size={42} />
                   <View style={styles.trxTengah}>
                     <Text style={styles.trxNama} numberOfLines={1}>
                       {namaProduk[t.kode_produk] ?? t.kode_produk}

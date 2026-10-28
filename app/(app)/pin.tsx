@@ -1,24 +1,15 @@
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native'
-import { Colors, FontSize, Radius } from '../../constants/theme'
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
+import Button from '../../components/ui/Button'
+import Card from '../../components/ui/Card'
+import IconTile from '../../components/ui/IconTile'
+import Loading from '../../components/ui/Loading'
+import PinInput from '../../components/ui/PinInput'
+import ResultSheet from '../../components/ui/ResultSheet'
+import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../constants/theme'
 import { panggilFungsi } from '../../lib/functions'
 import { supabase } from '../../lib/supabase'
-
-function hanya6Digit(value: string): string {
-  return value.replace(/\D/g, '').slice(0, 6)
-}
 
 export default function PinScreen() {
   const router = useRouter()
@@ -28,6 +19,7 @@ export default function PinScreen() {
   const [konfirmasi, setKonfirmasi] = useState('')
   const [saving, setSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [berhasil, setBerhasil] = useState(false)
 
   useEffect(() => {
     supabase.rpc('punya_pin').then(({ data }) => setPunyaPin(data === true))
@@ -57,18 +49,10 @@ export default function PinScreen() {
       return
     }
 
-    Alert.alert('Berhasil', 'PIN transaksi berhasil disimpan', [
-      { text: 'OK', onPress: () => router.back() },
-    ])
+    setBerhasil(true)
   }
 
-  if (punyaPin === null) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    )
-  }
+  if (punyaPin === null) return <Loading />
 
   const siap =
     !saving && pinBaru.length === 6 && konfirmasi.length === 6 && (!punyaPin || pinLama.length === 6)
@@ -76,63 +60,49 @@ export default function PinScreen() {
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.heading}>{punyaPin ? 'Ubah PIN Transaksi' : 'Buat PIN Transaksi'}</Text>
-        <Text style={styles.hint}>
-          PIN 6 digit dipakai setiap kali membeli produk. Jangan bagikan PIN ke siapa pun.
-        </Text>
+        <View style={styles.judulBaris}>
+          <IconTile ikon="shield-checkmark-outline" warna="sky" size={52} />
+          <View style={styles.judulTeks}>
+            <Text style={styles.heading}>{punyaPin ? 'Ubah PIN Transaksi' : 'Buat PIN Transaksi'}</Text>
+            <Text style={styles.hint}>
+              PIN 6 digit dipakai setiap kali membeli produk. Jangan bagikan PIN ke siapa pun.
+            </Text>
+          </View>
+        </View>
 
-        {punyaPin ? (
-          <>
-            <Text style={styles.fieldLabel}>PIN Lama</Text>
-            <TextInput
-              style={styles.input}
-              value={pinLama}
-              onChangeText={(v) => setPinLama(hanya6Digit(v))}
-              keyboardType="number-pad"
-              secureTextEntry
-              maxLength={6}
-              editable={!saving}
-            />
-          </>
+        <Card style={styles.form}>
+          {punyaPin ? <PinInput label="PIN Lama" value={pinLama} onChange={setPinLama} editable={!saving} /> : null}
+          <PinInput label="PIN Baru" value={pinBaru} onChange={setPinBaru} editable={!saving} />
+          <PinInput label="Ulangi PIN Baru" value={konfirmasi} onChange={setKonfirmasi} editable={!saving} />
+        </Card>
+
+        {errorMessage ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
         ) : null}
 
-        <Text style={styles.fieldLabel}>PIN Baru</Text>
-        <TextInput
-          style={styles.input}
-          value={pinBaru}
-          onChangeText={(v) => setPinBaru(hanya6Digit(v))}
-          keyboardType="number-pad"
-          secureTextEntry
-          maxLength={6}
-          editable={!saving}
-        />
-
-        <Text style={styles.fieldLabel}>Ulangi PIN Baru</Text>
-        <TextInput
-          style={styles.input}
-          value={konfirmasi}
-          onChangeText={(v) => setKonfirmasi(hanya6Digit(v))}
-          keyboardType="number-pad"
-          secureTextEntry
-          maxLength={6}
-          editable={!saving}
-        />
-
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-
-        <TouchableOpacity
-          style={[styles.submit, !siap && styles.submitDisabled]}
-          onPress={simpan}
-          disabled={!siap}
-          activeOpacity={0.85}
-        >
-          {saving ? (
-            <ActivityIndicator color={Colors.textWhite} />
-          ) : (
-            <Text style={styles.submitText}>Simpan PIN</Text>
-          )}
-        </TouchableOpacity>
+        <Button label="Simpan PIN" onPress={simpan} disabled={!siap} loading={saving} />
       </ScrollView>
+
+      <ResultSheet
+        visible={berhasil}
+        ikon="checkmark-circle-outline"
+        warna="mint"
+        judul="PIN tersimpan"
+        pesan="PIN transaksi berhasil disimpan."
+        aksi={{
+          label: 'Selesai',
+          onPress: () => {
+            setBerhasil(false)
+            router.back()
+          },
+        }}
+        onTutup={() => {
+          setBerhasil(false)
+          router.back()
+        }}
+      />
     </KeyboardAvoidingView>
   )
 }
@@ -140,24 +110,12 @@ export default function PinScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: 20, paddingBottom: 40 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
-  heading: { fontSize: FontSize.xl, fontWeight: '700', color: Colors.textPrimary, marginBottom: 6 },
-  hint: { fontSize: FontSize.sm, color: Colors.textSecondary, marginBottom: 16 },
-  fieldLabel: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.textSecondary, marginBottom: 6, marginTop: 8 },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: FontSize.lg,
-    letterSpacing: 6,
-    color: Colors.textPrimary,
-    backgroundColor: Colors.background,
-  },
-  errorText: { color: Colors.error, fontSize: FontSize.sm, textAlign: 'center', marginTop: 12 },
-  submit: { backgroundColor: Colors.primary, borderRadius: Radius.md, paddingVertical: 14, alignItems: 'center', marginTop: 20 },
-  submitDisabled: { opacity: 0.5 },
-  submitText: { color: Colors.textWhite, fontSize: FontSize.md, fontWeight: '700' },
+  content: { padding: Spacing.xl, paddingBottom: 40, gap: Spacing.lg },
+  judulBaris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  judulTeks: { flex: 1 },
+  heading: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  hint: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 2 },
+  form: { gap: Spacing.lg },
+  errorBox: { backgroundColor: Pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
+  errorText: { color: Pastel.rose.teks, fontSize: FontSize.sm, fontWeight: FontWeight.semibold, textAlign: 'center' },
 })

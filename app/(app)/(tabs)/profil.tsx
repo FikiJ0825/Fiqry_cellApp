@@ -1,27 +1,23 @@
-import { useCallback, useState } from 'react'
-import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { supabase } from '../../../lib/supabase'
-import {
-  formatNomorWaDisplay,
-  mapSupabaseError,
-  normalizeNomorWa,
-} from '../../../lib/auth-utils'
-import { formatRupiah } from '../../../lib/format'
-import { bukaTopupWa } from '../../../lib/topup'
+import { useCallback, useState } from 'react'
+import { Alert, KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
+import KartuBonus from '../../../components/profil/KartuBonus'
+import KartuReferral from '../../../components/profil/KartuReferral'
+import MenuList from '../../../components/profil/MenuList'
+import ProfilHeader from '../../../components/profil/ProfilHeader'
+import Button from '../../../components/ui/Button'
+import Card from '../../../components/ui/Card'
+import EmptyState from '../../../components/ui/EmptyState'
+import Input from '../../../components/ui/Input'
+import Loading from '../../../components/ui/Loading'
 import { NOMOR_WA_ADMIN } from '../../../constants/config'
-import { Colors, FontSize, Radius } from '../../../constants/theme'
+import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../../constants/theme'
+import { formatNomorWaDisplay, mapSupabaseError, normalizeNomorWa } from '../../../lib/auth-utils'
+import { formatRupiah } from '../../../lib/format'
+import { supabase } from '../../../lib/supabase'
+import { bukaTopupWa } from '../../../lib/topup'
 
 type Profile = {
   nama: string | null
@@ -49,15 +45,13 @@ const BULAN_INDONESIA = [
   'Desember',
 ]
 
+const TINGGI_TUMPANG_TINDIH = 44
+
 function formatTanggalIndonesia(iso: string): string {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return ''
 
   return `${date.getDate()} ${BULAN_INDONESIA[date.getMonth()]} ${date.getFullYear()}`
-}
-
-function getTierLabel(tier: string | null): string {
-  return tier?.toLowerCase() === 'master' ? 'Master' : 'Biasa'
 }
 
 export default function ProfilScreen() {
@@ -294,7 +288,6 @@ export default function ProfilScreen() {
     if (!profile?.kode_referral) return
 
     await Clipboard.setStringAsync(profile.kode_referral)
-    Alert.alert('Kode disalin!')
   }
 
   const handleLogout = () => {
@@ -318,21 +311,18 @@ export default function ProfilScreen() {
     ])
   }
 
-  if (loadingProfile) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    )
-  }
+  if (loadingProfile) return <Loading />
 
   if (!profile) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.emptyText}>Profil tidak ditemukan</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchProfile}>
-          <Text style={styles.retryButtonText}>Coba Lagi</Text>
-        </TouchableOpacity>
+      <View style={styles.pusat}>
+        <EmptyState
+          ikon="person-circle-outline"
+          judul="Profil tidak ditemukan"
+          keterangan={errorMessage || undefined}
+          aksiLabel="Coba Lagi"
+          onAksi={fetchProfile}
+        />
       </View>
     )
   }
@@ -343,528 +333,165 @@ export default function ProfilScreen() {
   const hasBonusPending = bonusPending > 0
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      {isInactive ? (
-        <View style={styles.inactiveBanner}>
-          <Text style={styles.inactiveBannerText}>
-            Akun nonaktif, hubungi admin
-          </Text>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <ProfilHeader
+          nama={profile.nama}
+          nomorWa={profile.nomor_wa ? formatNomorWaDisplay(profile.nomor_wa) : null}
+          isMaster={isMaster}
+          ruangBawah={TINGGI_TUMPANG_TINDIH + Spacing.xl}
+        />
+
+        <View style={styles.saldoWrap}>
+          <Card>
+            <Text style={styles.saldoLabel}>Saldo</Text>
+            <Text style={styles.saldoValue}>{formatRupiah(profile.saldo)}</Text>
+            {profile.dibuat_pada ? (
+              <Text style={styles.memberSince}>Member sejak {formatTanggalIndonesia(profile.dibuat_pada)}</Text>
+            ) : null}
+          </Card>
         </View>
-      ) : null}
 
-      <View style={styles.saldoCard}>
-        <Text style={styles.saldoLabel}>Saldo</Text>
-        <Text style={styles.saldoValue}>{formatRupiah(profile.saldo)}</Text>
-      </View>
-
-      <View style={styles.tierRow}>
-        <Text style={styles.sectionLabel}>Tier</Text>
-        <View
-          style={[
-            styles.tierBadge,
-            isMaster ? styles.tierBadgeMaster : styles.tierBadgeBiasa,
-          ]}
-        >
-          <Text
-            style={[
-              styles.tierBadgeText,
-              isMaster ? styles.tierBadgeTextMaster : styles.tierBadgeTextBiasa,
-            ]}
-          >
-            {getTierLabel(profile.tier)}
-          </Text>
-        </View>
-      </View>
-
-      {errorMessage && isEditing ? (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        </View>
-      ) : null}
-
-      {isEditing ? (
-        <>
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Nama Lengkap</Text>
-            <TextInput
-              style={styles.input}
-              value={editNama}
-              onChangeText={setEditNama}
-              placeholder="Masukkan nama lengkap"
-              placeholderTextColor={Colors.textSecondary}
-              autoCapitalize="words"
-              editable={!saving}
-            />
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Nomor WhatsApp</Text>
-            <TextInput
-              style={styles.input}
-              value={editNomorWa}
-              onChangeText={setEditNomorWa}
-              placeholder="Contoh: 081234567890"
-              placeholderTextColor={Colors.textSecondary}
-              keyboardType="phone-pad"
-              editable={!saving}
-            />
-          </View>
-
-          <View style={styles.editActions}>
-            <TouchableOpacity
-              style={[styles.buttonSecondary, saving && styles.buttonDisabled]}
-              onPress={cancelEditing}
-              disabled={saving}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.buttonSecondaryText}>Batal</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.buttonPrimary, saving && styles.buttonDisabled]}
-              onPress={handleSave}
-              disabled={saving}
-              activeOpacity={0.8}
-            >
-              {saving ? (
-                <View style={styles.buttonContent}>
-                  <ActivityIndicator color={Colors.textWhite} size="small" />
-                  <Text style={styles.buttonPrimaryText}>Menyimpan...</Text>
-                </View>
-              ) : (
-                <Text style={styles.buttonPrimaryText}>Simpan</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </>
-      ) : (
-        <>
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Nama</Text>
-              <Text style={styles.infoValue}>{profile.nama ?? '-'}</Text>
+        <View style={styles.body}>
+          {isInactive ? (
+            <View style={styles.nonaktif}>
+              <Ionicons name="warning" size={18} color={Pastel.butter.teks} />
+              <Text style={styles.nonaktifTeks}>Akun nonaktif, hubungi admin</Text>
             </View>
-            <View style={styles.divider} />
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Nomor WhatsApp</Text>
-              <Text style={styles.infoValue}>
-                {profile.nomor_wa
-                  ? formatNomorWaDisplay(profile.nomor_wa)
-                  : '-'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.referralSection}>
-            <Text style={styles.sectionLabel}>Kode Referral</Text>
-            {profile.kode_referral ? (
-              <View style={styles.referralBox}>
-                <Text style={styles.referralCode}>{profile.kode_referral}</Text>
-                <TouchableOpacity
-                  style={styles.copyButton}
-                  onPress={handleCopyReferral}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.copyButtonText}>Salin</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.referralPlaceholder}>
-                <Text style={styles.referralPlaceholderText}>
-                  Kode referral akan muncul setelah akun Anda naik tier Master
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {profile.dibuat_pada ? (
-            <Text style={styles.memberSince}>
-              Member sejak {formatTanggalIndonesia(profile.dibuat_pada)}
-            </Text>
           ) : null}
 
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={startEditing}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.editButtonText}>Edit Profil</Text>
-          </TouchableOpacity>
-        </>
-      )}
+          {isEditing ? (
+            <Card style={styles.form}>
+              <Text style={styles.formJudul}>Edit Profil</Text>
 
-      {!isEditing && hasBonusPending ? (
-        <View style={styles.bonusCard}>
-          <Text style={styles.bonusTitle}>🎉 Bonus Tersedia</Text>
-          <Text style={styles.bonusAmount}>{formatRupiah(bonusPending)}</Text>
-          <TouchableOpacity
-            style={[
-              styles.bonusClaimButton,
-              claimingBonus && styles.buttonDisabled,
-            ]}
-            onPress={handleClaimBonus}
-            disabled={claimingBonus || saving || loggingOut}
-            activeOpacity={0.8}
-          >
-            {claimingBonus ? (
-              <View style={styles.buttonContent}>
-                <ActivityIndicator color={Colors.textWhite} size="small" />
-                <Text style={styles.bonusClaimButtonText}>Memproses...</Text>
+              {errorMessage ? (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+                </View>
+              ) : null}
+
+              <Input
+                label="Nama Lengkap"
+                ikon="person-outline"
+                value={editNama}
+                onChangeText={setEditNama}
+                placeholder="Masukkan nama lengkap"
+                autoCapitalize="words"
+                editable={!saving}
+              />
+              <Input
+                label="Nomor WhatsApp"
+                ikon="logo-whatsapp"
+                value={editNomorWa}
+                onChangeText={setEditNomorWa}
+                placeholder="Contoh: 081234567890"
+                keyboardType="phone-pad"
+                editable={!saving}
+              />
+
+              <View style={styles.formAksi}>
+                <Button label="Batal" variant="outline" onPress={cancelEditing} disabled={saving} style={styles.formTombol} />
+                <Button label="Simpan" onPress={handleSave} loading={saving} style={styles.formTombol} />
               </View>
-            ) : (
-              <Text style={styles.bonusClaimButtonText}>Klaim Sekarang</Text>
-            )}
-          </TouchableOpacity>
+            </Card>
+          ) : (
+            <>
+              <Card style={styles.info}>
+                <View style={styles.infoBaris}>
+                  <Text style={styles.infoLabel}>Nama</Text>
+                  <Text style={styles.infoNilai}>{profile.nama ?? '-'}</Text>
+                </View>
+                <View style={styles.garis} />
+                <View style={styles.infoBaris}>
+                  <Text style={styles.infoLabel}>Nomor WhatsApp</Text>
+                  <Text style={styles.infoNilai}>
+                    {profile.nomor_wa ? formatNomorWaDisplay(profile.nomor_wa) : '-'}
+                  </Text>
+                </View>
+                <Button label="Edit Profil" icon="create-outline" variant="outline" size="sm" onPress={startEditing} />
+              </Card>
+
+              {hasBonusPending ? (
+                <KartuBonus
+                  jumlah={bonusPending}
+                  memproses={claimingBonus}
+                  nonaktif={claimingBonus || saving || loggingOut}
+                  onKlaim={handleClaimBonus}
+                />
+              ) : null}
+
+              <KartuReferral kode={profile.kode_referral} onSalin={handleCopyReferral} />
+            </>
+          )}
+
+          <MenuList
+            item={[
+              {
+                kunci: 'topup',
+                ikon: 'wallet-outline',
+                warna: 'mint',
+                judul: 'Top-up Saldo',
+                keterangan: 'Lewat WhatsApp Admin',
+                onPress: () => bukaTopupWa(profile.nama, profile.nomor_wa),
+              },
+              {
+                kunci: 'pin',
+                ikon: 'lock-closed-outline',
+                warna: 'sky',
+                judul: 'PIN Transaksi',
+                keterangan: 'Buat atau ubah PIN 6 digit',
+                onPress: () => router.push('/(app)/pin'),
+              },
+            ]}
+          />
+
+          <Button
+            label="Keluar"
+            icon="log-out-outline"
+            variant="danger"
+            onPress={handleLogout}
+            loading={loggingOut}
+            disabled={saving || claimingBonus}
+          />
         </View>
-      ) : null}
-
-      <TouchableOpacity
-        style={styles.pinButton}
-        onPress={() => bukaTopupWa(profile.nama, profile.nomor_wa)}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.pinButtonText}>Top-up Saldo via WhatsApp Admin</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.pinButton}
-        onPress={() => router.push('/(app)/pin')}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.pinButtonText}>PIN Transaksi</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.logoutButton, loggingOut && styles.buttonDisabled]}
-        onPress={handleLogout}
-        disabled={loggingOut || saving || claimingBonus}
-        activeOpacity={0.8}
-      >
-        {loggingOut ? (
-          <ActivityIndicator color={Colors.error} size="small" />
-        ) : (
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  centerContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.background,
-    padding: 24,
-  },
-  emptyText: {
-    fontSize: FontSize.md,
-    color: Colors.textSecondary,
-    marginBottom: 16,
-  },
-  retryButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.md,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  retryButtonText: {
-    color: Colors.textWhite,
-    fontSize: FontSize.md,
-    fontWeight: '600',
-  },
-  inactiveBanner: {
-    backgroundColor: Colors.warning,
-    borderRadius: Radius.md,
-    padding: 12,
-    marginBottom: 16,
-  },
-  inactiveBannerText: {
-    color: Colors.textWhite,
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  saldoCard: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.lg,
-    padding: 20,
-    marginBottom: 20,
-  },
-  saldoLabel: {
-    fontSize: FontSize.sm,
-    color: Colors.primaryLight,
-    marginBottom: 4,
-  },
-  saldoValue: {
-    fontSize: FontSize.xxl,
-    fontWeight: 'bold',
-    color: Colors.textWhite,
-  },
-  tierRow: {
+  flex: { flex: 1 },
+  container: { flex: 1, backgroundColor: Colors.background },
+  scrollContent: { paddingBottom: 40 },
+  pusat: { flex: 1, justifyContent: 'center', backgroundColor: Colors.background },
+  saldoWrap: { marginTop: -TINGGI_TUMPANG_TINDIH, marginHorizontal: Spacing.xl },
+  saldoLabel: { fontSize: FontSize.sm, color: Colors.textSecondary },
+  saldoValue: { fontSize: FontSize.xxl + 4, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginTop: 2 },
+  memberSince: { fontSize: FontSize.xs, color: Colors.grey, marginTop: Spacing.sm },
+  body: { padding: Spacing.xl, gap: Spacing.lg },
+  nonaktif: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  sectionLabel: {
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    marginBottom: 8,
-  },
-  tierBadge: {
-    borderRadius: Radius.full,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-  },
-  tierBadgeMaster: {
-    backgroundColor: Colors.primaryLight,
-  },
-  tierBadgeBiasa: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  tierBadgeText: {
-    fontSize: FontSize.sm,
-    fontWeight: '700',
-  },
-  tierBadgeTextMaster: {
-    color: Colors.primary,
-  },
-  tierBadgeTextBiasa: {
-    color: Colors.textSecondary,
-  },
-  errorBox: {
-    backgroundColor: Colors.primaryLight,
+    gap: Spacing.sm,
+    backgroundColor: Pastel.butter.bg,
     borderRadius: Radius.md,
-    padding: 12,
-    marginBottom: 16,
+    padding: Spacing.md,
   },
-  errorText: {
-    color: Colors.error,
-    fontSize: FontSize.sm,
-    textAlign: 'center',
-  },
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    marginBottom: 6,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: FontSize.md,
-    color: Colors.textPrimary,
-    backgroundColor: Colors.background,
-  },
-  infoCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: 16,
-    marginBottom: 20,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
-  },
-  infoLabel: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-    flex: 1,
-  },
-  infoValue: {
-    fontSize: FontSize.md,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    flex: 1,
-    textAlign: 'right',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginVertical: 12,
-  },
-  referralSection: {
-    marginBottom: 16,
-  },
-  referralBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderStyle: 'dashed',
-  },
-  referralCode: {
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    letterSpacing: 1,
-    flex: 1,
-  },
-  copyButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.sm,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginLeft: 12,
-  },
-  copyButtonText: {
-    color: Colors.textWhite,
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-  },
-  referralPlaceholder: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  referralPlaceholderText: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  memberSince: {
-    fontSize: FontSize.xs,
-    color: Colors.grey,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  editButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  editButtonText: {
-    color: Colors.textWhite,
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-  },
-  bonusCard: {
-    backgroundColor: Colors.success,
-    borderRadius: Radius.lg,
-    padding: 20,
-    marginBottom: 24,
-  },
-  bonusTitle: {
-    fontSize: FontSize.md,
-    fontWeight: '700',
-    color: Colors.textWhite,
-    marginBottom: 8,
-  },
-  bonusAmount: {
-    fontSize: FontSize.xxl,
-    fontWeight: 'bold',
-    color: Colors.textWhite,
-    marginBottom: 16,
-  },
-  bonusClaimButton: {
-    backgroundColor: Colors.textWhite,
-    borderRadius: Radius.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  bonusClaimButtonText: {
-    color: Colors.success,
-    fontSize: FontSize.md,
-    fontWeight: 'bold',
-  },
-  editActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  buttonPrimary: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  buttonPrimaryText: {
-    color: Colors.textWhite,
-    fontSize: FontSize.md,
-    fontWeight: 'bold',
-  },
-  buttonSecondary: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    borderRadius: Radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  buttonSecondaryText: {
-    color: Colors.textPrimary,
-    fontSize: FontSize.md,
-    fontWeight: '600',
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  pinButton: {
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: Radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  pinButtonText: {
-    color: Colors.primary,
-    fontSize: FontSize.md,
-    fontWeight: '600',
-  },
-  logoutButton: {
-    borderWidth: 1,
-    borderColor: Colors.error,
-    borderRadius: Radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-  },
-  logoutButtonText: {
-    color: Colors.error,
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-  },
+  nonaktifTeks: { flex: 1, fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Pastel.butter.teks },
+  info: { gap: Spacing.md },
+  infoBaris: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },
+  infoLabel: { flex: 1, fontSize: FontSize.sm, color: Colors.textSecondary },
+  infoNilai: { flex: 1, fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary, textAlign: 'right' },
+  garis: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border },
+  form: { gap: Spacing.lg },
+  formJudul: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  formAksi: { flexDirection: 'row', gap: Spacing.md },
+  formTombol: { flex: 1 },
+  errorBox: { backgroundColor: Pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
+  errorText: { color: Pastel.rose.teks, fontSize: FontSize.sm, fontWeight: FontWeight.semibold, textAlign: 'center' },
 })

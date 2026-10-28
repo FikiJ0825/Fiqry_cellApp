@@ -1,19 +1,22 @@
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
-import { Colors, FontSize, Radius } from '../../../constants/theme'
+import { FlatList, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import Card from '../../../components/ui/Card'
+import Chip from '../../../components/ui/Chip'
+import EmptyState from '../../../components/ui/EmptyState'
+import IconTile from '../../../components/ui/IconTile'
+import ScreenHeader from '../../../components/ui/ScreenHeader'
+import Skeleton from '../../../components/ui/Skeleton'
+import StatusPill from '../../../components/ui/StatusPill'
+import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../../constants/theme'
 import { formatRupiah } from '../../../lib/format'
 import { supabase } from '../../../lib/supabase'
-import { formatWaktu, getStatusColor, getStatusLabel, STATUS_TRANSAKSI } from '../../../lib/transaksi'
+import {
+  formatWaktu,
+  getStatusIkon,
+  getStatusPastel,
+  STATUS_TRANSAKSI,
+} from '../../../lib/transaksi'
 
 interface TransaksiRow {
   id: string
@@ -102,16 +105,10 @@ export default function RiwayatScreen() {
     [data, statusFilter],
   )
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    )
-  }
-
   return (
     <View style={styles.container}>
+      <ScreenHeader judul="Riwayat" keterangan="Semua transaksi pembelian Anda" />
+
       <View style={styles.filterWrap}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
           <Chip label="Semua" selected={statusFilter === null} onPress={() => setStatusFilter(null)} />
@@ -126,93 +123,73 @@ export default function RiwayatScreen() {
         </ScrollView>
       </View>
 
-      <FlatList
-        data={tampil}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} />}
-        ListEmptyComponent={
-          <Text style={errorMessage ? styles.errorText : styles.emptyText}>
-            {errorMessage || 'Belum ada transaksi.'}
-          </Text>
-        }
-        renderItem={({ item }) => {
-          const warna = getStatusColor(item.status)
-          return (
-            <View style={styles.card}>
-              <View style={styles.cardTop}>
+      {loading ? (
+        <View style={styles.list}>
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} height={92} radius={Radius.lg} />
+          ))}
+        </View>
+      ) : (
+        <FlatList
+          data={tampil}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[Colors.primary]} tintColor={Colors.primary} />
+          }
+          ListEmptyComponent={
+            errorMessage ? (
+              <EmptyState
+                ikon="alert-circle-outline"
+                judul="Riwayat belum bisa dimuat"
+                keterangan={errorMessage}
+                aksiLabel="Coba Lagi"
+                onAksi={() => muat()}
+              />
+            ) : (
+              <EmptyState
+                ikon="receipt-outline"
+                judul={statusFilter ? 'Tidak ada transaksi dengan status ini' : 'Belum ada transaksi'}
+                keterangan={statusFilter ? 'Coba pilih status lain.' : 'Transaksi Anda akan tampil di sini.'}
+              />
+            )
+          }
+          renderItem={({ item }) => (
+            <Card style={styles.kartu}>
+              <IconTile ikon={getStatusIkon(item.status)} warna={getStatusPastel(item.status)} size={44} />
+              <View style={styles.tengah}>
                 <Text style={styles.nama} numberOfLines={2}>
                   {namaProduk[item.kode_produk] ?? item.kode_produk}
                 </Text>
-                <Text style={[styles.status, { color: warna, borderColor: warna }]}>
-                  {getStatusLabel(item.status)}
+                <Text style={styles.tujuan} numberOfLines={1}>
+                  {item.nomor_tujuan}
                 </Text>
-              </View>
-              <Text style={styles.tujuan}>{item.nomor_tujuan}</Text>
-              <View style={styles.cardBottom}>
                 <Text style={styles.waktu}>{formatWaktu(item.dibuat_pada)}</Text>
-                <Text style={styles.harga}>{formatRupiah(item.saldo_sebelum - item.saldo_sesudah)}</Text>
+                {item.status === 'gagal' ? <Text style={styles.refund}>Saldo dikembalikan</Text> : null}
               </View>
-              {item.status === 'gagal' ? <Text style={styles.refund}>Saldo dikembalikan</Text> : null}
-            </View>
-          )
-        }}
-      />
+              <View style={styles.kanan}>
+                <Text style={styles.harga}>{formatRupiah(item.saldo_sebelum - item.saldo_sesudah)}</Text>
+                <StatusPill status={item.status} />
+              </View>
+            </Card>
+          )}
+        />
+      )}
     </View>
-  )
-}
-
-function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
-  return (
-    <TouchableOpacity
-      style={[styles.chip, selected && styles.chipSelected]}
-      onPress={onPress}
-      activeOpacity={0.75}
-    >
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
-    </TouchableOpacity>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
-  filterWrap: { borderBottomWidth: 1, borderBottomColor: Colors.border },
-  chipRow: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
-  chip: {
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-  },
-  chipSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipText: { fontSize: FontSize.sm, color: Colors.textSecondary, fontWeight: '600' },
-  chipTextSelected: { color: Colors.textWhite },
-  list: { padding: 16, gap: 10, paddingBottom: 40 },
-  emptyText: { textAlign: 'center', color: Colors.textSecondary, fontSize: FontSize.md, marginTop: 40 },
-  errorText: { textAlign: 'center', color: Colors.error, fontSize: FontSize.sm, marginTop: 40 },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 14,
-  },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  nama: { flex: 1, fontSize: FontSize.md, fontWeight: '600', color: Colors.textPrimary },
-  status: {
-    fontSize: FontSize.xs,
-    fontWeight: '700',
-    borderWidth: 1,
-    borderRadius: Radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  tujuan: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 4 },
-  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  waktu: { fontSize: FontSize.xs, color: Colors.textSecondary },
-  harga: { fontSize: FontSize.md, fontWeight: '700', color: Colors.primary },
-  refund: { fontSize: FontSize.xs, color: Colors.success, marginTop: 6 },
+  filterWrap: { paddingTop: Spacing.md },
+  chipRow: { paddingHorizontal: Spacing.xl, gap: Spacing.sm },
+  list: { padding: Spacing.xl, gap: Spacing.md, paddingBottom: 40 },
+  kartu: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
+  tengah: { flex: 1 },
+  nama: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
+  tujuan: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 2 },
+  waktu: { fontSize: FontSize.xs, color: Colors.grey, marginTop: 4 },
+  refund: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Pastel.mint.teks, marginTop: 4 },
+  kanan: { alignItems: 'flex-end', gap: 6 },
+  harga: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary },
 })

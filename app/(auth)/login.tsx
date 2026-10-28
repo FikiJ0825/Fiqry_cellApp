@@ -1,27 +1,31 @@
+import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native'
-import { useRouter } from 'expo-router'
-import { supabase } from '../../lib/supabase'
+import Button from '../../components/ui/Button'
+import Card from '../../components/ui/Card'
+import CurvedHeader from '../../components/ui/CurvedHeader'
+import Input from '../../components/ui/Input'
+import Logo from '../../components/ui/Logo'
+import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../constants/theme'
 import { mapSupabaseError, normalizeNomorWa } from '../../lib/auth-utils'
-import { Colors, FontSize, Radius } from '../../constants/theme'
+import { supabase } from '../../lib/supabase'
+
+const TINGGI_TUMPANG_TINDIH = 36
 
 export default function LoginScreen() {
   const router = useRouter()
 
   const [nomorWa, setNomorWa] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -91,188 +95,71 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>App Pulsa</Text>
-        <Text style={styles.subtitle}>Masuk ke akun agen Anda</Text>
+        <CurvedHeader ruangBawah={TINGGI_TUMPANG_TINDIH + Spacing.xxl}>
+          <View style={styles.hero}>
+            <Logo terang ukuran={64} />
+            <Text style={styles.subtitle}>Masuk ke akun agen Anda</Text>
+          </View>
+        </CurvedHeader>
 
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Nomor WhatsApp</Text>
-          <TextInput
-            style={styles.input}
-            value={nomorWa}
-            onChangeText={setNomorWa}
-            placeholder="Contoh: 081234567890"
-            placeholderTextColor={Colors.textSecondary}
-            keyboardType="phone-pad"
-            editable={!loading}
-          />
-        </View>
+        <View style={styles.formWrap}>
+          <Card style={styles.form}>
+            {errorMessage ? (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            ) : null}
 
-        <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.passwordWrapper}>
-            <TextInput
-              style={styles.passwordInput}
+            <Input
+              label="Nomor WhatsApp"
+              ikon="logo-whatsapp"
+              value={nomorWa}
+              onChangeText={setNomorWa}
+              placeholder="Contoh: 081234567890"
+              keyboardType="phone-pad"
+              editable={!loading}
+            />
+
+            <Input
+              label="Password"
+              ikon="lock-closed-outline"
               value={password}
               onChangeText={setPassword}
               placeholder="Masukkan password"
-              placeholderTextColor={Colors.textSecondary}
-              secureTextEntry={!showPassword}
+              kataSandi
+              autoCapitalize="none"
               editable={!loading}
             />
-            <TouchableOpacity
-              onPress={() => setShowPassword((prev) => !prev)}
-              disabled={loading}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Text style={styles.togglePasswordText}>
-                {showPassword ? 'Sembunyikan' : 'Tampilkan'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+
+            <Button label="Masuk" onPress={handleLogin} loading={loading} />
+          </Card>
+
+          <Pressable
+            style={styles.link}
+            onPress={() => router.push('/(auth)/register')}
+            disabled={loading}
+            accessibilityRole="button"
+          >
+            <Text style={styles.linkTeks}>
+              Belum punya akun? <Text style={styles.linkSorot}>Daftar di sini</Text>
+            </Text>
+          </Pressable>
         </View>
-
-        {errorMessage ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{errorMessage}</Text>
-          </View>
-        ) : null}
-
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          {loading ? (
-            <View style={styles.buttonContent}>
-              <ActivityIndicator color={Colors.textWhite} size="small" />
-              <Text style={styles.buttonText}>Memproses...</Text>
-            </View>
-          ) : (
-            <Text style={styles.buttonText}>Masuk</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.registerLink}
-          onPress={() => router.push('/(auth)/register')}
-          disabled={loading}
-        >
-          <Text style={styles.registerLinkText}>
-            Belum punya akun?{' '}
-            <Text style={styles.registerLinkHighlight}>Daftar di sini</Text>
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 32,
-  },
-  title: {
-    fontSize: FontSize.xxl,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: FontSize.md,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  errorBox: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radius.md,
-    padding: 12,
-    marginBottom: 8,
-  },
-  errorText: {
-    color: Colors.error,
-    fontSize: FontSize.sm,
-    textAlign: 'center',
-  },
-  fieldGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    marginBottom: 6,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: FontSize.md,
-    color: Colors.textPrimary,
-    backgroundColor: Colors.background,
-  },
-  passwordWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
-    paddingHorizontal: 14,
-    backgroundColor: Colors.background,
-  },
-  passwordInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: FontSize.md,
-    color: Colors.textPrimary,
-  },
-  togglePasswordText: {
-    fontSize: FontSize.sm,
-    color: Colors.primary,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  button: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  buttonText: {
-    color: Colors.textWhite,
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-  },
-  registerLink: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  registerLinkText: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-  },
-  registerLinkHighlight: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
+  scrollContent: { flexGrow: 1, paddingBottom: Spacing.xxl },
+  hero: { alignItems: 'center', gap: Spacing.md, paddingTop: Spacing.lg },
+  subtitle: { color: Pastel.rose.bg, fontSize: FontSize.md },
+  formWrap: { marginTop: -TINGGI_TUMPANG_TINDIH, paddingHorizontal: Spacing.xl },
+  form: { gap: Spacing.lg },
+  errorBox: { backgroundColor: Pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
+  errorText: { color: Pastel.rose.teks, fontSize: FontSize.sm, fontWeight: FontWeight.semibold, textAlign: 'center' },
+  link: { marginTop: Spacing.xl, alignItems: 'center' },
+  linkTeks: { fontSize: FontSize.sm, color: Colors.textSecondary },
+  linkSorot: { color: Colors.primary, fontWeight: FontWeight.bold },
 })

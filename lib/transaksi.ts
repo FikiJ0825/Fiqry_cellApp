@@ -1,3 +1,4 @@
+import type { IoniconName } from '../constants/produk'
 import { Colors, PastelNama } from '../constants/theme'
 
 export type StatusTransaksi = 'pending' | 'diproses' | 'berhasil' | 'gagal'
@@ -24,6 +25,18 @@ export function getStatusColor(status: string): string {
       return Colors.warning
     default:
       return Colors.grey
+  }
+}
+
+/** Ikon untuk baris transaksi sesuai status */
+export function getStatusIkon(status: string): IoniconName {
+  switch (status) {
+    case 'berhasil':
+      return 'checkmark-circle-outline'
+    case 'gagal':
+      return 'close-circle-outline'
+    default:
+      return 'time-outline'
   }
 }
 

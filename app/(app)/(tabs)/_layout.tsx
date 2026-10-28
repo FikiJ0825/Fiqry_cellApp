@@ -22,25 +22,26 @@ export default function TabLayout() {
           backgroundColor: Colors.surface,
           borderTopColor: Colors.border,
         },
-        headerStyle: {
-          backgroundColor: Colors.primary,
-        },
-        headerTintColor: Colors.textWhite,
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
+        // Semua tab memakai header sendiri (CurvedHeader/ScreenHeader), bukan header navigator
+        headerShown: false,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{ title: 'Beranda', headerShown: false, tabBarIcon: ikonTab('home', 'home-outline') }}
       />
-      <Tabs.Screen name="produk" options={{ title: 'Produk', tabBarIcon: ikonTab('grid', 'grid-outline') }} />
+      <Tabs.Screen
+        name="produk"
+        options={{ title: 'Produk', headerShown: false, tabBarIcon: ikonTab('grid', 'grid-outline') }}
+      />
       <Tabs.Screen
         name="riwayat"
-        options={{ title: 'Riwayat', tabBarIcon: ikonTab('receipt', 'receipt-outline') }}
+        options={{ title: 'Riwayat', headerShown: false, tabBarIcon: ikonTab('receipt', 'receipt-outline') }}
       />
-      <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarIcon: ikonTab('person', 'person-outline') }} />
+      <Tabs.Screen
+        name="profil"
+        options={{ title: 'Profil', headerShown: false, tabBarIcon: ikonTab('person', 'person-outline') }}
+      />
     </Tabs>
   )
 }

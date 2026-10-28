@@ -1,22 +1,22 @@
+import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
-import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native'
-import { Colors, FontSize, Radius } from '../../../constants/theme'
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
+import Button from '../../../components/ui/Button'
+import Card from '../../../components/ui/Card'
+import EmptyState from '../../../components/ui/EmptyState'
+import IconTile from '../../../components/ui/IconTile'
+import Input from '../../../components/ui/Input'
+import Loading from '../../../components/ui/Loading'
+import PinInput from '../../../components/ui/PinInput'
+import ResultSheet from '../../../components/ui/ResultSheet'
+import { IoniconName, KategoriProduk, TAMPILAN_KATEGORI } from '../../../constants/produk'
+import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../../constants/theme'
 import { formatRupiah } from '../../../lib/format'
 import { panggilFungsi } from '../../../lib/functions'
 import { ambilProfilSaya, hargaUntukTier, ProfilSaya } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
+import { bukaTopupWa } from '../../../lib/topup'
 
 interface ProdukRow {
   kode_produk: string
@@ -26,9 +26,17 @@ interface ProdukRow {
   harga_jual_master: number
 }
 
+type HasilTransaksi = { tipe: 'sukses' } | { tipe: 'gagal'; pesan: string }
+
 // Pulsa, data, e-wallet, listrik, dll. memakai angka; game bisa memakai ID huruf+angka.
 function bersihkanTujuan(value: string, kategori: string | null): string {
   return kategori === 'game' ? value.replace(/[^A-Za-z0-9]/g, '') : value.replace(/\D/g, '')
+}
+
+function ikonTujuan(kategori: string | null): IoniconName {
+  if (kategori === 'game') return 'game-controller-outline'
+  if (kategori === 'pulsa' || kategori === 'paket_data' || kategori === 'e_wallet') return 'call-outline'
+  return 'keypad-outline'
 }
 
 export default function BeliScreen() {
@@ -44,6 +52,8 @@ export default function BeliScreen() {
 
   const [tujuan, setTujuan] = useState('')
   const [pin, setPin] = useState('')
+  const [konfirmasiTampil, setKonfirmasiTampil] = useState(false)
+  const [hasil, setHasil] = useState<HasilTransaksi | null>(null)
 
   const muat = useCallback(async () => {
     setLoading(true)
@@ -88,9 +98,10 @@ export default function BeliScreen() {
 
   const kirim = async () => {
     if (!produk) return
+    setKonfirmasiTampil(false)
     setSubmitting(true)
 
-    const hasil = await panggilFungsi<{ transaksi_id: string }>('create-transaction', {
+    const respons = await panggilFungsi<{ transaksi_id: string }>('create-transaction', {
       kode_produk: produk.kode_produk,
       nomor_tujuan: tujuan,
       pin,
@@ -99,173 +110,174 @@ export default function BeliScreen() {
     setSubmitting(false)
     setPin('')
 
-    if (hasil.error) {
-      if (hasil.kode === 'PIN_BELUM_ADA') setPunyaPin(false)
-      Alert.alert('Transaksi gagal', hasil.error)
+    if (respons.error) {
+      if (respons.kode === 'PIN_BELUM_ADA') setPunyaPin(false)
+      setHasil({ tipe: 'gagal', pesan: respons.error })
       return
     }
 
-    Alert.alert('Transaksi diproses', 'Pantau statusnya di menu Riwayat.', [
-      { text: 'Lihat Riwayat', onPress: () => router.replace('/(app)/(tabs)/riwayat') },
-    ])
+    setHasil({ tipe: 'sukses' })
   }
 
-  const konfirmasi = () => {
-    if (!produk) return
-    Alert.alert(
-      'Konfirmasi pembelian',
-      `${produk.nama}\nTujuan: ${tujuan}\nHarga: ${formatRupiah(harga)}`,
-      [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Beli', onPress: kirim },
-      ],
-    )
-  }
-
-  if (loading && !produk) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    )
-  }
+  if (loading && !produk) return <Loading />
 
   if (!produk || !profil) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>{errorMessage || 'Produk tidak tersedia'}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={muat}>
-          <Text style={styles.retryText}>Coba Lagi</Text>
-        </TouchableOpacity>
+      <View style={styles.pusat}>
+        <EmptyState
+          ikon="alert-circle-outline"
+          judul="Produk belum bisa dimuat"
+          keterangan={errorMessage || 'Produk tidak tersedia'}
+          aksiLabel="Coba Lagi"
+          onAksi={muat}
+        />
       </View>
     )
   }
+
+  const tampilan = produk.kategori ? TAMPILAN_KATEGORI[produk.kategori as KategoriProduk] : undefined
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.summary}>
-          <Text style={styles.produkNama}>{produk.nama}</Text>
-          <Text style={styles.produkKode}>{produk.kode_produk}</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Harga</Text>
-            <Text style={styles.harga}>{formatRupiah(harga)}</Text>
+        <Card style={styles.ringkasan}>
+          <View style={styles.produkBaris}>
+            <IconTile ikon={tampilan?.ikon ?? 'cube-outline'} warna={tampilan?.warna ?? 'rose'} size={52} />
+            <View style={styles.produkTeks}>
+              <Text style={styles.produkNama}>{produk.nama}</Text>
+              <Text style={styles.produkKode}>{produk.kode_produk}</Text>
+            </View>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Saldo Anda</Text>
-            <Text style={[styles.value, saldoKurang && styles.valueError]}>{formatRupiah(profil.saldo)}</Text>
-          </View>
-        </View>
+          <View style={styles.garis} />
+          <BarisRincian label="Harga" nilai={formatRupiah(harga)} tebal />
+          <BarisRincian label="Saldo Anda" nilai={formatRupiah(profil.saldo)} merah={saldoKurang} />
+        </Card>
 
         {saldoKurang ? (
-          <Text style={styles.errorText}>Saldo tidak mencukupi. Top-up saldo lewat menu Profil.</Text>
+          <View style={styles.peringatan}>
+            <Ionicons name="alert-circle" size={20} color={Pastel.rose.fg} />
+            <Text style={styles.peringatanTeks}>Saldo tidak mencukupi untuk produk ini.</Text>
+            <Button
+              label="Top-up"
+              size="sm"
+              icon="add-circle-outline"
+              onPress={() => bukaTopupWa(profil.nama, profil.nomor_wa)}
+            />
+          </View>
         ) : null}
 
-        <Text style={styles.fieldLabel}>Nomor / ID Tujuan</Text>
-        <TextInput
-          style={styles.input}
+        <Input
+          label="Nomor / ID Tujuan"
+          ikon={ikonTujuan(produk.kategori)}
           value={tujuan}
           onChangeText={(v) => setTujuan(bersihkanTujuan(v, produk.kategori))}
           placeholder="Contoh: 081234567890"
-          placeholderTextColor={Colors.grey}
           keyboardType={produk.kategori === 'game' ? 'default' : 'number-pad'}
           autoCapitalize="none"
           maxLength={30}
           editable={!submitting}
+          wadah={styles.field}
         />
 
         {punyaPin ? (
-          <>
-            <Text style={styles.fieldLabel}>PIN Transaksi</Text>
-            <TextInput
-              style={styles.input}
-              value={pin}
-              onChangeText={(v) => setPin(v.replace(/\D/g, '').slice(0, 6))}
-              placeholder="6 digit PIN"
-              placeholderTextColor={Colors.grey}
-              keyboardType="number-pad"
-              secureTextEntry
-              maxLength={6}
-              editable={!submitting}
-            />
-          </>
+          <PinInput label="PIN Transaksi" value={pin} onChange={setPin} editable={!submitting} />
         ) : (
-          <View style={styles.pinNotice}>
-            <Text style={styles.pinNoticeText}>Buat PIN transaksi dulu sebelum bisa membeli.</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={() => router.push('/(app)/pin')}>
-              <Text style={styles.retryText}>Buat PIN</Text>
-            </TouchableOpacity>
+          <View style={styles.peringatan}>
+            <Ionicons name="lock-closed" size={20} color={Pastel.rose.fg} />
+            <Text style={styles.peringatanTeks}>Buat PIN transaksi dulu sebelum bisa membeli.</Text>
+            <Button label="Buat PIN" size="sm" onPress={() => router.push('/(app)/pin')} />
           </View>
         )}
 
-        <TouchableOpacity
-          style={[styles.submit, !siapKirim && styles.submitDisabled]}
-          onPress={konfirmasi}
+        <Button
+          label="Beli Sekarang"
+          icon="cart-outline"
+          onPress={() => setKonfirmasiTampil(true)}
           disabled={!siapKirim}
-          activeOpacity={0.85}
-        >
-          {submitting ? (
-            <ActivityIndicator color={Colors.textWhite} />
-          ) : (
-            <Text style={styles.submitText}>Beli Sekarang</Text>
-          )}
-        </TouchableOpacity>
+          loading={submitting}
+          style={styles.submit}
+        />
       </ScrollView>
+
+      <ResultSheet
+        visible={konfirmasiTampil}
+        ikon="cart-outline"
+        warna="rose"
+        judul="Konfirmasi pembelian"
+        pesan="Pastikan nomor tujuan sudah benar."
+        aksi={{ label: 'Beli Sekarang', onPress: kirim }}
+        aksiKedua={{ label: 'Batal', onPress: () => setKonfirmasiTampil(false) }}
+        onTutup={() => setKonfirmasiTampil(false)}
+      >
+        <Card padded style={styles.rincianSheet}>
+          <BarisRincian label="Produk" nilai={produk.nama} />
+          <BarisRincian label="Tujuan" nilai={tujuan} />
+          <BarisRincian label="Harga" nilai={formatRupiah(harga)} tebal />
+        </Card>
+      </ResultSheet>
+
+      <ResultSheet
+        visible={hasil !== null}
+        ikon={hasil?.tipe === 'sukses' ? 'checkmark-circle-outline' : 'close-circle-outline'}
+        warna={hasil?.tipe === 'sukses' ? 'mint' : 'rose'}
+        judul={hasil?.tipe === 'sukses' ? 'Transaksi diproses' : 'Transaksi gagal'}
+        pesan={hasil?.tipe === 'sukses' ? 'Pantau statusnya di menu Riwayat.' : hasil?.pesan}
+        aksi={
+          hasil?.tipe === 'sukses'
+            ? {
+                label: 'Lihat Riwayat',
+                onPress: () => {
+                  setHasil(null)
+                  router.replace('/(app)/(tabs)/riwayat')
+                },
+              }
+            : { label: 'Mengerti', onPress: () => setHasil(null) }
+        }
+        aksiKedua={hasil?.tipe === 'sukses' ? { label: 'Tutup', onPress: () => setHasil(null) } : undefined}
+        onTutup={() => setHasil(null)}
+      />
     </KeyboardAvoidingView>
+  )
+}
+
+function BarisRincian({ label, nilai, tebal = false, merah = false }: { label: string; nilai: string; tebal?: boolean; merah?: boolean }) {
+  return (
+    <View style={styles.rincian}>
+      <Text style={styles.rincianLabel}>{label}</Text>
+      <Text style={[styles.rincianNilai, tebal && styles.rincianTebal, merah && styles.rincianMerah]} numberOfLines={2}>
+        {nilai}
+      </Text>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: 20, paddingBottom: 40 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: Colors.background },
-  summary: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 16,
-    marginBottom: 16,
-  },
-  produkNama: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.textPrimary },
-  produkKode: { fontSize: FontSize.xs, color: Colors.textSecondary, marginBottom: 12 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  label: { fontSize: FontSize.sm, color: Colors.textSecondary },
-  harga: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.primary },
-  value: { fontSize: FontSize.md, fontWeight: '600', color: Colors.textPrimary },
-  valueError: { color: Colors.error },
-  fieldLabel: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.textSecondary, marginBottom: 6, marginTop: 8 },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: FontSize.md,
-    color: Colors.textPrimary,
-    backgroundColor: Colors.background,
-    marginBottom: 8,
-  },
-  errorText: { color: Colors.error, fontSize: FontSize.sm, textAlign: 'center', marginBottom: 12 },
-  pinNotice: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radius.md,
-    padding: 14,
-    marginTop: 8,
+  content: { padding: Spacing.xl, paddingBottom: 40, gap: Spacing.lg },
+  pusat: { flex: 1, justifyContent: 'center', backgroundColor: Colors.background },
+  ringkasan: { gap: Spacing.sm },
+  produkBaris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  produkTeks: { flex: 1 },
+  produkNama: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  produkKode: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 2 },
+  garis: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border, marginVertical: Spacing.xs },
+  rincian: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.lg },
+  rincianLabel: { fontSize: FontSize.sm, color: Colors.textSecondary },
+  rincianNilai: { flexShrink: 1, fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary, textAlign: 'right' },
+  rincianTebal: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.primaryDark },
+  rincianMerah: { color: Colors.error },
+  rincianSheet: { gap: Spacing.sm, backgroundColor: Colors.background },
+  peringatan: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-  },
-  pinNoticeText: { color: Colors.primaryDark, fontSize: FontSize.sm, textAlign: 'center' },
-  retryButton: { backgroundColor: Colors.primary, borderRadius: Radius.md, paddingHorizontal: 20, paddingVertical: 10 },
-  retryText: { color: Colors.textWhite, fontSize: FontSize.md, fontWeight: '600' },
-  submit: {
-    backgroundColor: Colors.primary,
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    backgroundColor: Pastel.rose.bg,
     borderRadius: Radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 20,
+    padding: Spacing.md,
   },
-  submitDisabled: { opacity: 0.5 },
-  submitText: { color: Colors.textWhite, fontSize: FontSize.md, fontWeight: '700' },
+  peringatanTeks: { flex: 1, minWidth: 140, fontSize: FontSize.sm, color: Pastel.rose.teks, fontWeight: FontWeight.semibold },
+  field: { marginTop: Spacing.xs },
+  submit: { marginTop: Spacing.sm },
 })

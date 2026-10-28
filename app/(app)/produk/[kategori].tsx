@@ -1,10 +1,12 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
-import { useCallback, useState } from 'react'
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { useFocusEffect } from 'expo-router'
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
+import { useCallback, useMemo, useState } from 'react'
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native'
+import ProdukBaris from '../../../components/ProdukBaris'
+import EmptyState from '../../../components/ui/EmptyState'
+import Input from '../../../components/ui/Input'
+import Skeleton from '../../../components/ui/Skeleton'
 import { getKategoriLabel } from '../../../constants/produk'
-import { Colors, FontSize, Radius } from '../../../constants/theme'
-import { formatRupiah } from '../../../lib/format'
+import { Colors, Radius, Spacing } from '../../../constants/theme'
 import { ambilProfilSaya, hargaUntukTier } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
 
@@ -20,6 +22,7 @@ export default function ProdukPerKategoriScreen() {
   const { kategori } = useLocalSearchParams<{ kategori: string }>()
   const [produk, setProduk] = useState<ProdukRow[]>([])
   const [tier, setTier] = useState<string | null>(null)
+  const [cari, setCari] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -61,41 +64,68 @@ export default function ProdukPerKategoriScreen() {
     }, [muat]),
   )
 
+  const kataCari = cari.trim().toLowerCase()
+  const tampil = useMemo(
+    () => (kataCari ? produk.filter((p) => `${p.nama} ${p.kode_produk}`.toLowerCase().includes(kataCari)) : produk),
+    [produk, kataCari],
+  )
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: getKategoriLabel(kategori) }} />
 
       {loading && produk.length === 0 ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+        <View style={styles.list}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} height={72} radius={Radius.lg} />
+          ))}
         </View>
       ) : (
         <FlatList
-          data={produk}
+          data={tampil}
           keyExtractor={(item) => item.kode_produk}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} />}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[Colors.primary]} tintColor={Colors.primary} />
+          }
+          ListHeaderComponent={
+            produk.length > 0 ? (
+              <Input
+                ikon="search-outline"
+                value={cari}
+                onChangeText={setCari}
+                placeholder="Cari di kategori ini"
+                autoCorrect={false}
+                accessibilityLabel="Cari produk di kategori ini"
+              />
+            ) : undefined
+          }
           ListEmptyComponent={
-            <Text style={errorMessage ? styles.errorText : styles.emptyText}>
-              {errorMessage || 'Belum ada produk aktif di kategori ini.'}
-            </Text>
+            errorMessage ? (
+              <EmptyState
+                ikon="alert-circle-outline"
+                judul="Produk belum bisa dimuat"
+                keterangan={errorMessage}
+                aksiLabel="Coba Lagi"
+                onAksi={() => muat()}
+              />
+            ) : (
+              <EmptyState
+                ikon="cube-outline"
+                judul={cari ? 'Produk tidak ditemukan' : 'Belum ada produk'}
+                keterangan={cari ? 'Coba kata kunci lain.' : 'Belum ada produk aktif di kategori ini.'}
+              />
+            )
           }
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              activeOpacity={0.8}
-              onPress={() =>
-                router.push({ pathname: '/(app)/produk/beli', params: { kode: item.kode_produk } })
-              }
-            >
-              <View style={styles.cardText}>
-                <Text style={styles.nama} numberOfLines={2}>
-                  {item.nama}
-                </Text>
-                <Text style={styles.kode}>{item.kode_produk}</Text>
-              </View>
-              <Text style={styles.harga}>{formatRupiah(hargaUntukTier(tier, item))}</Text>
-            </TouchableOpacity>
+            <ProdukBaris
+              nama={item.nama}
+              kode={item.kode_produk}
+              harga={hargaUntukTier(tier, item)}
+              kategori={kategori}
+              onPress={() => router.push({ pathname: '/(app)/produk/beli', params: { kode: item.kode_produk } })}
+            />
           )}
         />
       )}
@@ -105,22 +135,5 @@ export default function ProdukPerKategoriScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  list: { padding: 16, gap: 10, paddingBottom: 40 },
-  emptyText: { textAlign: 'center', color: Colors.textSecondary, fontSize: FontSize.md, marginTop: 40 },
-  errorText: { textAlign: 'center', color: Colors.error, fontSize: FontSize.sm, marginTop: 40 },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 14,
-    gap: 12,
-  },
-  cardText: { flex: 1 },
-  nama: { fontSize: FontSize.md, fontWeight: '600', color: Colors.textPrimary },
-  kode: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 2 },
-  harga: { fontSize: FontSize.md, fontWeight: '700', color: Colors.primary },
+  list: { padding: Spacing.xl, gap: Spacing.md, paddingBottom: 40 },
 })

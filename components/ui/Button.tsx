@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, ViewStyle } 
 import { IoniconName } from '../../constants/produk'
 import { Colors, FontSize, FontWeight, Radius, Spacing } from '../../constants/theme'
 
-type Variant = 'primary' | 'soft' | 'outline'
+type Variant = 'primary' | 'soft' | 'outline' | 'danger'
 
 interface Props {
   label: string
@@ -20,6 +20,7 @@ const WARNA: Record<Variant, { bg: string; teks: string; border: string }> = {
   primary: { bg: Colors.primary, teks: Colors.textWhite, border: Colors.primary },
   soft: { bg: Colors.primaryLight, teks: Colors.primaryDark, border: Colors.primaryLight },
   outline: { bg: Colors.surface, teks: Colors.primary, border: Colors.primary },
+  danger: { bg: Colors.surface, teks: Colors.error, border: Colors.error },
 }
 
 export default function Button({
