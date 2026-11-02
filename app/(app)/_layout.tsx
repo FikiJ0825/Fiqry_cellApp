@@ -7,8 +7,8 @@ export default function AppLayout() {
 
   const headerAgen = {
     headerShown: true,
-    headerStyle: { backgroundColor: colors.header },
-    headerTintColor: colors.textWhite,
+    headerStyle: { backgroundColor: colors.background },
+    headerTintColor: colors.textPrimary,
     headerTitleStyle: { fontFamily: Font.semibold },
     headerShadowVisible: false,
   }

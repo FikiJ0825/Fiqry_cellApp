@@ -378,7 +378,7 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   },
   chipSelected: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
   chipText: { fontSize: FontSize.sm, color: t.colors.textSecondary, fontFamily: Font.semibold },
-  chipTextSelected: { fontFamily: Font.regular, color: t.colors.textWhite },
+  chipTextSelected: { color: t.colors.textWhite },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   saveButton: {
     backgroundColor: t.colors.primary,

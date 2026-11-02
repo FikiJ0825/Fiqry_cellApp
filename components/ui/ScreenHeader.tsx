@@ -1,30 +1,43 @@
 import { ReactNode } from 'react'
-import { StyleSheet, Text } from 'react-native'
-import { FontSize, Spacing, Font } from '../../constants/theme'
-import CurvedHeader from './CurvedHeader'
+import { StyleSheet, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Font, FontSize, Spacing } from '../../constants/theme'
 import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
   judul: string
   keterangan?: string
-  /** Ruang kosong di bawah, tempat kartu/kolom cari menimpa tepi header */
+  /** Tombol/elemen di sisi kanan judul, mis. <TombolKotak /> */
+  kanan?: ReactNode
+  /** Tidak dipakai lagi (header terang tidak lagi menimpa kartu); dipertahankan agar pemanggil lama tetap valid */
   ruangBawah?: number
   children?: ReactNode
 }
 
-/** Header judul layar tab: CurvedHeader dengan judul dan keterangan singkat */
-export default function ScreenHeader({ judul, keterangan, ruangBawah = Spacing.xl, children }: Props) {
+/** Header judul layar bergaya tema 1: terang, tanpa blok warna; judul gelap + keterangan abu-kecokelatan */
+export default function ScreenHeader({ judul, keterangan, kanan, children }: Props) {
   const styles = useStyles(buatStyles)
+  const insets = useSafeAreaInsets()
+
   return (
-    <CurvedHeader ruangBawah={ruangBawah}>
-      <Text style={styles.judul}>{judul}</Text>
-      {keterangan ? <Text style={styles.keterangan}>{keterangan}</Text> : null}
+    <View style={[styles.wadah, { paddingTop: insets.top + Spacing.md }]}>
+      <View style={styles.baris}>
+        <View style={styles.teks}>
+          <Text style={styles.judul}>{judul}</Text>
+          {keterangan ? <Text style={styles.keterangan}>{keterangan}</Text> : null}
+        </View>
+        {kanan}
+      </View>
       {children}
-    </CurvedHeader>
+    </View>
   )
 }
 
-const buatStyles = (t: Theme) => StyleSheet.create({
-  judul: { color: t.colors.textWhite, fontSize: FontSize.xxl, fontFamily: Font.bold },
-  keterangan: { fontFamily: Font.regular, color: t.pastel.rose.bg, fontSize: FontSize.sm, marginTop: 2 },
-})
+const buatStyles = (t: Theme) =>
+  StyleSheet.create({
+    wadah: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.md },
+    baris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+    teks: { flex: 1 },
+    judul: { fontFamily: Font.bold, color: t.colors.textPrimary, fontSize: FontSize.xxl },
+    keterangan: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.sm, marginTop: 2 },
+  })

@@ -13,6 +13,7 @@ import Card from '../../../components/ui/Card'
 import EmptyState from '../../../components/ui/EmptyState'
 import Input from '../../../components/ui/Input'
 import Loading from '../../../components/ui/Loading'
+import Screen from '../../../components/ui/Screen'
 import { NOMOR_WA_ADMIN } from '../../../constants/config'
 import { FontSize, Radius, Spacing, Font } from '../../../constants/theme'
 import { formatNomorWaDisplay, mapSupabaseError, normalizeNomorWa } from '../../../lib/auth-utils'
@@ -47,7 +48,6 @@ const BULAN_INDONESIA = [
   'Desember',
 ]
 
-const TINGGI_TUMPANG_TINDIH = 44
 
 function formatTanggalIndonesia(iso: string): string {
   const date = new Date(iso)
@@ -337,6 +337,7 @@ export default function ProfilScreen() {
   const hasBonusPending = bonusPending > 0
 
   return (
+    <Screen>
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
         style={styles.container}
@@ -348,7 +349,6 @@ export default function ProfilScreen() {
           nama={profile.nama}
           nomorWa={profile.nomor_wa ? formatNomorWaDisplay(profile.nomor_wa) : null}
           isMaster={isMaster}
-          ruangBawah={TINGGI_TUMPANG_TINDIH + Spacing.xl}
         />
 
         <View style={styles.saldoWrap}>
@@ -475,15 +475,16 @@ export default function ProfilScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </Screen>
   )
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: t.colors.background },
+  container: { flex: 1 },
   scrollContent: { paddingBottom: 40 },
   pusat: { flex: 1, justifyContent: 'center', backgroundColor: t.colors.background },
-  saldoWrap: { marginTop: -TINGGI_TUMPANG_TINDIH, marginHorizontal: Spacing.xl },
+  saldoWrap: { marginTop: Spacing.sm, marginHorizontal: Spacing.xl },
   saldoLabel: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
   saldoValue: { fontSize: FontSize.xxl + 4, fontFamily: Font.bold, color: t.colors.textPrimary, marginTop: 2 },
   memberSince: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.grey, marginTop: Spacing.sm },

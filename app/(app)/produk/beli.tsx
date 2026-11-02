@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCallback, useState } from 'react'
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Button from '../../../components/ui/Button'
@@ -8,6 +9,8 @@ import EmptyState from '../../../components/ui/EmptyState'
 import IconTile from '../../../components/ui/IconTile'
 import Input from '../../../components/ui/Input'
 import Loading from '../../../components/ui/Loading'
+import Screen from '../../../components/ui/Screen'
+import TombolKotak from '../../../components/ui/TombolKotak'
 import PinInput from '../../../components/ui/PinInput'
 import ResultSheet from '../../../components/ui/ResultSheet'
 import { IoniconName, KategoriProduk, TAMPILAN_KATEGORI } from '../../../constants/produk'
@@ -44,6 +47,7 @@ export default function BeliScreen() {
   const styles = useStyles(buatStyles)
   const { pastel } = useTheme()
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const { kode } = useLocalSearchParams<{ kode: string }>()
 
   const [produk, setProduk] = useState<ProdukRow | null>(null)
@@ -141,6 +145,7 @@ export default function BeliScreen() {
   const tampilan = produk.kategori ? TAMPILAN_KATEGORI[produk.kategori as KategoriProduk] : undefined
 
   return (
+    <Screen>
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Card style={styles.ringkasan}>
@@ -151,8 +156,10 @@ export default function BeliScreen() {
               <Text style={styles.produkKode}>{produk.kode_produk}</Text>
             </View>
           </View>
-          <View style={styles.garis} />
-          <BarisRincian label="Harga" nilai={formatRupiah(harga)} tebal />
+          <View style={styles.hargaKotak}>
+            <Text style={styles.hargaLabel}>Harga</Text>
+            <Text style={styles.hargaBesar}>{formatRupiah(harga)}</Text>
+          </View>
           <BarisRincian label="Saldo Anda" nilai={formatRupiah(profil.saldo)} merah={saldoKurang} />
         </Card>
 
@@ -191,7 +198,15 @@ export default function BeliScreen() {
             <Button label="Buat PIN" size="sm" onPress={() => router.push('/(app)/pin')} />
           </View>
         )}
+      </ScrollView>
 
+      <View style={[styles.barBawah, { paddingBottom: Math.max(insets.bottom, 12) + 4 }]}>
+        <TombolKotak
+          ikon="wallet-outline"
+          label="Top-up saldo"
+          ukuran={52}
+          onPress={() => bukaTopupWa(profil.nama, profil.nomor_wa)}
+        />
         <Button
           label="Beli Sekarang"
           icon="cart-outline"
@@ -200,7 +215,7 @@ export default function BeliScreen() {
           loading={submitting}
           style={styles.submit}
         />
-      </ScrollView>
+      </View>
 
       <ResultSheet
         visible={konfirmasiTampil}
@@ -240,6 +255,7 @@ export default function BeliScreen() {
         onTutup={() => setHasil(null)}
       />
     </KeyboardAvoidingView>
+    </Screen>
   )
 }
 
@@ -257,20 +273,35 @@ function BarisRincian({ label, nilai, tebal = false, merah = false }: { label: s
 
 const buatStyles = (t: Theme) => StyleSheet.create({
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: t.colors.background },
-  content: { padding: Spacing.xl, paddingBottom: 40, gap: Spacing.lg },
+  container: { flex: 1 },
+  content: { padding: Spacing.xl, paddingBottom: Spacing.xl, gap: Spacing.lg },
   pusat: { flex: 1, justifyContent: 'center', backgroundColor: t.colors.background },
   ringkasan: { gap: Spacing.sm },
   produkBaris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   produkTeks: { flex: 1 },
   produkNama: { fontSize: FontSize.lg, fontFamily: Font.bold, color: t.colors.textPrimary },
   produkKode: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary, marginTop: 2 },
-  garis: { height: StyleSheet.hairlineWidth, backgroundColor: t.colors.border, marginVertical: Spacing.xs },
+  hargaKotak: {
+    backgroundColor: t.colors.primaryLight,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    marginVertical: Spacing.xs,
+  },
+  hargaLabel: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
+  hargaBesar: { fontFamily: Font.bold, fontSize: FontSize.xxl + 2, color: t.colors.primaryDark, marginTop: 2 },
+  barBawah: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.md,
+  },
   rincian: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.lg },
   rincianLabel: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
   rincianNilai: { flexShrink: 1, fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary, textAlign: 'right' },
   rincianTebal: { fontSize: FontSize.lg, fontFamily: Font.bold, color: t.colors.primaryDark },
-  rincianMerah: { fontFamily: Font.regular, color: t.colors.error },
+  rincianMerah: { color: t.colors.error },
   rincianSheet: { gap: Spacing.sm, backgroundColor: t.colors.background },
   peringatan: {
     flexDirection: 'row',
@@ -283,5 +314,5 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   },
   peringatanTeks: { flex: 1, minWidth: 140, fontSize: FontSize.sm, color: t.pastel.rose.teks, fontFamily: Font.semibold },
   field: { marginTop: Spacing.xs },
-  submit: { marginTop: Spacing.sm },
+  submit: { flex: 1 },
 })

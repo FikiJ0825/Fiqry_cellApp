@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { ReactNode } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { FontSize, Radius, Font } from '../../../../../constants/theme'
+import Screen from '../../../../../components/ui/Screen'
 import { Theme, useStyles, useTheme } from '../../../../../lib/theme'
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
@@ -22,6 +23,7 @@ export default function AdminPlaceholderScreen({
   const styles = useStyles(buatStyles)
   const { colors } = useTheme()
   return (
+    <Screen>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -37,20 +39,20 @@ export default function AdminPlaceholderScreen({
 
       {children}
     </ScrollView>
+    </Screen>
   )
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: t.colors.surface,
   },
   content: {
     padding: 16,
     paddingBottom: 32,
   },
   heroCard: {
-    backgroundColor: t.colors.background,
+    backgroundColor: t.colors.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: t.colors.border,

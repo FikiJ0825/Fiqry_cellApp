@@ -14,6 +14,7 @@ import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { formatNomorWaDisplay } from '../../../../lib/auth-utils'
 import { formatRupiah } from '../../../../lib/format'
 import { supabase } from '../../../../lib/supabase'
+import Screen from '../../../../components/ui/Screen'
 import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 interface AgenRow {
@@ -75,6 +76,7 @@ export default function AdminAgenScreen() {
   }
 
   return (
+    <Screen>
     <View style={styles.container}>
       <TextInput
         style={styles.search}
@@ -114,12 +116,13 @@ export default function AdminAgenScreen() {
         )}
       />
     </View>
+    </Screen>
   )
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.surface },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.colors.surface },
+  container: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   search: { fontFamily: Font.regular,
     margin: 16,
     marginBottom: 0,

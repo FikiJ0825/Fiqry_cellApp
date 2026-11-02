@@ -1,21 +1,23 @@
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Button from '../../components/ui/Button'
-import CurvedHeader from '../../components/ui/CurvedHeader'
+import Screen from '../../components/ui/Screen'
 import IconTile from '../../components/ui/IconTile'
 import { SLIDE_SAMBUTAN, SlideSambutan } from '../../constants/panduan'
 import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { tandaiOnboarding } from '../../lib/onboarding'
 import { supabase } from '../../lib/supabase'
-import { Theme, useStyles } from '../../lib/theme'
+import { Theme, useStyles, useTheme } from '../../lib/theme'
 
 export default function OnboardingScreen() {
   const styles = useStyles(buatStyles)
   const router = useRouter()
   const { width } = useWindowDimensions()
   const insets = useSafeAreaInsets()
+  const { colors } = useTheme()
   const listRef = useRef<FlatList<SlideSambutan>>(null)
   const [index, setIndex] = useState(0)
 
@@ -43,7 +45,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <FlatList
         ref={listRef}
         data={SLIDE_SAMBUTAN}
@@ -55,13 +57,18 @@ export default function OnboardingScreen() {
         onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
         renderItem={({ item }) => (
           <View style={{ width }}>
-            <CurvedHeader ruangBawah={Spacing.xxl * 2}>
+            <LinearGradient
+              colors={[colors.heroFrom, colors.heroTo]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}
+            >
               <View style={styles.ilustrasi}>
                 <View style={styles.cincin}>
                   <IconTile ikon={item.ikon} warna={item.warna} size={120} />
                 </View>
               </View>
-            </CurvedHeader>
+            </LinearGradient>
             <View style={styles.teksWrap}>
               <Text style={styles.judul}>{item.judul}</Text>
               <Text style={styles.isi}>{item.isi}</Text>
@@ -89,12 +96,17 @@ export default function OnboardingScreen() {
         </View>
         <Button label={terakhir ? 'Mulai Sekarang' : 'Lanjut'} onPress={lanjut} />
       </View>
-    </View>
+    </Screen>
   )
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.background },
+  hero: {
+    paddingBottom: Spacing.xxl * 2,
+    borderBottomLeftRadius: Radius.xl + 4,
+    borderBottomRightRadius: Radius.xl + 4,
+    overflow: 'hidden',
+  },
   ilustrasi: { alignItems: 'center', paddingTop: Spacing.xxl },
   cincin: {
     width: 176,
@@ -108,7 +120,7 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   judul: { fontSize: FontSize.xxl, fontFamily: Font.bold, color: t.colors.textPrimary, textAlign: 'center' },
   isi: { fontFamily: Font.regular, fontSize: FontSize.md, color: t.colors.textSecondary, textAlign: 'center', lineHeight: 23 },
   lewati: { position: 'absolute', right: Spacing.xl },
-  lewatiTeks: { color: t.colors.textWhite, fontSize: FontSize.md, fontFamily: Font.semibold },
+  lewatiTeks: { color: t.colors.onHeader, fontSize: FontSize.md, fontFamily: Font.semibold },
   kontrol: { paddingHorizontal: Spacing.xl, gap: Spacing.xl },
   titikBaris: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
   titik: { width: 6, height: 6, borderRadius: 3, backgroundColor: t.colors.border },

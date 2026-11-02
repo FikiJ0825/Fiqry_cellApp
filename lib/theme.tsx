@@ -34,13 +34,13 @@ const TEMA_GELAP: Theme = { colors: DarkColors, pastel: PastelGelap, shadow: Sha
 
 const ThemeContext = createContext<ThemeContextValue>({
   ...TEMA_TERANG,
-  preferensi: 'otomatis',
+  preferensi: 'terang',
   setPreferensi: () => {},
 })
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const sistem = useColorScheme()
-  const [preferensi, setPreferensiState] = useState<PreferensiTema>('otomatis')
+  const [preferensi, setPreferensiState] = useState<PreferensiTema>('terang')
 
   useEffect(() => {
     AsyncStorage.getItem(KUNCI)

@@ -1,17 +1,20 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import BannerCarousel from '../../../components/BannerCarousel'
 import PromoPopup from '../../../components/PromoPopup'
 import Button from '../../../components/ui/Button'
 import Card from '../../../components/ui/Card'
-import CurvedHeader from '../../../components/ui/CurvedHeader'
 import EmptyState from '../../../components/ui/EmptyState'
+import HeroCard from '../../../components/ui/HeroCard'
 import IconTile from '../../../components/ui/IconTile'
+import Screen from '../../../components/ui/Screen'
 import SectionHeader from '../../../components/ui/SectionHeader'
 import Skeleton from '../../../components/ui/Skeleton'
 import StatusPill from '../../../components/ui/StatusPill'
+import TombolKotak from '../../../components/ui/TombolKotak'
 import { IoniconName, KATEGORI_PRODUK, TAMPILAN_KATEGORI } from '../../../constants/produk'
 import { FontSize, PastelNama, Radius, Spacing, Font } from '../../../constants/theme'
 import { BannerAktif, ambilBannerAktif, jalankanAksiBanner } from '../../../lib/banner'
@@ -45,7 +48,6 @@ const RINGKASAN_KOSONG: RingkasanHariIni = { total: 0, berhasil: 0, diproses: 0,
 
 // Grid menu 4 kolom x 2 baris; kalau kategori lebih banyak, slot terakhir menjadi "Lainnya"
 const SLOT_MENU = 8
-const TINGGI_TUMPANG_TINDIH = 44
 
 async function ambilKategoriAktif(): Promise<string[]> {
   const { data, error } = await supabase.from('produk').select('kategori').eq('aktif', true)
@@ -76,6 +78,7 @@ export default function BerandaScreen() {
   const styles = useStyles(buatStyles)
   const { colors, pastel } = useTheme()
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const [profil, setProfil] = useState<ProfilSaya | null>(null)
   const [ringkasan, setRingkasan] = useState<RingkasanHariIni>(RINGKASAN_KOSONG)
   const [carousel, setCarousel] = useState<BannerAktif[]>([])
@@ -184,10 +187,10 @@ export default function BerandaScreen() {
 
   if (!profil) {
     return (
-      <View style={styles.container}>
-        <CurvedHeader>
+      <Screen>
+        <View style={[styles.atas, { paddingTop: insets.top + Spacing.md }]}>
           <Text style={styles.wordmark}>Ade Pulsa</Text>
-        </CurvedHeader>
+        </View>
         <EmptyState
           ikon="alert-circle-outline"
           judul="Beranda belum bisa dimuat"
@@ -195,7 +198,7 @@ export default function BerandaScreen() {
           aksiLabel="Coba Lagi"
           onAksi={() => muat()}
         />
-      </View>
+      </Screen>
     )
   }
 
@@ -209,37 +212,27 @@ export default function BerandaScreen() {
   const menuKategori = perluLainnya ? kategoriTersedia.slice(0, SLOT_MENU - 1) : kategoriTersedia
 
   return (
+    <Screen>
     <ScrollView
-      style={styles.container}
+      style={styles.scroll}
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[colors.primary]} tintColor={colors.primary} />
       }
     >
-      <CurvedHeader ruangBawah={TINGGI_TUMPANG_TINDIH + Spacing.xl}>
-        <View style={styles.headerBaris}>
-          <View style={styles.headerSalam}>
-            <Text style={styles.salamKecil}>Selamat datang,</Text>
-            <Text style={styles.nama} numberOfLines={1}>
-              {profil.nama ?? 'Agen'}
-            </Text>
-          </View>
-          <Text style={styles.wordmark}>Ade Pulsa</Text>
-          <Pressable
-            onPress={() => router.push('/(app)/panduan')}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Buka panduan"
-            style={styles.bantuan}
-          >
-            <Ionicons name="help-circle-outline" size={22} color={colors.textWhite} />
-          </Pressable>
+      <View style={[styles.atas, { paddingTop: insets.top + Spacing.md }]}>
+        <TombolKotak ikon="help-circle-outline" label="Buka panduan" onPress={() => router.push('/(app)/panduan')} />
+        <View style={styles.headerSalam}>
+          <Text style={styles.salamKecil}>Selamat datang,</Text>
+          <Text style={styles.nama} numberOfLines={1}>
+            {profil.nama ?? 'Agen'}
+          </Text>
         </View>
-      </CurvedHeader>
+        <Text style={styles.wordmark}>Ade Pulsa</Text>
+      </View>
 
       <View style={styles.saldoWrap}>
-        <Card style={styles.saldoKartu}>
-          <View pointerEvents="none" style={styles.saldoCahaya} />
+        <HeroCard>
           <View style={styles.saldoBaris}>
             <View style={styles.saldoKolom}>
               <Text style={styles.saldoLabel}>Saldo Anda</Text>
@@ -247,17 +240,16 @@ export default function BerandaScreen() {
                 {formatRupiah(profil.saldo)}
               </Text>
             </View>
-            <View style={[styles.tierPill, { backgroundColor: pastel[tierWarna].bg }]}>
-              <Ionicons name={isMaster ? 'ribbon' : 'person'} size={13} color={pastel[tierWarna].fg} />
-              <Text style={[styles.tierText, { color: pastel[tierWarna].teks }]}>
-                {isMaster ? 'Agen Master' : 'Agen Biasa'}
-              </Text>
+            <View style={styles.tierPill}>
+              <Ionicons name={isMaster ? 'ribbon' : 'person'} size={13} color={colors.onHeader} />
+              <Text style={styles.tierText}>{isMaster ? 'Agen Master' : 'Agen Biasa'}</Text>
             </View>
           </View>
           <View style={styles.saldoAksi}>
             <Button
               label="Top-up"
               icon="add-circle-outline"
+              variant="light"
               size="sm"
               style={styles.saldoTombol}
               onPress={() => bukaTopupWa(profil.nama, profil.nomor_wa)}
@@ -265,13 +257,13 @@ export default function BerandaScreen() {
             <Button
               label="Riwayat"
               icon="receipt-outline"
-              variant="light"
+              variant="glass"
               size="sm"
               style={styles.saldoTombol}
               onPress={() => router.push('/(app)/(tabs)/riwayat')}
             />
           </View>
-        </Card>
+        </HeroCard>
       </View>
 
       <View style={styles.body}>
@@ -384,6 +376,7 @@ export default function BerandaScreen() {
 
       <PromoPopup banner={perluOnboarding ? null : popup} onPressBanner={onPressBanner} />
     </ScrollView>
+    </Screen>
   )
 }
 
@@ -427,77 +420,55 @@ function StatTile({ label, nilai, warna }: { label: string; nilai: number; warna
 
 function BerandaSkeleton() {
   const styles = useStyles(buatStyles)
+  const insets = useSafeAreaInsets()
   return (
-    <View style={styles.container}>
-      <CurvedHeader ruangBawah={TINGGI_TUMPANG_TINDIH + Spacing.xl}>
-        <Skeleton width={110} height={12} />
-        <Skeleton width={190} height={20} style={styles.skeletonNama} />
-      </CurvedHeader>
+    <Screen>
+      <View style={[styles.atas, { paddingTop: insets.top + Spacing.md }]}>
+        <Skeleton width={42} height={42} radius={Radius.md} />
+        <View style={styles.headerSalam}>
+          <Skeleton width={110} height={12} />
+          <Skeleton width={160} height={18} style={styles.skeletonNama} />
+        </View>
+      </View>
       <View style={styles.saldoWrap}>
-        <Card>
-          <Skeleton width={90} height={12} />
-          <Skeleton width={170} height={28} style={styles.skeletonNama} />
-          <Skeleton height={38} radius={Radius.full} style={styles.skeletonNama} />
-        </Card>
+        <Skeleton height={150} radius={Radius.xl} />
       </View>
       <View style={styles.body}>
         <Skeleton height={150} radius={Radius.lg} />
         <Skeleton height={80} radius={Radius.lg} />
       </View>
-    </View>
+    </Screen>
   )
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.background },
+  scroll: { flex: 1 },
   content: { paddingBottom: 40 },
-  headerBaris: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md },
+  atas: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.xl },
   headerSalam: { flex: 1 },
-  salamKecil: { fontFamily: Font.regular, color: t.pastel.rose.bg, fontSize: FontSize.sm },
-  nama: { color: t.colors.textWhite, fontSize: FontSize.xl, fontFamily: Font.bold, marginTop: 2 },
-  wordmark: { color: t.colors.textWhite, fontSize: FontSize.md, fontFamily: Font.bold, opacity: 0.9 },
-  bantuan: {
-    width: 36,
-    height: 36,
-    borderRadius: Radius.full,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  salamKecil: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.sm },
+  nama: { color: t.colors.textPrimary, fontSize: FontSize.lg, fontFamily: Font.bold },
+  wordmark: { color: t.colors.accent, fontSize: FontSize.md, fontFamily: Font.bold },
   panduan: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   panduanTekan: { opacity: 0.75 },
   panduanTeks: { flex: 1 },
   panduanJudul: { fontSize: FontSize.md, fontFamily: Font.bold, color: t.colors.textPrimary },
   panduanSub: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary, marginTop: 2 },
-  saldoWrap: { marginTop: -TINGGI_TUMPANG_TINDIH, marginHorizontal: Spacing.xl },
+  saldoWrap: { marginTop: Spacing.lg, marginHorizontal: Spacing.xl },
   saldoBaris: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md },
   saldoKolom: { flex: 1 },
-  saldoKartu: {
-    backgroundColor: t.colors.ink,
-    borderColor: 'rgba(229,80,95,0.32)',
-    overflow: 'hidden',
-    ...t.shadow.float,
-  },
-  saldoCahaya: {
-    position: 'absolute',
-    width: 190,
-    height: 190,
-    borderRadius: 95,
-    top: -95,
-    right: -50,
-    backgroundColor: 'rgba(139,13,26,0.55)',
-  },
-  saldoLabel: { fontFamily: Font.regular, color: 'rgba(245,242,237,0.65)', fontSize: FontSize.sm },
-  saldoValue: { color: '#F5F2ED', fontSize: FontSize.xxl + 4, fontFamily: Font.bold, marginTop: 2 },
+  saldoLabel: { fontFamily: Font.regular, color: t.colors.onHeaderSoft, fontSize: FontSize.sm },
+  saldoValue: { color: t.colors.onHeader, fontSize: FontSize.xxl + 6, fontFamily: Font.bold, marginTop: 2 },
   tierPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     borderRadius: Radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.20)',
   },
-  tierText: { fontSize: FontSize.xs, fontFamily: Font.bold },
+  tierText: { color: t.colors.onHeader, fontSize: FontSize.xs, fontFamily: Font.semibold },
   saldoAksi: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg },
   saldoTombol: { flex: 1 },
   body: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, gap: Spacing.xl },

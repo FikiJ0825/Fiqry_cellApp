@@ -18,7 +18,7 @@ export default function TabLayout() {
     <Tabs
       tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
-        // Semua tab memakai header sendiri (CurvedHeader/ScreenHeader), bukan header navigator
+        // Semua tab memakai header sendiri (ScreenHeader), bukan header navigator
         headerShown: false,
         // Perpindahan antar tab bergeser halus, selaras dengan indikator tab bar
         animation: 'shift',

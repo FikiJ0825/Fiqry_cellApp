@@ -455,13 +455,13 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   badgeActive: {
     backgroundColor: t.pastel.mint.bg,
   },
-  badgeActiveText: { fontFamily: Font.regular,
+  badgeActiveText: {
     color: t.colors.success,
   },
   badgeInactive: {
     backgroundColor: t.colors.surface,
   },
-  badgeInactiveText: { fontFamily: Font.regular,
+  badgeInactiveText: {
     color: t.colors.grey,
   },
   cardFooter: {

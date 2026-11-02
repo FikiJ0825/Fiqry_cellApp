@@ -5,6 +5,7 @@ import Card from '../../../components/ui/Card'
 import Chip from '../../../components/ui/Chip'
 import EmptyState from '../../../components/ui/EmptyState'
 import IconTile from '../../../components/ui/IconTile'
+import Screen from '../../../components/ui/Screen'
 import ScreenHeader from '../../../components/ui/ScreenHeader'
 import Skeleton from '../../../components/ui/Skeleton'
 import StatusPill from '../../../components/ui/StatusPill'
@@ -109,7 +110,7 @@ export default function RiwayatScreen() {
   )
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <ScreenHeader judul="Riwayat" keterangan="Semua transaksi pembelian Anda" />
 
       <View style={styles.filterWrap}>
@@ -178,12 +179,11 @@ export default function RiwayatScreen() {
           )}
         />
       )}
-    </View>
+    </Screen>
   )
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.background },
   filterWrap: { paddingTop: Spacing.md },
   chipRow: { paddingHorizontal: Spacing.xl, gap: Spacing.sm },
   list: { padding: Spacing.xl, gap: Spacing.md, paddingBottom: 40 },

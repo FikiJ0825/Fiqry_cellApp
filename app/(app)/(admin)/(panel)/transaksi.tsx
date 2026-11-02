@@ -16,6 +16,7 @@ import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { formatRupiah } from '../../../../lib/format'
 import { supabase } from '../../../../lib/supabase'
 import { formatWaktu, getStatusColor, getStatusLabel, STATUS_TRANSAKSI } from '../../../../lib/transaksi'
+import Screen from '../../../../components/ui/Screen'
 import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 interface TransaksiRow {
@@ -129,6 +130,7 @@ export default function AdminTransaksiScreen() {
   }
 
   return (
+    <Screen>
     <View style={styles.container}>
       <TextInput
         style={styles.search}
@@ -189,6 +191,7 @@ export default function AdminTransaksiScreen() {
         }}
       />
     </View>
+    </Screen>
   )
 }
 
@@ -202,8 +205,8 @@ function Chip({ label, selected, onPress }: { label: string; selected: boolean; 
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.surface },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.colors.surface },
+  container: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   search: { fontFamily: Font.regular,
     margin: 16,
     marginBottom: 0,
@@ -227,7 +230,7 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   },
   chipSelected: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
   chipText: { fontSize: FontSize.sm, color: t.colors.textSecondary, fontFamily: Font.semibold },
-  chipTextSelected: { fontFamily: Font.regular, color: t.colors.textWhite },
+  chipTextSelected: { color: t.colors.textWhite },
   list: { padding: 16, paddingTop: 4, gap: 10, paddingBottom: 32 },
   emptyText: { fontFamily: Font.regular, textAlign: 'center', color: t.colors.textSecondary, marginTop: 40 },
   errorText: { fontFamily: Font.regular, textAlign: 'center', color: t.colors.error, marginTop: 40 },

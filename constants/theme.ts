@@ -1,17 +1,17 @@
 import { Platform, ViewStyle } from 'react-native'
 
 /**
- * Palet "Clean · Premium · Timeless": Black #0B0B0B, Crimson Red #8B0D1A, Off-White #F5F2ED.
- * Dua mode (terang & gelap) dengan nama token yang sama; dipilih lewat useTheme() di lib/theme.tsx.
+ * Palet crimson bergaya "Tema 1": latar terang lembut (blush), kartu putih, aksen crimson #8B0D1A,
+ * bar navigasi merah tua. Dua mode (terang & gelap) dengan nama token yang sama; dipilih lewat useTheme().
  */
 export interface ThemeColors {
-  /** Isi tombol, indikator tab, header (selalu crimson #8B0D1A) */
+  /** Isi tombol, chip terpilih, indikator (selalu crimson #8B0D1A) */
   primary: string
-  /** Teks/ikon penekanan berwarna crimson di atas latar netral (di mode gelap lebih terang agar terbaca) */
+  /** Teks/ikon penekanan crimson tua di atas latar netral (di mode gelap lebih terang agar terbaca) */
   primaryDark: string
-  /** Tint latar lembut berwarna crimson */
+  /** Tint latar lembut berwarna crimson (BUKAN untuk warna teks) */
   primaryLight: string
-  /** Warna teks/ikon merah di atas latar (alias penekanan) */
+  /** Teks/ikon merah di atas latar netral (kontras >= 4.5:1 di background & surface) */
   accent: string
   background: string
   surface: string
@@ -19,56 +19,97 @@ export interface ThemeColors {
   border: string
   textPrimary: string
   textSecondary: string
-  /** Teks di atas isi crimson/gelap (off-white) */
+  /** Teks di atas isi crimson (tombol primer, chip terpilih) */
   textWhite: string
   success: string
   warning: string
   error: string
   grey: string
-  /** Latar header lengkung */
+  /** Latar header bawaan (Stack native) */
   header: string
-  /** Hitam/arang penuh untuk kartu premium (saldo) */
+  /** Permukaan gelap penuh (dipakai langka) */
   ink: string
+  /** Teks di atas gradien/hero merah — pakai ini, bukan pastel.*.bg */
+  onHeader: string
+  /** Teks sekunder di atas gradien/hero merah */
+  onHeaderSoft: string
+  /** Gradien hero (kartu saldo/banner) */
+  heroFrom: string
+  heroTo: string
+  /** Gradien latar layar */
+  bgFrom: string
+  bgTo: string
+  /** Bar navigasi bawah */
+  navBar: string
+  navBarEnd: string
+  navIcon: string
+  navBubble: string
+  navBubbleIcon: string
+  navRing: string
 }
 
 export const LightColors: ThemeColors = {
   primary: '#8B0D1A',
   primaryDark: '#5E0912',
-  primaryLight: '#F1DCDD',
-  accent: '#8B0D1A',
-  background: '#F5F2ED',
-  surface: '#FBF9F6',
-  surfaceAlt: '#EDE8E0',
-  border: '#E2DACF',
-  textPrimary: '#0B0B0B',
-  textSecondary: '#6D6560',
-  textWhite: '#F5F2ED',
+  primaryLight: '#F8E1E1',
+  accent: '#B3122A',
+  background: '#FCF3F1',
+  surface: '#FFFFFF',
+  surfaceAlt: '#F8E6E4',
+  border: '#F1DAD7',
+  textPrimary: '#2A1114',
+  textSecondary: '#715659',
+  textWhite: '#FFFFFF',
   success: '#2F6F46',
-  warning: '#B7791F',
-  error: '#D9383F',
-  grey: '#A69E97',
+  warning: '#9A5B0B',
+  error: '#C62833',
+  grey: '#A38D90',
   header: '#8B0D1A',
-  ink: '#0B0B0B',
+  ink: '#2B0B11',
+  onHeader: '#FFFFFF',
+  onHeaderSoft: 'rgba(255,255,255,0.86)',
+  heroFrom: '#8B0D1A',
+  heroTo: '#C73A4E',
+  bgFrom: '#FFF8F6',
+  bgTo: '#F9E4E2',
+  navBar: '#2B0B11',
+  navBarEnd: '#3D1119',
+  navIcon: '#F08A96',
+  navBubble: '#F7EFEA',
+  navBubbleIcon: '#B3122A',
+  navRing: '#C8102E',
 }
 
 export const DarkColors: ThemeColors = {
   primary: '#8B0D1A',
-  primaryDark: '#EE8791',
-  primaryLight: '#2A0E12',
-  accent: '#E5505F',
-  background: '#0B0B0B',
-  surface: '#151112',
-  surfaceAlt: '#1E1517',
-  border: '#2E2124',
-  textPrimary: '#F5F2ED',
-  textSecondary: '#A89E9B',
-  textWhite: '#F5F2ED',
+  primaryDark: '#F4A0AA',
+  primaryLight: '#3A1820',
+  accent: '#F0707F',
+  background: '#1A0C0F',
+  surface: '#26151A',
+  surfaceAlt: '#301A20',
+  border: '#3D2429',
+  textPrimary: '#F7EFEA',
+  textSecondary: '#C2ABAE',
+  textWhite: '#FFFFFF',
   success: '#6FBF8A',
   warning: '#E0B055',
-  error: '#FF6B72',
-  grey: '#7A6E70',
-  header: '#120404',
-  ink: '#120404',
+  error: '#FF7A82',
+  grey: '#8A7276',
+  header: '#2B0B11',
+  ink: '#2B0B11',
+  onHeader: '#FFFFFF',
+  onHeaderSoft: 'rgba(255,255,255,0.86)',
+  heroFrom: '#7A0B17',
+  heroTo: '#B5303F',
+  bgFrom: '#1A0C0F',
+  bgTo: '#221015',
+  navBar: '#1F080D',
+  navBarEnd: '#2E0E15',
+  navIcon: '#F08A96',
+  navBubble: '#F7EFEA',
+  navBubbleIcon: '#B3122A',
+  navRing: '#C8102E',
 }
 
 export interface PastelWarna {
@@ -117,10 +158,10 @@ export const Font = {
 } as const
 
 export const Radius = {
-  sm: 8,
-  md: 12,
-  lg: 18,
-  xl: 28,
+  sm: 10,
+  md: 14,
+  lg: 22,
+  xl: 30,
   full: 999,
 }
 
@@ -151,8 +192,8 @@ const bayangan = (warna: string, elevation: number, opacity: number, radius: num
   }) ?? {}
 
 export const ShadowTerang: ThemeShadow = {
-  card: bayangan('#3A1A1A', 2, 0.07, 10, 3),
-  float: bayangan('#3A1A1A', 8, 0.16, 20, 8),
+  card: bayangan('#8B0D1A', 3, 0.09, 16, 5),
+  float: bayangan('#8B0D1A', 10, 0.2, 24, 10),
 }
 
 /** Mode gelap: kedalaman dari border tipis, bukan bayangan */

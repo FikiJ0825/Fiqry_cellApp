@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   Alert,
   KeyboardAvoidingView,
@@ -12,19 +13,19 @@ import {
 } from 'react-native'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
-import CurvedHeader from '../../components/ui/CurvedHeader'
 import Input from '../../components/ui/Input'
 import Logo from '../../components/ui/Logo'
+import Screen from '../../components/ui/Screen'
 import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { mapSupabaseError, normalizeNomorWa } from '../../lib/auth-utils'
 import { supabase } from '../../lib/supabase'
 import { Theme, useStyles } from '../../lib/theme'
 
-const TINGGI_TUMPANG_TINDIH = 36
 
 export default function LoginScreen() {
   const styles = useStyles(buatStyles)
   const router = useRouter()
+  const insets = useSafeAreaInsets()
 
   const [nomorWa, setNomorWa] = useState('')
   const [password, setPassword] = useState('')
@@ -88,6 +89,7 @@ export default function LoginScreen() {
   }
 
   return (
+    <Screen>
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -97,12 +99,10 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <CurvedHeader ruangBawah={TINGGI_TUMPANG_TINDIH + Spacing.xxl}>
-          <View style={styles.hero}>
-            <Logo terang ukuran={64} />
-            <Text style={styles.subtitle}>Masuk ke akun agen Anda</Text>
-          </View>
-        </CurvedHeader>
+        <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
+          <Logo ukuran={64} />
+          <Text style={styles.subtitle}>Masuk ke akun agen Anda</Text>
+        </View>
 
         <View style={styles.formWrap}>
           <Card style={styles.form}>
@@ -149,15 +149,16 @@ export default function LoginScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </Screen>
   )
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.background },
+  container: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: Spacing.xxl },
-  hero: { alignItems: 'center', gap: Spacing.md, paddingTop: Spacing.lg },
-  subtitle: { fontFamily: Font.regular, color: t.pastel.rose.bg, fontSize: FontSize.md },
-  formWrap: { marginTop: -TINGGI_TUMPANG_TINDIH, paddingHorizontal: Spacing.xl },
+  hero: { alignItems: 'center', gap: Spacing.md, paddingBottom: Spacing.lg },
+  subtitle: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.md },
+  formWrap: { paddingHorizontal: Spacing.xl },
   form: { gap: Spacing.lg },
   errorBox: { backgroundColor: t.pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
   errorText: { color: t.pastel.rose.teks, fontSize: FontSize.sm, fontFamily: Font.semibold, textAlign: 'center' },

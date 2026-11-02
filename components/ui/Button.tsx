@@ -5,7 +5,7 @@ import { IoniconName } from '../../constants/produk'
 import { Font, FontSize, Radius, Spacing } from '../../constants/theme'
 import { Theme, useStyles, useTheme } from '../../lib/theme'
 
-type Variant = 'primary' | 'dark' | 'light' | 'soft' | 'outline' | 'danger'
+type Variant = 'primary' | 'dark' | 'light' | 'glass' | 'soft' | 'outline' | 'danger'
 
 interface Props {
   label: string
@@ -40,7 +40,9 @@ export default function Button({
       ? { bg: colors.textPrimary, teks: '#0B0B0B', border: colors.textPrimary }
       : { bg: '#0B0B0B', teks: '#F5F2ED', border: '#0B0B0B' },
     // Off-white penuh, untuk dipasang di atas permukaan hitam (mis. kartu saldo)
-    light: { bg: '#F5F2ED', teks: '#0B0B0B', border: '#F5F2ED' },
+    light: { bg: '#FFFFFF', teks: colors.primary, border: '#FFFFFF' },
+    // Transparan berlapis putih, untuk di atas gradien/hero
+    glass: { bg: 'rgba(255,255,255,0.18)', teks: colors.onHeader, border: 'rgba(255,255,255,0.4)' },
     soft: { bg: colors.primaryLight, teks: colors.primaryDark, border: colors.primaryLight },
     outline: { bg: 'transparent', teks: colors.accent, border: colors.accent },
     danger: { bg: colors.surface, teks: colors.error, border: colors.error },
@@ -93,5 +95,5 @@ const buatStyles = (t: Theme) =>
     sm: { paddingVertical: 10, paddingHorizontal: Spacing.lg },
     disabled: { opacity: 0.5 },
     label: { fontSize: FontSize.md, fontFamily: Font.semibold, letterSpacing: 0.2 },
-    labelSm: { fontFamily: Font.regular, fontSize: FontSize.sm },
+    labelSm: { fontSize: FontSize.sm },
   })

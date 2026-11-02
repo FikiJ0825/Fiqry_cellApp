@@ -6,6 +6,7 @@ import Card from '../../../components/ui/Card'
 import EmptyState from '../../../components/ui/EmptyState'
 import IconTile from '../../../components/ui/IconTile'
 import Input from '../../../components/ui/Input'
+import Screen from '../../../components/ui/Screen'
 import ScreenHeader from '../../../components/ui/ScreenHeader'
 import Skeleton from '../../../components/ui/Skeleton'
 import { KATEGORI_PRODUK, TAMPILAN_KATEGORI } from '../../../constants/produk'
@@ -86,7 +87,7 @@ export default function ProdukKategoriScreen() {
   }, [produk, kataCari])
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -94,7 +95,7 @@ export default function ProdukKategoriScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[colors.primary]} tintColor={colors.primary} />
         }
       >
-        <ScreenHeader judul="Produk" keterangan="Pilih kategori atau cari produk" ruangBawah={44} />
+        <ScreenHeader judul="Produk" keterangan="Pilih kategori atau cari produk" />
 
         <View style={styles.cariWrap}>
           <Input
@@ -170,15 +171,14 @@ export default function ProdukKategoriScreen() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </Screen>
   )
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.background },
   content: { paddingBottom: 40 },
   cariWrap: {
-    marginTop: -24,
+    marginTop: Spacing.xs,
     marginHorizontal: Spacing.xl,
     borderRadius: Radius.md,
     backgroundColor: t.colors.surface,

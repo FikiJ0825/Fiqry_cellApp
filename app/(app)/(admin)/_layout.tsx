@@ -11,8 +11,8 @@ export default function AdminLayout() {
         options={{
           headerShown: true,
           title: 'Detail Agen',
-          headerStyle: { backgroundColor: colors.header },
-          headerTintColor: colors.textWhite,
+          headerStyle: { backgroundColor: colors.background },
+          headerTintColor: colors.textPrimary,
           headerTitleStyle: { fontFamily: Font.semibold },
           headerShadowVisible: false,
         }}

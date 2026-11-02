@@ -5,6 +5,8 @@ import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { formatRupiah } from '../../../../lib/format'
 import { supabase } from '../../../../lib/supabase'
 import { awalHariIniIso } from '../../../../lib/transaksi'
+import HeroCard from '../../../../components/ui/HeroCard'
+import Screen from '../../../../components/ui/Screen'
 import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 interface Ringkasan {
@@ -90,6 +92,7 @@ export default function AdminDashboardScreen() {
   }
 
   return (
+    <Screen>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -99,13 +102,13 @@ export default function AdminDashboardScreen() {
 
       {data ? (
         <>
-          <View style={styles.hero}>
+          <HeroCard>
             <Text style={styles.heroLabel}>Omset Hari Ini</Text>
             <Text style={styles.heroValue}>{formatRupiah(data.omset)}</Text>
             <Text style={styles.heroSub}>
               {data.trxHariIni} transaksi · {data.berhasil} berhasil · {data.gagal} gagal
             </Text>
-          </View>
+          </HeroCard>
 
           {data.macet > 0 ? (
             <TouchableOpacity
@@ -125,6 +128,7 @@ export default function AdminDashboardScreen() {
         </>
       ) : null}
     </ScrollView>
+    </Screen>
   )
 }
 
@@ -139,21 +143,20 @@ function Kartu({ label, nilai }: { label: string; nilai: string }) {
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.surface },
+  container: { flex: 1 },
   content: { padding: 16, paddingBottom: 32, gap: 12 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.colors.surface },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   errorText: { fontFamily: Font.regular, color: t.colors.error, fontSize: FontSize.sm, textAlign: 'center' },
-  hero: { backgroundColor: t.colors.primary, borderRadius: Radius.lg, padding: 20 },
-  heroLabel: { fontFamily: Font.regular, color: t.colors.primaryLight, fontSize: FontSize.sm },
-  heroValue: { color: t.colors.textWhite, fontSize: FontSize.xxl + 4, fontFamily: Font.bold, marginTop: 2 },
-  heroSub: { fontFamily: Font.regular, color: t.colors.primaryLight, fontSize: FontSize.sm, marginTop: 8 },
+  heroLabel: { fontFamily: Font.regular, color: t.colors.onHeaderSoft, fontSize: FontSize.sm },
+  heroValue: { color: t.colors.onHeader, fontSize: FontSize.xxl + 4, fontFamily: Font.bold, marginTop: 2 },
+  heroSub: { fontFamily: Font.regular, color: t.colors.onHeaderSoft, fontSize: FontSize.sm, marginTop: 8 },
   alert: { backgroundColor: t.pastel.butter.bg, borderRadius: Radius.md, borderWidth: 1, borderColor: t.colors.warning, padding: 14 },
   alertTitle: { color: t.colors.warning, fontSize: FontSize.md, fontFamily: Font.bold },
   alertSub: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.sm, marginTop: 2 },
   row: { flexDirection: 'row', gap: 12 },
   kartu: {
     flex: 1,
-    backgroundColor: t.colors.background,
+    backgroundColor: t.colors.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: t.colors.border,
