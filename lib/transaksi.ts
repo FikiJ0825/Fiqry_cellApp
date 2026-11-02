@@ -1,5 +1,5 @@
 import type { IoniconName } from '../constants/produk'
-import { Colors, PastelNama } from '../constants/theme'
+import type { PastelNama, ThemeColors } from '../constants/theme'
 
 export type StatusTransaksi = 'pending' | 'diproses' | 'berhasil' | 'gagal'
 
@@ -14,7 +14,7 @@ export function getStatusLabel(status: string): string {
   return STATUS_TRANSAKSI.find((s) => s.value === status)?.label ?? status
 }
 
-export function getStatusColor(status: string): string {
+export function getStatusColor(status: string, Colors: ThemeColors): string {
   switch (status) {
     case 'berhasil':
       return Colors.success

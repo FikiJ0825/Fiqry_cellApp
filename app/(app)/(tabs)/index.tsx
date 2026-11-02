@@ -13,7 +13,7 @@ import SectionHeader from '../../../components/ui/SectionHeader'
 import Skeleton from '../../../components/ui/Skeleton'
 import StatusPill from '../../../components/ui/StatusPill'
 import { IoniconName, KATEGORI_PRODUK, TAMPILAN_KATEGORI } from '../../../constants/produk'
-import { Colors, FontSize, FontWeight, Pastel, PastelNama, Radius, Spacing } from '../../../constants/theme'
+import { FontSize, PastelNama, Radius, Spacing, Font } from '../../../constants/theme'
 import { BannerAktif, ambilBannerAktif, jalankanAksiBanner } from '../../../lib/banner'
 import { formatRupiah } from '../../../lib/format'
 import { sudahOnboarding } from '../../../lib/onboarding'
@@ -21,6 +21,7 @@ import { ambilProfilSaya, ProfilSaya } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
 import { bukaTopupWa } from '../../../lib/topup'
 import { awalHariIniIso, formatWaktu, getStatusIkon, getStatusPastel } from '../../../lib/transaksi'
+import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
 interface RingkasanHariIni {
   total: number
@@ -72,6 +73,8 @@ async function ambilTransaksiTerakhir(agenId: string) {
 }
 
 export default function BerandaScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors, pastel } = useTheme()
   const router = useRouter()
   const [profil, setProfil] = useState<ProfilSaya | null>(null)
   const [ringkasan, setRingkasan] = useState<RingkasanHariIni>(RINGKASAN_KOSONG)
@@ -210,7 +213,7 @@ export default function BerandaScreen() {
       style={styles.container}
       contentContainerStyle={styles.content}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[Colors.primary]} tintColor={Colors.primary} />
+        <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[colors.primary]} tintColor={colors.primary} />
       }
     >
       <CurvedHeader ruangBawah={TINGGI_TUMPANG_TINDIH + Spacing.xl}>
@@ -229,13 +232,14 @@ export default function BerandaScreen() {
             accessibilityLabel="Buka panduan"
             style={styles.bantuan}
           >
-            <Ionicons name="help-circle-outline" size={22} color={Colors.textWhite} />
+            <Ionicons name="help-circle-outline" size={22} color={colors.textWhite} />
           </Pressable>
         </View>
       </CurvedHeader>
 
       <View style={styles.saldoWrap}>
-        <Card>
+        <Card style={styles.saldoKartu}>
+          <View pointerEvents="none" style={styles.saldoCahaya} />
           <View style={styles.saldoBaris}>
             <View style={styles.saldoKolom}>
               <Text style={styles.saldoLabel}>Saldo Anda</Text>
@@ -243,9 +247,9 @@ export default function BerandaScreen() {
                 {formatRupiah(profil.saldo)}
               </Text>
             </View>
-            <View style={[styles.tierPill, { backgroundColor: Pastel[tierWarna].bg }]}>
-              <Ionicons name={isMaster ? 'ribbon' : 'person'} size={13} color={Pastel[tierWarna].fg} />
-              <Text style={[styles.tierText, { color: Pastel[tierWarna].teks }]}>
+            <View style={[styles.tierPill, { backgroundColor: pastel[tierWarna].bg }]}>
+              <Ionicons name={isMaster ? 'ribbon' : 'person'} size={13} color={pastel[tierWarna].fg} />
+              <Text style={[styles.tierText, { color: pastel[tierWarna].teks }]}>
                 {isMaster ? 'Agen Master' : 'Agen Biasa'}
               </Text>
             </View>
@@ -261,7 +265,7 @@ export default function BerandaScreen() {
             <Button
               label="Riwayat"
               icon="receipt-outline"
-              variant="soft"
+              variant="light"
               size="sm"
               style={styles.saldoTombol}
               onPress={() => router.push('/(app)/(tabs)/riwayat')}
@@ -318,7 +322,7 @@ export default function BerandaScreen() {
                 <Text style={styles.panduanJudul}>Panduan AdePulsa</Text>
                 <Text style={styles.panduanSub}>Pelajari fitur utama, promo, dan tanya jawab</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={Colors.grey} />
+              <Ionicons name="chevron-forward" size={18} color={colors.grey} />
             </Card>
           )}
         </Pressable>
@@ -394,6 +398,7 @@ function MenuItem({
   warna: PastelNama
   onPress: () => void
 }) {
+  const styles = useStyles(buatStyles)
   return (
     <Pressable
       style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemTekan]}
@@ -410,15 +415,18 @@ function MenuItem({
 }
 
 function StatTile({ label, nilai, warna }: { label: string; nilai: number; warna: PastelNama }) {
+  const styles = useStyles(buatStyles)
+  const { pastel } = useTheme()
   return (
-    <View style={[styles.stat, { backgroundColor: Pastel[warna].bg }]}>
-      <Text style={[styles.statValue, { color: Pastel[warna].teks }]}>{nilai}</Text>
-      <Text style={[styles.statLabel, { color: Pastel[warna].teks }]}>{label}</Text>
+    <View style={[styles.stat, { backgroundColor: pastel[warna].bg }]}>
+      <Text style={[styles.statValue, { color: pastel[warna].teks }]}>{nilai}</Text>
+      <Text style={[styles.statLabel, { color: pastel[warna].teks }]}>{label}</Text>
     </View>
   )
 }
 
 function BerandaSkeleton() {
+  const styles = useStyles(buatStyles)
   return (
     <View style={styles.container}>
       <CurvedHeader ruangBawah={TINGGI_TUMPANG_TINDIH + Spacing.xl}>
@@ -440,14 +448,14 @@ function BerandaSkeleton() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.background },
   content: { paddingBottom: 40 },
   headerBaris: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md },
   headerSalam: { flex: 1 },
-  salamKecil: { color: Pastel.rose.bg, fontSize: FontSize.sm },
-  nama: { color: Colors.textWhite, fontSize: FontSize.xl, fontWeight: FontWeight.bold, marginTop: 2 },
-  wordmark: { color: Colors.textWhite, fontSize: FontSize.md, fontWeight: FontWeight.bold, opacity: 0.9 },
+  salamKecil: { fontFamily: Font.regular, color: t.pastel.rose.bg, fontSize: FontSize.sm },
+  nama: { color: t.colors.textWhite, fontSize: FontSize.xl, fontFamily: Font.bold, marginTop: 2 },
+  wordmark: { color: t.colors.textWhite, fontSize: FontSize.md, fontFamily: Font.bold, opacity: 0.9 },
   bantuan: {
     width: 36,
     height: 36,
@@ -459,13 +467,28 @@ const styles = StyleSheet.create({
   panduan: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   panduanTekan: { opacity: 0.75 },
   panduanTeks: { flex: 1 },
-  panduanJudul: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary },
-  panduanSub: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 2 },
+  panduanJudul: { fontSize: FontSize.md, fontFamily: Font.bold, color: t.colors.textPrimary },
+  panduanSub: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary, marginTop: 2 },
   saldoWrap: { marginTop: -TINGGI_TUMPANG_TINDIH, marginHorizontal: Spacing.xl },
   saldoBaris: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md },
   saldoKolom: { flex: 1 },
-  saldoLabel: { color: Colors.textSecondary, fontSize: FontSize.sm },
-  saldoValue: { color: Colors.textPrimary, fontSize: FontSize.xxl + 4, fontWeight: FontWeight.bold, marginTop: 2 },
+  saldoKartu: {
+    backgroundColor: t.colors.ink,
+    borderColor: 'rgba(229,80,95,0.32)',
+    overflow: 'hidden',
+    ...t.shadow.float,
+  },
+  saldoCahaya: {
+    position: 'absolute',
+    width: 190,
+    height: 190,
+    borderRadius: 95,
+    top: -95,
+    right: -50,
+    backgroundColor: 'rgba(139,13,26,0.55)',
+  },
+  saldoLabel: { fontFamily: Font.regular, color: 'rgba(245,242,237,0.65)', fontSize: FontSize.sm },
+  saldoValue: { color: '#F5F2ED', fontSize: FontSize.xxl + 4, fontFamily: Font.bold, marginTop: 2 },
   tierPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -474,29 +497,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
-  tierText: { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
+  tierText: { fontSize: FontSize.xs, fontFamily: Font.bold },
   saldoAksi: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg },
   saldoTombol: { flex: 1 },
   body: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, gap: Spacing.xl },
-  errorText: { color: Colors.error, fontSize: FontSize.sm, textAlign: 'center' },
-  kosongText: { color: Colors.textSecondary, fontSize: FontSize.sm, textAlign: 'center' },
+  errorText: { fontFamily: Font.regular, color: t.colors.error, fontSize: FontSize.sm, textAlign: 'center' },
+  kosongText: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.sm, textAlign: 'center' },
   menuGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: Spacing.lg },
   menuItem: { width: '25%', alignItems: 'center', gap: 6 },
   menuItemTekan: { opacity: 0.6 },
-  menuLabel: { fontSize: FontSize.xs, color: Colors.textPrimary, fontWeight: FontWeight.semibold, textAlign: 'center' },
+  menuLabel: { fontSize: FontSize.xs, color: t.colors.textPrimary, fontFamily: Font.semibold, textAlign: 'center' },
   statBaris: { flexDirection: 'row', gap: Spacing.sm },
   stat: { flex: 1, borderRadius: Radius.md, paddingVertical: Spacing.md, alignItems: 'center' },
-  statValue: { fontSize: FontSize.xl, fontWeight: FontWeight.bold },
-  statLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, marginTop: 2 },
+  statValue: { fontSize: FontSize.xl, fontFamily: Font.bold },
+  statLabel: { fontSize: FontSize.xs, fontFamily: Font.semibold, marginTop: 2 },
   omsetCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginTop: Spacing.md },
-  omsetLabel: { fontSize: FontSize.sm, color: Colors.textSecondary },
-  omsetValue: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginTop: 2 },
+  omsetLabel: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
+  omsetValue: { fontSize: FontSize.xl, fontFamily: Font.bold, color: t.colors.textPrimary, marginTop: 2 },
   trxBaris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg },
-  trxGaris: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.border },
+  trxGaris: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.colors.border },
   trxTengah: { flex: 1 },
-  trxNama: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
-  trxSub: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 2 },
+  trxNama: { fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary },
+  trxSub: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary, marginTop: 2 },
   trxKanan: { alignItems: 'flex-end', gap: 4 },
-  trxHarga: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  trxHarga: { fontSize: FontSize.sm, fontFamily: Font.bold, color: t.colors.textPrimary },
   skeletonNama: { marginTop: Spacing.sm },
 })

@@ -11,12 +11,13 @@ import Loading from '../../../components/ui/Loading'
 import PinInput from '../../../components/ui/PinInput'
 import ResultSheet from '../../../components/ui/ResultSheet'
 import { IoniconName, KategoriProduk, TAMPILAN_KATEGORI } from '../../../constants/produk'
-import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../../constants/theme'
 import { formatRupiah } from '../../../lib/format'
 import { panggilFungsi } from '../../../lib/functions'
 import { ambilProfilSaya, hargaUntukTier, ProfilSaya } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
 import { bukaTopupWa } from '../../../lib/topup'
+import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
 interface ProdukRow {
   kode_produk: string
@@ -40,6 +41,8 @@ function ikonTujuan(kategori: string | null): IoniconName {
 }
 
 export default function BeliScreen() {
+  const styles = useStyles(buatStyles)
+  const { pastel } = useTheme()
   const router = useRouter()
   const { kode } = useLocalSearchParams<{ kode: string }>()
 
@@ -155,7 +158,7 @@ export default function BeliScreen() {
 
         {saldoKurang ? (
           <View style={styles.peringatan}>
-            <Ionicons name="alert-circle" size={20} color={Pastel.rose.fg} />
+            <Ionicons name="alert-circle" size={20} color={pastel.rose.fg} />
             <Text style={styles.peringatanTeks}>Saldo tidak mencukupi untuk produk ini.</Text>
             <Button
               label="Top-up"
@@ -183,7 +186,7 @@ export default function BeliScreen() {
           <PinInput label="PIN Transaksi" value={pin} onChange={setPin} editable={!submitting} />
         ) : (
           <View style={styles.peringatan}>
-            <Ionicons name="lock-closed" size={20} color={Pastel.rose.fg} />
+            <Ionicons name="lock-closed" size={20} color={pastel.rose.fg} />
             <Text style={styles.peringatanTeks}>Buat PIN transaksi dulu sebelum bisa membeli.</Text>
             <Button label="Buat PIN" size="sm" onPress={() => router.push('/(app)/pin')} />
           </View>
@@ -241,6 +244,7 @@ export default function BeliScreen() {
 }
 
 function BarisRincian({ label, nilai, tebal = false, merah = false }: { label: string; nilai: string; tebal?: boolean; merah?: boolean }) {
+  const styles = useStyles(buatStyles)
   return (
     <View style={styles.rincian}>
       <Text style={styles.rincianLabel}>{label}</Text>
@@ -251,33 +255,33 @@ function BarisRincian({ label, nilai, tebal = false, merah = false }: { label: s
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1, backgroundColor: t.colors.background },
   content: { padding: Spacing.xl, paddingBottom: 40, gap: Spacing.lg },
-  pusat: { flex: 1, justifyContent: 'center', backgroundColor: Colors.background },
+  pusat: { flex: 1, justifyContent: 'center', backgroundColor: t.colors.background },
   ringkasan: { gap: Spacing.sm },
   produkBaris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   produkTeks: { flex: 1 },
-  produkNama: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
-  produkKode: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 2 },
-  garis: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border, marginVertical: Spacing.xs },
+  produkNama: { fontSize: FontSize.lg, fontFamily: Font.bold, color: t.colors.textPrimary },
+  produkKode: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary, marginTop: 2 },
+  garis: { height: StyleSheet.hairlineWidth, backgroundColor: t.colors.border, marginVertical: Spacing.xs },
   rincian: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing.lg },
-  rincianLabel: { fontSize: FontSize.sm, color: Colors.textSecondary },
-  rincianNilai: { flexShrink: 1, fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary, textAlign: 'right' },
-  rincianTebal: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.primaryDark },
-  rincianMerah: { color: Colors.error },
-  rincianSheet: { gap: Spacing.sm, backgroundColor: Colors.background },
+  rincianLabel: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
+  rincianNilai: { flexShrink: 1, fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary, textAlign: 'right' },
+  rincianTebal: { fontSize: FontSize.lg, fontFamily: Font.bold, color: t.colors.primaryDark },
+  rincianMerah: { fontFamily: Font.regular, color: t.colors.error },
+  rincianSheet: { gap: Spacing.sm, backgroundColor: t.colors.background },
   peringatan: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: Spacing.sm,
-    backgroundColor: Pastel.rose.bg,
+    backgroundColor: t.pastel.rose.bg,
     borderRadius: Radius.md,
     padding: Spacing.md,
   },
-  peringatanTeks: { flex: 1, minWidth: 140, fontSize: FontSize.sm, color: Pastel.rose.teks, fontWeight: FontWeight.semibold },
+  peringatanTeks: { flex: 1, minWidth: 140, fontSize: FontSize.sm, color: t.pastel.rose.teks, fontFamily: Font.semibold },
   field: { marginTop: Spacing.xs },
   submit: { marginTop: Spacing.sm },
 })

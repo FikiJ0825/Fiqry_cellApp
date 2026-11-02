@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
 import { ReactNode } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
-import { Colors, FontSize, Radius } from '../../../../../constants/theme'
+import { FontSize, Radius, Font } from '../../../../../constants/theme'
+import { Theme, useStyles, useTheme } from '../../../../../lib/theme'
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
 
@@ -18,6 +19,8 @@ export default function AdminPlaceholderScreen({
   icon,
   children,
 }: AdminPlaceholderScreenProps) {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   return (
     <ScrollView
       style={styles.container}
@@ -26,7 +29,7 @@ export default function AdminPlaceholderScreen({
     >
       <View style={styles.heroCard}>
         <View style={styles.iconCircle}>
-          <Ionicons name={icon} size={48} color={Colors.primary} />
+          <Ionicons name={icon} size={48} color={colors.accent} />
         </View>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.description}>{description}</Text>
@@ -37,20 +40,20 @@ export default function AdminPlaceholderScreen({
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
   },
   content: {
     padding: 16,
     paddingBottom: 32,
   },
   heroCard: {
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     padding: 24,
     alignItems: 'center',
   },
@@ -58,21 +61,21 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: Radius.full,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: t.colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
   title: {
     fontSize: FontSize.xl,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontFamily: Font.bold,
+    color: t.colors.textPrimary,
     marginBottom: 8,
     textAlign: 'center',
   },
-  description: {
+  description: { fontFamily: Font.regular,
     fontSize: FontSize.md,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },

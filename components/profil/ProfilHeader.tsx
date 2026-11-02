@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
 import { StyleSheet, Text, View } from 'react-native'
 import CurvedHeader from '../ui/CurvedHeader'
-import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
+import { Theme, useStyles, useTheme } from '../../lib/theme'
 
 interface Props {
   nama: string | null
@@ -12,8 +13,10 @@ interface Props {
 
 /** Header profil: avatar inisial, nama, nomor WhatsApp, dan lencana tier */
 export default function ProfilHeader({ nama, nomorWa, isMaster, ruangBawah }: Props) {
+  const styles = useStyles(buatStyles)
+  const { pastel } = useTheme()
   const inisial = (nama ?? '').trim().charAt(0).toUpperCase() || 'A'
-  const tierWarna = isMaster ? Pastel.butter : Pastel.sky
+  const tierWarna = isMaster ? pastel.butter : pastel.sky
 
   return (
     <CurvedHeader ruangBawah={ruangBawah}>
@@ -34,7 +37,7 @@ export default function ProfilHeader({ nama, nomorWa, isMaster, ruangBawah }: Pr
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   tengah: { alignItems: 'center' },
   avatar: {
     width: 72,
@@ -42,13 +45,13 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
     backgroundColor: 'rgba(255,255,255,0.22)',
     borderWidth: 2,
-    borderColor: Colors.textWhite,
+    borderColor: t.colors.textWhite,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  inisial: { color: Colors.textWhite, fontSize: FontSize.xxl + 4, fontWeight: FontWeight.bold },
-  nama: { color: Colors.textWhite, fontSize: FontSize.xl, fontWeight: FontWeight.bold, marginTop: Spacing.md },
-  wa: { color: Pastel.rose.bg, fontSize: FontSize.sm, marginTop: 2 },
+  inisial: { color: t.colors.textWhite, fontSize: FontSize.xxl + 4, fontFamily: Font.bold },
+  nama: { color: t.colors.textWhite, fontSize: FontSize.xl, fontFamily: Font.bold, marginTop: Spacing.md },
+  wa: { fontFamily: Font.regular, color: t.pastel.rose.bg, fontSize: FontSize.sm, marginTop: 2 },
   tier: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -58,5 +61,5 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     marginTop: Spacing.md,
   },
-  tierTeks: { fontSize: FontSize.xs, fontWeight: FontWeight.bold },
+  tierTeks: { fontSize: FontSize.xs, fontFamily: Font.bold },
 })

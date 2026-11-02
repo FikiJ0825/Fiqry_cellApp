@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { Colors, FontSize, FontWeight, Spacing } from '../../constants/theme'
+import { FontSize, Spacing, Font } from '../../constants/theme'
+import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
   judul: string
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function SectionHeader({ judul, aksiLabel, onAksi }: Props) {
+  const styles = useStyles(buatStyles)
   return (
     <View style={styles.row}>
       <Text style={styles.judul}>{judul}</Text>
@@ -20,8 +22,8 @@ export default function SectionHeader({ judul, aksiLabel, onAksi }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.md },
-  judul: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
-  aksi: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.primary },
+  judul: { fontSize: FontSize.lg, fontFamily: Font.bold, color: t.colors.textPrimary },
+  aksi: { fontSize: FontSize.sm, fontFamily: Font.semibold, color: t.colors.accent },
 })

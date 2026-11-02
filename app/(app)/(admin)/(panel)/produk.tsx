@@ -1,10 +1,13 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { Colors, FontSize, Radius } from '../../../../constants/theme'
+import { FontSize, Radius, Font } from '../../../../constants/theme'
 import  AdminPlaceholderScreen  from './_components/AdminPlaceholderScreen'
+import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 export default function AdminProdukScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const router = useRouter()
 
   return (
@@ -19,13 +22,13 @@ export default function AdminProdukScreen() {
         onPress={() => router.push('/(app)/(admin)/katalog')}
       >
         <View style={styles.navIconWrap}>
-          <Ionicons name="cube-outline" size={24} color={Colors.primary} />
+          <Ionicons name="cube-outline" size={24} color={colors.accent} />
         </View>
         <View style={styles.navTextWrap}>
           <Text style={styles.navTitle}>Kelola Katalog Produk</Text>
           <Text style={styles.navSubtitle}>Tambah, edit harga, dan aktifkan produk</Text>
         </View>
-        <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -34,26 +37,26 @@ export default function AdminProdukScreen() {
         onPress={() => router.push('/(app)/(admin)/banner')}
       >
         <View style={styles.navIconWrap}>
-          <Ionicons name="image-outline" size={24} color={Colors.primary} />
+          <Ionicons name="image-outline" size={24} color={colors.accent} />
         </View>
         <View style={styles.navTextWrap}>
           <Text style={styles.navTitle}>Kelola Banner Promo</Text>
           <Text style={styles.navSubtitle}>Tambah, edit, dan atur banner promo</Text>
         </View>
-        <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
       </TouchableOpacity>
     </AdminPlaceholderScreen>
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   navCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     padding: 16,
     marginTop: 16,
     gap: 12,
@@ -62,7 +65,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: Radius.md,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: t.colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -71,12 +74,12 @@ const styles = StyleSheet.create({
   },
   navTitle: {
     fontSize: FontSize.md,
-    fontWeight: '600',
-    color: Colors.textPrimary,
+    fontFamily: Font.semibold,
+    color: t.colors.textPrimary,
     marginBottom: 2,
   },
-  navSubtitle: {
+  navSubtitle: { fontFamily: Font.regular,
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
   },
 })

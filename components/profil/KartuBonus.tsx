@@ -2,8 +2,9 @@ import { StyleSheet, Text, View } from 'react-native'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import IconTile from '../ui/IconTile'
-import { FontSize, FontWeight, Pastel, Spacing } from '../../constants/theme'
+import { FontSize, Spacing, Font } from '../../constants/theme'
 import { formatRupiah } from '../../lib/format'
+import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
   jumlah: number
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function KartuBonus({ jumlah, memproses, nonaktif, onKlaim }: Props) {
+  const styles = useStyles(buatStyles)
   return (
     <Card style={styles.kartu}>
       <View style={styles.baris}>
@@ -27,9 +29,9 @@ export default function KartuBonus({ jumlah, memproses, nonaktif, onKlaim }: Pro
   )
 }
 
-const styles = StyleSheet.create({
-  kartu: { backgroundColor: Pastel.mint.bg, gap: Spacing.lg },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  kartu: { backgroundColor: t.pastel.mint.bg, gap: Spacing.lg },
   baris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  judul: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Pastel.mint.teks },
-  jumlah: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, color: Pastel.mint.teks },
+  judul: { fontSize: FontSize.sm, fontFamily: Font.semibold, color: t.pastel.mint.teks },
+  jumlah: { fontSize: FontSize.xxl, fontFamily: Font.bold, color: t.pastel.mint.teks },
 })

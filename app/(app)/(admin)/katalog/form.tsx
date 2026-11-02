@@ -15,9 +15,10 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { KATEGORI_PRODUK } from '../../../../constants/produk'
-import { Colors, FontSize, Radius } from '../../../../constants/theme'
+import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { formatRupiah } from '../../../../lib/format'
 import { supabase } from '../../../../lib/supabase'
+import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 interface ProdukRow {
   id: string
@@ -38,6 +39,8 @@ function hanyaDigit(value: string): string {
 }
 
 export default function KatalogFormScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id?: string }>()
   const isEditMode = Boolean(id)
@@ -176,7 +179,7 @@ export default function KatalogFormScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.accent} />
         </View>
       </SafeAreaView>
     )
@@ -212,7 +215,7 @@ export default function KatalogFormScreen() {
               value={kode}
               onChangeText={(v) => setKode(v.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
               placeholder="Contoh: TSEL10"
-              placeholderTextColor={Colors.grey}
+              placeholderTextColor={colors.grey}
               autoCapitalize="characters"
               autoCorrect={false}
               maxLength={20}
@@ -232,7 +235,7 @@ export default function KatalogFormScreen() {
               value={nama}
               onChangeText={setNama}
               placeholder="Contoh: Telkomsel 10.000"
-              placeholderTextColor={Colors.grey}
+              placeholderTextColor={colors.grey}
               editable={!isBusy}
             />
           </View>
@@ -266,7 +269,7 @@ export default function KatalogFormScreen() {
               value={hargaBiasa}
               onChangeText={(v) => setHargaBiasa(hanyaDigit(v))}
               placeholder="0"
-              placeholderTextColor={Colors.grey}
+              placeholderTextColor={colors.grey}
               keyboardType="number-pad"
               editable={!isBusy}
             />
@@ -282,7 +285,7 @@ export default function KatalogFormScreen() {
               value={hargaMaster}
               onChangeText={(v) => setHargaMaster(hanyaDigit(v))}
               placeholder="0"
-              placeholderTextColor={Colors.grey}
+              placeholderTextColor={colors.grey}
               keyboardType="number-pad"
               editable={!isBusy}
             />
@@ -300,8 +303,8 @@ export default function KatalogFormScreen() {
               value={aktif}
               onValueChange={setAktif}
               disabled={isBusy}
-              trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-              thumbColor={aktif ? Colors.primary : Colors.grey}
+              trackColor={{ false: colors.border, true: colors.primaryLight }}
+              thumbColor={aktif ? colors.primary : colors.grey}
             />
           </View>
 
@@ -312,7 +315,7 @@ export default function KatalogFormScreen() {
             activeOpacity={0.85}
           >
             {saving ? (
-              <ActivityIndicator color={Colors.textWhite} />
+              <ActivityIndicator color={colors.textWhite} />
             ) : (
               <Text style={styles.saveButtonText}>
                 {isEditMode ? 'Simpan Perubahan' : 'Tambah Produk'}
@@ -325,65 +328,65 @@ export default function KatalogFormScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: Colors.surface },
+  container: { flex: 1, backgroundColor: t.colors.surface },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: t.colors.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: Radius.full,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  backButtonText: { fontSize: FontSize.xl, color: Colors.primary, fontWeight: '600' },
-  headerTitle: { fontSize: FontSize.xl, fontWeight: '700', color: Colors.textPrimary },
+  backButtonText: { fontSize: FontSize.xl, color: t.colors.accent, fontFamily: Font.semibold },
+  headerTitle: { fontSize: FontSize.xl, fontFamily: Font.bold, color: t.colors.textPrimary },
   formContent: { padding: 16, paddingBottom: 40, gap: 18 },
   fieldGroup: { gap: 6 },
-  label: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.textPrimary },
-  hint: { fontSize: FontSize.xs, color: Colors.textSecondary, lineHeight: 16 },
-  input: {
-    backgroundColor: Colors.background,
+  label: { fontSize: FontSize.sm, fontFamily: Font.semibold, color: t.colors.textPrimary },
+  hint: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary, lineHeight: 16 },
+  input: { fontFamily: Font.regular,
+    backgroundColor: t.colors.background,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: FontSize.md,
-    color: Colors.textPrimary,
+    color: t.colors.textPrimary,
   },
-  inputLocked: { backgroundColor: Colors.surface, color: Colors.textSecondary },
+  inputLocked: { backgroundColor: t.colors.surface, color: t.colors.textSecondary },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.background,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.background,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
-  chipSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipText: { fontSize: FontSize.sm, color: Colors.textSecondary, fontWeight: '600' },
-  chipTextSelected: { color: Colors.textWhite },
+  chipSelected: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
+  chipText: { fontSize: FontSize.sm, color: t.colors.textSecondary, fontFamily: Font.semibold },
+  chipTextSelected: { fontFamily: Font.regular, color: t.colors.textWhite },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   saveButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: t.colors.primary,
     borderRadius: Radius.md,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 6,
   },
   saveButtonDisabled: { opacity: 0.6 },
-  saveButtonText: { color: Colors.textWhite, fontSize: FontSize.md, fontWeight: '700' },
+  saveButtonText: { color: t.colors.textWhite, fontSize: FontSize.md, fontFamily: Font.bold },
 })

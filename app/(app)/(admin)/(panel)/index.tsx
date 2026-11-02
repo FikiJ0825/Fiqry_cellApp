@@ -1,10 +1,11 @@
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { Colors, FontSize, Radius } from '../../../../constants/theme'
+import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { formatRupiah } from '../../../../lib/format'
 import { supabase } from '../../../../lib/supabase'
 import { awalHariIniIso } from '../../../../lib/transaksi'
+import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 interface Ringkasan {
   trxHariIni: number
@@ -18,6 +19,8 @@ interface Ringkasan {
 }
 
 export default function AdminDashboardScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const router = useRouter()
   const [data, setData] = useState<Ringkasan | null>(null)
   const [loading, setLoading] = useState(true)
@@ -81,7 +84,7 @@ export default function AdminDashboardScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
   }
@@ -126,6 +129,7 @@ export default function AdminDashboardScreen() {
 }
 
 function Kartu({ label, nilai }: { label: string; nilai: string }) {
+  const styles = useStyles(buatStyles)
   return (
     <View style={styles.kartu}>
       <Text style={styles.kartuLabel}>{label}</Text>
@@ -134,27 +138,27 @@ function Kartu({ label, nilai }: { label: string; nilai: string }) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.surface },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.surface },
   content: { padding: 16, paddingBottom: 32, gap: 12 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.surface },
-  errorText: { color: Colors.error, fontSize: FontSize.sm, textAlign: 'center' },
-  hero: { backgroundColor: Colors.primary, borderRadius: Radius.lg, padding: 20 },
-  heroLabel: { color: Colors.primaryLight, fontSize: FontSize.sm },
-  heroValue: { color: Colors.textWhite, fontSize: FontSize.xxl + 4, fontWeight: 'bold', marginTop: 2 },
-  heroSub: { color: Colors.primaryLight, fontSize: FontSize.sm, marginTop: 8 },
-  alert: { backgroundColor: '#FFF3E0', borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.warning, padding: 14 },
-  alertTitle: { color: Colors.warning, fontSize: FontSize.md, fontWeight: '700' },
-  alertSub: { color: Colors.textSecondary, fontSize: FontSize.sm, marginTop: 2 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.colors.surface },
+  errorText: { fontFamily: Font.regular, color: t.colors.error, fontSize: FontSize.sm, textAlign: 'center' },
+  hero: { backgroundColor: t.colors.primary, borderRadius: Radius.lg, padding: 20 },
+  heroLabel: { fontFamily: Font.regular, color: t.colors.primaryLight, fontSize: FontSize.sm },
+  heroValue: { color: t.colors.textWhite, fontSize: FontSize.xxl + 4, fontFamily: Font.bold, marginTop: 2 },
+  heroSub: { fontFamily: Font.regular, color: t.colors.primaryLight, fontSize: FontSize.sm, marginTop: 8 },
+  alert: { backgroundColor: t.pastel.butter.bg, borderRadius: Radius.md, borderWidth: 1, borderColor: t.colors.warning, padding: 14 },
+  alertTitle: { color: t.colors.warning, fontSize: FontSize.md, fontFamily: Font.bold },
+  alertSub: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.sm, marginTop: 2 },
   row: { flexDirection: 'row', gap: 12 },
   kartu: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     padding: 14,
   },
-  kartuLabel: { fontSize: FontSize.xs, color: Colors.textSecondary },
-  kartuValue: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.textPrimary, marginTop: 4 },
+  kartuLabel: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary },
+  kartuValue: { fontSize: FontSize.lg, fontFamily: Font.bold, color: t.colors.textPrimary, marginTop: 4 },
 })

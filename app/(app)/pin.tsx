@@ -7,11 +7,13 @@ import IconTile from '../../components/ui/IconTile'
 import Loading from '../../components/ui/Loading'
 import PinInput from '../../components/ui/PinInput'
 import ResultSheet from '../../components/ui/ResultSheet'
-import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { panggilFungsi } from '../../lib/functions'
 import { supabase } from '../../lib/supabase'
+import { Theme, useStyles } from '../../lib/theme'
 
 export default function PinScreen() {
+  const styles = useStyles(buatStyles)
   const router = useRouter()
   const [punyaPin, setPunyaPin] = useState<boolean | null>(null)
   const [pinLama, setPinLama] = useState('')
@@ -107,15 +109,15 @@ export default function PinScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1, backgroundColor: t.colors.background },
   content: { padding: Spacing.xl, paddingBottom: 40, gap: Spacing.lg },
   judulBaris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   judulTeks: { flex: 1 },
-  heading: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: Colors.textPrimary },
-  hint: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 2 },
+  heading: { fontSize: FontSize.xl, fontFamily: Font.bold, color: t.colors.textPrimary },
+  hint: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary, marginTop: 2 },
   form: { gap: Spacing.lg },
-  errorBox: { backgroundColor: Pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
-  errorText: { color: Pastel.rose.teks, fontSize: FontSize.sm, fontWeight: FontWeight.semibold, textAlign: 'center' },
+  errorBox: { backgroundColor: t.pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
+  errorText: { color: t.pastel.rose.teks, fontSize: FontSize.sm, fontFamily: Font.semibold, textAlign: 'center' },
 })

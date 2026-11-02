@@ -6,6 +6,7 @@ import { Alert, KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet,
 import KartuBonus from '../../../components/profil/KartuBonus'
 import KartuReferral from '../../../components/profil/KartuReferral'
 import MenuList from '../../../components/profil/MenuList'
+import PilihTema from '../../../components/profil/PilihTema'
 import ProfilHeader from '../../../components/profil/ProfilHeader'
 import Button from '../../../components/ui/Button'
 import Card from '../../../components/ui/Card'
@@ -13,11 +14,12 @@ import EmptyState from '../../../components/ui/EmptyState'
 import Input from '../../../components/ui/Input'
 import Loading from '../../../components/ui/Loading'
 import { NOMOR_WA_ADMIN } from '../../../constants/config'
-import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../../constants/theme'
 import { formatNomorWaDisplay, mapSupabaseError, normalizeNomorWa } from '../../../lib/auth-utils'
 import { formatRupiah } from '../../../lib/format'
 import { supabase } from '../../../lib/supabase'
 import { bukaTopupWa } from '../../../lib/topup'
+import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
 type Profile = {
   nama: string | null
@@ -55,6 +57,8 @@ function formatTanggalIndonesia(iso: string): string {
 }
 
 export default function ProfilScreen() {
+  const styles = useStyles(buatStyles)
+  const { pastel } = useTheme()
   const router = useRouter()
 
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -360,7 +364,7 @@ export default function ProfilScreen() {
         <View style={styles.body}>
           {isInactive ? (
             <View style={styles.nonaktif}>
-              <Ionicons name="warning" size={18} color={Pastel.butter.teks} />
+              <Ionicons name="warning" size={18} color={pastel.butter.teks} />
               <Text style={styles.nonaktifTeks}>Akun nonaktif, hubungi admin</Text>
             </View>
           ) : null}
@@ -458,6 +462,8 @@ export default function ProfilScreen() {
             ]}
           />
 
+          <PilihTema />
+
           <Button
             label="Keluar"
             icon="log-out-outline"
@@ -472,34 +478,34 @@ export default function ProfilScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1, backgroundColor: t.colors.background },
   scrollContent: { paddingBottom: 40 },
-  pusat: { flex: 1, justifyContent: 'center', backgroundColor: Colors.background },
+  pusat: { flex: 1, justifyContent: 'center', backgroundColor: t.colors.background },
   saldoWrap: { marginTop: -TINGGI_TUMPANG_TINDIH, marginHorizontal: Spacing.xl },
-  saldoLabel: { fontSize: FontSize.sm, color: Colors.textSecondary },
-  saldoValue: { fontSize: FontSize.xxl + 4, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginTop: 2 },
-  memberSince: { fontSize: FontSize.xs, color: Colors.grey, marginTop: Spacing.sm },
+  saldoLabel: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
+  saldoValue: { fontSize: FontSize.xxl + 4, fontFamily: Font.bold, color: t.colors.textPrimary, marginTop: 2 },
+  memberSince: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.grey, marginTop: Spacing.sm },
   body: { padding: Spacing.xl, gap: Spacing.lg },
   nonaktif: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    backgroundColor: Pastel.butter.bg,
+    backgroundColor: t.pastel.butter.bg,
     borderRadius: Radius.md,
     padding: Spacing.md,
   },
-  nonaktifTeks: { flex: 1, fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Pastel.butter.teks },
+  nonaktifTeks: { flex: 1, fontSize: FontSize.sm, fontFamily: Font.semibold, color: t.pastel.butter.teks },
   info: { gap: Spacing.md },
   infoBaris: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },
-  infoLabel: { flex: 1, fontSize: FontSize.sm, color: Colors.textSecondary },
-  infoNilai: { flex: 1, fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary, textAlign: 'right' },
-  garis: { height: StyleSheet.hairlineWidth, backgroundColor: Colors.border },
+  infoLabel: { fontFamily: Font.regular, flex: 1, fontSize: FontSize.sm, color: t.colors.textSecondary },
+  infoNilai: { flex: 1, fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary, textAlign: 'right' },
+  garis: { height: StyleSheet.hairlineWidth, backgroundColor: t.colors.border },
   form: { gap: Spacing.lg },
-  formJudul: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  formJudul: { fontSize: FontSize.lg, fontFamily: Font.bold, color: t.colors.textPrimary },
   formAksi: { flexDirection: 'row', gap: Spacing.md },
   formTombol: { flex: 1 },
-  errorBox: { backgroundColor: Pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
-  errorText: { color: Pastel.rose.teks, fontSize: FontSize.sm, fontWeight: FontWeight.semibold, textAlign: 'center' },
+  errorBox: { backgroundColor: t.pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
+  errorText: { color: t.pastel.rose.teks, fontSize: FontSize.sm, fontFamily: Font.semibold, textAlign: 'center' },
 })

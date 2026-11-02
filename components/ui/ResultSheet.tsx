@@ -2,9 +2,10 @@ import { ReactNode } from 'react'
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { IoniconName } from '../../constants/produk'
-import { Colors, FontSize, FontWeight, PastelNama, Radius, Spacing } from '../../constants/theme'
+import { FontSize, PastelNama, Radius, Spacing, Font } from '../../constants/theme'
 import Button from './Button'
 import IconTile from './IconTile'
+import { Theme, useStyles } from '../../lib/theme'
 
 interface Aksi {
   label: string
@@ -27,6 +28,7 @@ interface Props {
 
 /** Lembar dari bawah untuk konfirmasi dan hasil (sukses/gagal), pengganti Alert.alert */
 export default function ResultSheet({ visible, ikon, warna, judul, pesan, children, aksi, aksiKedua, onTutup }: Props) {
+  const styles = useStyles(buatStyles)
   const insets = useSafeAreaInsets()
 
   return (
@@ -55,11 +57,11 @@ export default function ResultSheet({ visible, ikon, warna, judul, pesan, childr
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   wadah: { flex: 1, justifyContent: 'flex-end' },
-  latar: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(43,30,32,0.55)' },
+  latar: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(11,11,11,0.6)' },
   lembar: {
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     paddingHorizontal: Spacing.xl,
@@ -70,17 +72,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: Radius.full,
-    backgroundColor: Colors.border,
+    backgroundColor: t.colors.border,
     marginBottom: Spacing.lg,
   },
   judul: {
     fontSize: FontSize.xl,
-    fontWeight: FontWeight.bold,
-    color: Colors.textPrimary,
+    fontFamily: Font.bold,
+    color: t.colors.textPrimary,
     marginTop: Spacing.md,
     textAlign: 'center',
   },
-  pesan: { fontSize: FontSize.md, color: Colors.textSecondary, textAlign: 'center', marginTop: Spacing.sm },
+  pesan: { fontFamily: Font.regular, fontSize: FontSize.md, color: t.colors.textSecondary, textAlign: 'center', marginTop: Spacing.sm },
   isi: { alignSelf: 'stretch', marginTop: Spacing.lg },
   tombol: { alignSelf: 'stretch', marginTop: Spacing.md },
 })

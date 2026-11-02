@@ -12,10 +12,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { Colors, FontSize, Radius } from '../../../../constants/theme'
+import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { formatRupiah } from '../../../../lib/format'
 import { supabase } from '../../../../lib/supabase'
 import { formatWaktu, getStatusColor, getStatusLabel, STATUS_TRANSAKSI } from '../../../../lib/transaksi'
+import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 interface TransaksiRow {
   id: string
@@ -31,6 +32,8 @@ interface TransaksiRow {
 const BATAS = 200
 
 export default function AdminTransaksiScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const [data, setData] = useState<TransaksiRow[]>([])
   const [namaAgen, setNamaAgen] = useState<Record<string, string>>({})
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
@@ -120,7 +123,7 @@ export default function AdminTransaksiScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
   }
@@ -132,7 +135,7 @@ export default function AdminTransaksiScreen() {
         value={search}
         onChangeText={setSearch}
         placeholder="Cari agen, kode produk, atau nomor tujuan"
-        placeholderTextColor={Colors.grey}
+        placeholderTextColor={colors.grey}
         autoCapitalize="none"
         autoCorrect={false}
       />
@@ -161,7 +164,7 @@ export default function AdminTransaksiScreen() {
           </Text>
         }
         renderItem={({ item }) => {
-          const warna = getStatusColor(item.status)
+          const warna = getStatusColor(item.status, colors)
           const belumSelesai = item.status === 'pending' || item.status === 'diproses'
           return (
             <TouchableOpacity
@@ -190,6 +193,7 @@ export default function AdminTransaksiScreen() {
 }
 
 function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  const styles = useStyles(buatStyles)
   return (
     <TouchableOpacity style={[styles.chip, selected && styles.chipSelected]} onPress={onPress} activeOpacity={0.75}>
       <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
@@ -197,55 +201,55 @@ function Chip({ label, selected, onPress }: { label: string; selected: boolean; 
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.surface },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.surface },
-  search: {
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.surface },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.colors.surface },
+  search: { fontFamily: Font.regular,
     margin: 16,
     marginBottom: 0,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: FontSize.md,
-    backgroundColor: Colors.background,
-    color: Colors.textPrimary,
+    backgroundColor: t.colors.background,
+    color: t.colors.textPrimary,
   },
   chipRow: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
   chip: {
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.background,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.background,
     paddingHorizontal: 14,
     paddingVertical: 6,
   },
-  chipSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipText: { fontSize: FontSize.sm, color: Colors.textSecondary, fontWeight: '600' },
-  chipTextSelected: { color: Colors.textWhite },
+  chipSelected: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
+  chipText: { fontSize: FontSize.sm, color: t.colors.textSecondary, fontFamily: Font.semibold },
+  chipTextSelected: { fontFamily: Font.regular, color: t.colors.textWhite },
   list: { padding: 16, paddingTop: 4, gap: 10, paddingBottom: 32 },
-  emptyText: { textAlign: 'center', color: Colors.textSecondary, marginTop: 40 },
-  errorText: { textAlign: 'center', color: Colors.error, marginTop: 40 },
+  emptyText: { fontFamily: Font.regular, textAlign: 'center', color: t.colors.textSecondary, marginTop: 40 },
+  errorText: { fontFamily: Font.regular, textAlign: 'center', color: t.colors.error, marginTop: 40 },
   card: {
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     padding: 14,
   },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  judul: { flex: 1, fontSize: FontSize.md, fontWeight: '600', color: Colors.textPrimary },
+  judul: { flex: 1, fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary },
   status: {
     fontSize: FontSize.xs,
-    fontWeight: '700',
+    fontFamily: Font.bold,
     borderWidth: 1,
     borderRadius: Radius.full,
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
-  sub: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 4 },
+  sub: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary, marginTop: 4 },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-  harga: { fontSize: FontSize.md, fontWeight: '700', color: Colors.primary },
-  hint: { fontSize: FontSize.xs, color: Colors.warning, marginTop: 6 },
+  harga: { fontSize: FontSize.md, fontFamily: Font.bold, color: t.colors.accent },
+  hint: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.warning, marginTop: 6 },
 })

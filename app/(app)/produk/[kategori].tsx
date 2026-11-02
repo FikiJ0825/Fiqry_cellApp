@@ -6,9 +6,10 @@ import EmptyState from '../../../components/ui/EmptyState'
 import Input from '../../../components/ui/Input'
 import Skeleton from '../../../components/ui/Skeleton'
 import { getKategoriLabel } from '../../../constants/produk'
-import { Colors, Radius, Spacing } from '../../../constants/theme'
+import { Radius, Spacing } from '../../../constants/theme'
 import { ambilProfilSaya, hargaUntukTier } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
+import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
 interface ProdukRow {
   kode_produk: string
@@ -18,6 +19,8 @@ interface ProdukRow {
 }
 
 export default function ProdukPerKategoriScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const router = useRouter()
   const { kategori } = useLocalSearchParams<{ kategori: string }>()
   const [produk, setProduk] = useState<ProdukRow[]>([])
@@ -87,7 +90,7 @@ export default function ProdukPerKategoriScreen() {
           contentContainerStyle={styles.list}
           keyboardShouldPersistTaps="handled"
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[Colors.primary]} tintColor={Colors.primary} />
+            <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[colors.primary]} tintColor={colors.primary} />
           }
           ListHeaderComponent={
             produk.length > 0 ? (
@@ -133,7 +136,7 @@ export default function ProdukPerKategoriScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.background },
   list: { padding: Spacing.xl, gap: Spacing.md, paddingBottom: 40 },
 })

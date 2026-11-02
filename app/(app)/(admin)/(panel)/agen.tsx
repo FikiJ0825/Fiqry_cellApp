@@ -10,10 +10,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { Colors, FontSize, Radius } from '../../../../constants/theme'
+import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { formatNomorWaDisplay } from '../../../../lib/auth-utils'
 import { formatRupiah } from '../../../../lib/format'
 import { supabase } from '../../../../lib/supabase'
+import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 interface AgenRow {
   id: string
@@ -25,6 +26,8 @@ interface AgenRow {
 }
 
 export default function AdminAgenScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const router = useRouter()
   const [agen, setAgen] = useState<AgenRow[]>([])
   const [search, setSearch] = useState('')
@@ -66,7 +69,7 @@ export default function AdminAgenScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
   }
@@ -78,7 +81,7 @@ export default function AdminAgenScreen() {
         value={search}
         onChangeText={setSearch}
         placeholder="Cari nama atau nomor WA"
-        placeholderTextColor={Colors.grey}
+        placeholderTextColor={colors.grey}
         autoCapitalize="none"
         autoCorrect={false}
       />
@@ -114,37 +117,37 @@ export default function AdminAgenScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.surface },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.surface },
-  search: {
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.surface },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.colors.surface },
+  search: { fontFamily: Font.regular,
     margin: 16,
     marginBottom: 0,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: FontSize.md,
-    backgroundColor: Colors.background,
-    color: Colors.textPrimary,
+    backgroundColor: t.colors.background,
+    color: t.colors.textPrimary,
   },
   list: { padding: 16, gap: 10, paddingBottom: 32 },
-  emptyText: { textAlign: 'center', color: Colors.textSecondary, marginTop: 40 },
-  errorText: { textAlign: 'center', color: Colors.error, marginTop: 40 },
+  emptyText: { fontFamily: Font.regular, textAlign: 'center', color: t.colors.textSecondary, marginTop: 40 },
+  errorText: { fontFamily: Font.regular, textAlign: 'center', color: t.colors.error, marginTop: 40 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     padding: 14,
     gap: 10,
   },
   cardNonaktif: { opacity: 0.6 },
   cardText: { flex: 1 },
-  nama: { fontSize: FontSize.md, fontWeight: '600', color: Colors.textPrimary },
-  sub: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 2 },
-  saldo: { fontSize: FontSize.md, fontWeight: '700', color: Colors.primary },
+  nama: { fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary },
+  sub: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary, marginTop: 2 },
+  saldo: { fontSize: FontSize.md, fontFamily: Font.bold, color: t.colors.accent },
 })

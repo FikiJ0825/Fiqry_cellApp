@@ -13,11 +13,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { Colors, FontSize, Radius } from '../../../constants/theme'
+import { FontSize, Radius, Font } from '../../../constants/theme'
 import { formatNomorWaDisplay } from '../../../lib/auth-utils'
 import { formatRupiah } from '../../../lib/format'
 import { supabase } from '../../../lib/supabase'
 import { formatWaktu } from '../../../lib/transaksi'
+import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
 interface AgenDetail {
   id: string
@@ -32,6 +33,8 @@ interface AgenDetail {
 }
 
 export default function AgenDetailScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const { id } = useLocalSearchParams<{ id: string }>()
   const [agen, setAgen] = useState<AgenDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -117,7 +120,7 @@ export default function AgenDetailScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
   }
@@ -150,7 +153,7 @@ export default function AgenDetailScreen() {
             value={jumlah}
             onChangeText={(v) => setJumlah(v.replace(/\D/g, ''))}
             placeholder="Nominal (Rp)"
-            placeholderTextColor={Colors.grey}
+            placeholderTextColor={colors.grey}
             keyboardType="number-pad"
             editable={!busy}
           />
@@ -159,7 +162,7 @@ export default function AgenDetailScreen() {
             value={catatan}
             onChangeText={setCatatan}
             placeholder="Catatan (mis. top-up transfer BCA)"
-            placeholderTextColor={Colors.grey}
+            placeholderTextColor={colors.grey}
             editable={!busy}
           />
           <View style={styles.btnRow}>
@@ -180,8 +183,8 @@ export default function AgenDetailScreen() {
               value={agen.aktif !== false}
               onValueChange={(v) => ubahProfil({ aktif: v })}
               disabled={busy}
-              trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-              thumbColor={agen.aktif !== false ? Colors.primary : Colors.grey}
+              trackColor={{ false: colors.border, true: colors.primaryLight }}
+              thumbColor={agen.aktif !== false ? colors.primary : colors.grey}
             />
           </View>
           <Text style={styles.fieldLabel}>Tier</Text>
@@ -209,6 +212,7 @@ export default function AgenDetailScreen() {
 }
 
 function Baris({ label, nilai }: { label: string; nilai: string }) {
+  const styles = useStyles(buatStyles)
   return (
     <View style={styles.baris}>
       <Text style={styles.barisLabel}>{label}</Text>
@@ -217,43 +221,43 @@ function Baris({ label, nilai }: { label: string; nilai: string }) {
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: Colors.surface },
+  container: { flex: 1, backgroundColor: t.colors.surface },
   content: { padding: 16, paddingBottom: 40 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.surface },
-  errorText: { color: Colors.error, fontSize: FontSize.sm, textAlign: 'center' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.colors.surface },
+  errorText: { fontFamily: Font.regular, color: t.colors.error, fontSize: FontSize.sm, textAlign: 'center' },
   card: {
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     padding: 16,
     marginBottom: 16,
   },
-  saldoLabel: { fontSize: FontSize.sm, color: Colors.textSecondary },
-  saldoValue: { fontSize: FontSize.xxl, fontWeight: 'bold', color: Colors.primary, marginBottom: 8 },
+  saldoLabel: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
+  saldoValue: { fontSize: FontSize.xxl, fontFamily: Font.bold, color: t.colors.accent, marginBottom: 8 },
   baris: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  barisLabel: { fontSize: FontSize.sm, color: Colors.textSecondary },
-  barisNilai: { fontSize: FontSize.sm, color: Colors.textPrimary, fontWeight: '600' },
-  sectionTitle: { fontSize: FontSize.md, fontWeight: '700', color: Colors.textPrimary, marginBottom: 8 },
-  input: {
+  barisLabel: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
+  barisNilai: { fontSize: FontSize.sm, color: t.colors.textPrimary, fontFamily: Font.semibold },
+  sectionTitle: { fontSize: FontSize.md, fontFamily: Font.bold, color: t.colors.textPrimary, marginBottom: 8 },
+  input: { fontFamily: Font.regular,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: FontSize.md,
-    color: Colors.textPrimary,
+    color: t.colors.textPrimary,
     marginBottom: 10,
   },
   btnRow: { flexDirection: 'row', gap: 10 },
   btn: { flex: 1, borderRadius: Radius.md, paddingVertical: 12, alignItems: 'center', borderWidth: 1 },
-  btnPrimary: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  btnPrimaryText: { color: Colors.textWhite, fontWeight: '700', fontSize: FontSize.md },
-  btnOutline: { backgroundColor: Colors.background, borderColor: Colors.primary },
-  btnOutlineText: { color: Colors.primary, fontWeight: '700', fontSize: FontSize.md },
+  btnPrimary: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
+  btnPrimaryText: { color: t.colors.textWhite, fontFamily: Font.bold, fontSize: FontSize.md },
+  btnOutline: { backgroundColor: t.colors.background, borderColor: t.colors.primary },
+  btnOutlineText: { color: t.colors.accent, fontFamily: Font.bold, fontSize: FontSize.md },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  switchLabel: { fontSize: FontSize.md, color: Colors.textPrimary },
-  fieldLabel: { fontSize: FontSize.sm, color: Colors.textSecondary, marginBottom: 6 },
+  switchLabel: { fontFamily: Font.regular, fontSize: FontSize.md, color: t.colors.textPrimary },
+  fieldLabel: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary, marginBottom: 6 },
 })

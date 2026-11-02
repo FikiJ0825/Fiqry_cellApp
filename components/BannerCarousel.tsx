@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { FlatList, Image, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native'
-import { Colors, Radius, Shadow } from '../constants/theme'
+import { Radius } from '../constants/theme'
 import type { BannerAktif } from '../lib/banner'
+import { Theme, useStyles } from '../lib/theme'
 
 const GUTTER = 20
 const JARAK = 12
@@ -19,6 +20,7 @@ function Pemisah() {
 }
 
 export default function BannerCarousel({ banners, onPressBanner }: Props) {
+  const styles = useStyles(buatStyles)
   const { width } = useWindowDimensions()
   const lebar = width - GUTTER * 2
   const tinggi = Math.round(lebar * RASIO_TINGGI)
@@ -84,17 +86,17 @@ export default function BannerCarousel({ banners, onPressBanner }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   // Ruang vertikal supaya bayangan kartu tidak terpotong oleh FlatList
   list: { paddingVertical: 6 },
   kartu: {
     borderRadius: Radius.lg,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: t.colors.primaryLight,
     overflow: 'hidden',
-    ...Shadow.card,
+    ...t.shadow.card,
   },
   gambar: { width: '100%', height: '100%' },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.border },
-  dotActive: { width: 18, backgroundColor: Colors.primary },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: t.colors.border },
+  dotActive: { width: 18, backgroundColor: t.colors.primary },
 })

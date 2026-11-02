@@ -1,16 +1,20 @@
 import { Stack } from 'expo-router'
-import { Colors } from '../../constants/theme'
-
-const headerAgen = {
-  headerShown: true,
-  headerStyle: { backgroundColor: Colors.primary },
-  headerTintColor: Colors.textWhite,
-  headerTitleStyle: { fontWeight: 'bold' as const },
-}
+import { Font } from '../../constants/theme'
+import { useTheme } from '../../lib/theme'
 
 export default function AppLayout() {
+  const { colors } = useTheme()
+
+  const headerAgen = {
+    headerShown: true,
+    headerStyle: { backgroundColor: colors.header },
+    headerTintColor: colors.textWhite,
+    headerTitleStyle: { fontFamily: Font.semibold },
+    headerShadowVisible: false,
+  }
+
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen name="produk/[kategori]" options={{ ...headerAgen, title: 'Produk' }} />
       <Stack.Screen name="produk/beli" options={{ ...headerAgen, title: 'Beli Produk' }} />
       <Stack.Screen name="pin" options={{ ...headerAgen, title: 'PIN Transaksi' }} />

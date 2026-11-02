@@ -8,7 +8,7 @@ import IconTile from '../../../components/ui/IconTile'
 import ScreenHeader from '../../../components/ui/ScreenHeader'
 import Skeleton from '../../../components/ui/Skeleton'
 import StatusPill from '../../../components/ui/StatusPill'
-import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../../constants/theme'
 import { formatRupiah } from '../../../lib/format'
 import { supabase } from '../../../lib/supabase'
 import {
@@ -17,6 +17,7 @@ import {
   getStatusPastel,
   STATUS_TRANSAKSI,
 } from '../../../lib/transaksi'
+import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
 interface TransaksiRow {
   id: string
@@ -31,6 +32,8 @@ interface TransaksiRow {
 const BATAS_RIWAYAT = 100
 
 export default function RiwayatScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const [data, setData] = useState<TransaksiRow[]>([])
   const [namaProduk, setNamaProduk] = useState<Record<string, string>>({})
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
@@ -135,7 +138,7 @@ export default function RiwayatScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[Colors.primary]} tintColor={Colors.primary} />
+            <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[colors.primary]} tintColor={colors.primary} />
           }
           ListEmptyComponent={
             errorMessage ? (
@@ -179,17 +182,17 @@ export default function RiwayatScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.background },
   filterWrap: { paddingTop: Spacing.md },
   chipRow: { paddingHorizontal: Spacing.xl, gap: Spacing.sm },
   list: { padding: Spacing.xl, gap: Spacing.md, paddingBottom: 40 },
   kartu: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
   tengah: { flex: 1 },
-  nama: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
-  tujuan: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 2 },
-  waktu: { fontSize: FontSize.xs, color: Colors.grey, marginTop: 4 },
-  refund: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold, color: Pastel.mint.teks, marginTop: 4 },
+  nama: { fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary },
+  tujuan: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary, marginTop: 2 },
+  waktu: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.grey, marginTop: 4 },
+  refund: { fontSize: FontSize.xs, fontFamily: Font.semibold, color: t.pastel.mint.teks, marginTop: 4 },
   kanan: { alignItems: 'flex-end', gap: 6 },
-  harga: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  harga: { fontSize: FontSize.md, fontFamily: Font.bold, color: t.colors.textPrimary },
 })

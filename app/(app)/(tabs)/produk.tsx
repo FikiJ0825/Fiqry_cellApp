@@ -9,9 +9,10 @@ import Input from '../../../components/ui/Input'
 import ScreenHeader from '../../../components/ui/ScreenHeader'
 import Skeleton from '../../../components/ui/Skeleton'
 import { KATEGORI_PRODUK, TAMPILAN_KATEGORI } from '../../../constants/produk'
-import { Colors, FontSize, FontWeight, Radius, Shadow, Spacing } from '../../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../../constants/theme'
 import { ambilProfilSaya, hargaUntukTier } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
+import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
 interface ProdukRow {
   kode_produk: string
@@ -25,6 +26,8 @@ const MIN_HURUF_CARI = 2
 const BATAS_HASIL_CARI = 50
 
 export default function ProdukKategoriScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const router = useRouter()
   const [produk, setProduk] = useState<ProdukRow[]>([])
   const [tier, setTier] = useState<string | null>(null)
@@ -88,7 +91,7 @@ export default function ProdukKategoriScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[Colors.primary]} tintColor={Colors.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={() => muat(true)} colors={[colors.primary]} tintColor={colors.primary} />
         }
       >
         <ScreenHeader judul="Produk" keterangan="Pilih kategori atau cari produk" ruangBawah={44} />
@@ -171,15 +174,15 @@ export default function ProdukKategoriScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.background },
   content: { paddingBottom: 40 },
   cariWrap: {
     marginTop: -24,
     marginHorizontal: Spacing.xl,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
-    ...Shadow.card,
+    backgroundColor: t.colors.surface,
+    ...t.shadow.card,
   },
   body: { padding: Spacing.xl },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
@@ -187,6 +190,6 @@ const styles = StyleSheet.create({
   kartuWrap: { width: '47.5%' },
   kartu: { alignItems: 'center', gap: 4 },
   tekan: { opacity: 0.75 },
-  kartuJudul: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary, marginTop: Spacing.sm },
-  kartuSub: { fontSize: FontSize.xs, color: Colors.textSecondary },
+  kartuJudul: { fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary, marginTop: Spacing.sm },
+  kartuSub: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary },
 })

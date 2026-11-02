@@ -7,11 +7,13 @@ import Card from '../../components/ui/Card'
 import IconTile from '../../components/ui/IconTile'
 import SectionHeader from '../../components/ui/SectionHeader'
 import { BAGIAN_PANDUAN, ItemPanduan, TANYA_JAWAB_PANDUAN } from '../../constants/panduan'
-import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { ambilProfilSaya, ProfilSaya } from '../../lib/profil'
 import { bukaBantuanWa } from '../../lib/topup'
+import { Theme, useStyles } from '../../lib/theme'
 
 export default function PanduanScreen() {
+  const styles = useStyles(buatStyles)
   const router = useRouter()
   const [profil, setProfil] = useState<ProfilSaya | null>(null)
 
@@ -88,6 +90,7 @@ export default function PanduanScreen() {
 }
 
 function IsiPanduan({ item }: { item: ItemPanduan }) {
+  const styles = useStyles(buatStyles)
   return (
     <>
       <Text style={styles.isi}>{item.isi}</Text>
@@ -107,28 +110,28 @@ function IsiPanduan({ item }: { item: ItemPanduan }) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.background },
   content: { padding: Spacing.xl, paddingBottom: 40, gap: Spacing.xl },
   hero: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: Spacing.md },
   bantuan: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: Spacing.md },
   heroTeks: { flex: 1, minWidth: 160 },
-  heroJudul: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.textPrimary },
-  heroIsi: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 2 },
+  heroJudul: { fontSize: FontSize.lg, fontFamily: Font.bold, color: t.colors.textPrimary },
+  heroIsi: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary, marginTop: 2 },
   heroTombol: { alignSelf: 'stretch', flexBasis: '100%' },
   daftar: { gap: Spacing.md },
-  isi: { fontSize: FontSize.sm, color: Colors.textSecondary, lineHeight: 21 },
+  isi: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary, lineHeight: 21 },
   langkahDaftar: { gap: Spacing.sm },
   langkahBaris: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
   nomor: {
     width: 22,
     height: 22,
     borderRadius: Radius.full,
-    backgroundColor: Pastel.rose.bg,
+    backgroundColor: t.pastel.rose.bg,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 1,
   },
-  nomorTeks: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Pastel.rose.teks },
-  langkahTeks: { flex: 1, fontSize: FontSize.sm, color: Colors.textPrimary, lineHeight: 21 },
+  nomorTeks: { fontSize: FontSize.xs, fontFamily: Font.bold, color: t.pastel.rose.teks },
+  langkahTeks: { fontFamily: Font.regular, flex: 1, fontSize: FontSize.sm, color: t.colors.textPrimary, lineHeight: 21 },
 })

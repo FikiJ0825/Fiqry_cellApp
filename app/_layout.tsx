@@ -1,9 +1,18 @@
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import { Slot, useRouter, useSegments } from 'expo-router'
+import { StatusBar } from 'expo-status-bar'
+import {
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+  useFonts,
+} from '@expo-google-fonts/poppins'
 import { Session } from '@supabase/supabase-js'
-import { Colors } from '../constants/theme'
+
 import { supabase } from '../lib/supabase'
+import { Theme, ThemeProvider, useStyles, useTheme } from '../lib/theme'
 
 type UserRole = 'admin' | 'agen'
 
@@ -25,7 +34,9 @@ async function fetchUserRole(userId: string): Promise<UserRole> {
   return data.role === 'admin' ? 'admin' : 'agen'
 }
 
-export default function RootLayout() {
+function RootNavigator() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const [session, setSession] = useState<Session | null>(null)
   const [role, setRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(true)
@@ -110,7 +121,7 @@ export default function RootLayout() {
   if (loading || isResolvingRole) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
   }
@@ -118,11 +129,11 @@ export default function RootLayout() {
   return <Slot />
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
   },
 })

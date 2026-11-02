@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useEffect, useRef, useState } from 'react'
 import { Animated, Image, Modal, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native'
-import { Colors, Radius, Shadow } from '../constants/theme'
+import { Radius } from '../constants/theme'
 import type { BannerAktif } from '../lib/banner'
+import { Theme, useStyles, useTheme } from '../lib/theme'
 
 // Pop-up tampil sekali setiap aplikasi dibuka (per banner). Disimpan di memori, jadi mulai lagi saat aplikasi dibuka ulang.
 const sudahTampilSesiIni = new Set<string>()
@@ -19,6 +20,8 @@ interface Props {
 }
 
 export default function PromoPopup({ banner, onPressBanner }: Props) {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const { width, height } = useWindowDimensions()
   const [visible, setVisible] = useState(false)
   const [rasio, setRasio] = useState(RASIO_AWAL)
@@ -87,7 +90,7 @@ export default function PromoPopup({ banner, onPressBanner }: Props) {
           >
             <Image
               source={{ uri: banner.gambar_url }}
-              style={{ width: lebar, height: tinggi, backgroundColor: Colors.primaryLight }}
+              style={{ width: lebar, height: tinggi, backgroundColor: colors.primaryLight }}
               resizeMode="cover"
               accessibilityLabel={banner.judul}
             />
@@ -99,7 +102,7 @@ export default function PromoPopup({ banner, onPressBanner }: Props) {
             accessibilityRole="button"
             accessibilityLabel="Tutup pop-up"
           >
-            <Ionicons name="close" size={20} color={Colors.textPrimary} />
+            <Ionicons name="close" size={20} color={colors.textPrimary} />
           </Pressable>
         </Animated.View>
       </View>
@@ -107,9 +110,9 @@ export default function PromoPopup({ banner, onPressBanner }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(43,30,32,0.6)', alignItems: 'center', justifyContent: 'center' },
-  kartu: { borderRadius: Radius.xl, overflow: 'hidden', backgroundColor: Colors.surface, ...Shadow.float },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(11,11,11,0.65)', alignItems: 'center', justifyContent: 'center' },
+  kartu: { borderRadius: Radius.xl, overflow: 'hidden', backgroundColor: t.colors.surface, ...t.shadow.float },
   tutup: {
     position: 'absolute',
     top: 10,

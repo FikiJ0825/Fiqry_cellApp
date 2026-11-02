@@ -1,8 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native'
 import { IoniconName } from '../../constants/produk'
-import { Colors, FontSize, FontWeight, Spacing } from '../../constants/theme'
+import { FontSize, Spacing, Font } from '../../constants/theme'
 import Button from './Button'
 import IconTile from './IconTile'
+import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
   ikon: IoniconName
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function EmptyState({ ikon, judul, keterangan, aksiLabel, onAksi }: Props) {
+  const styles = useStyles(buatStyles)
   return (
     <View style={styles.wrap}>
       <IconTile ikon={ikon} warna="rose" size={64} />
@@ -23,12 +25,12 @@ export default function EmptyState({ ikon, judul, keterangan, aksiLabel, onAksi 
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   wrap: { alignItems: 'center', paddingVertical: Spacing.xxl, paddingHorizontal: Spacing.xl },
-  judul: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginTop: Spacing.md },
-  keterangan: {
+  judul: { fontSize: FontSize.md, fontFamily: Font.bold, color: t.colors.textPrimary, marginTop: Spacing.md },
+  keterangan: { fontFamily: Font.regular,
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     marginTop: Spacing.xs,
   },

@@ -3,7 +3,8 @@ import { StyleSheet, Text, View } from 'react-native'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 import IconTile from '../ui/IconTile'
-import { Colors, FontSize, FontWeight, Radius, Spacing } from '../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
+import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
   kode: string | null
@@ -13,6 +14,7 @@ interface Props {
 const DURASI_TERSALIN_MS = 2000
 
 export default function KartuReferral({ kode, onSalin }: Props) {
+  const styles = useStyles(buatStyles)
   const [tersalin, setTersalin] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -56,10 +58,10 @@ export default function KartuReferral({ kode, onSalin }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   kartu: { gap: Spacing.md },
   judulBaris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  judul: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  judul: { fontSize: FontSize.md, fontFamily: Font.bold, color: t.colors.textPrimary },
   kotakKode: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -67,13 +69,13 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: Colors.primary,
+    borderColor: t.colors.accent,
     borderRadius: Radius.md,
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     paddingVertical: Spacing.sm,
     paddingLeft: Spacing.lg,
     paddingRight: Spacing.sm,
   },
-  kode: { flex: 1, fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: Colors.primaryDark, letterSpacing: 1 },
-  kosong: { fontSize: FontSize.sm, color: Colors.textSecondary, lineHeight: 20 },
+  kode: { flex: 1, fontSize: FontSize.lg, fontFamily: Font.bold, color: t.colors.primaryDark, letterSpacing: 1 },
+  kosong: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary, lineHeight: 20 },
 })

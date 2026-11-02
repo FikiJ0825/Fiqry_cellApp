@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native'
-import { Colors, Radius, Shadow, Spacing } from '../../constants/theme'
+import { Radius, Spacing } from '../../constants/theme'
+import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
   children: ReactNode
@@ -9,14 +10,17 @@ interface Props {
 }
 
 export default function Card({ children, style, padded = true }: Props) {
+  const styles = useStyles(buatStyles)
   return <View style={[styles.card, padded && styles.padded, style]}>{children}</View>
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: Radius.lg,
-    ...Shadow.card,
+    borderWidth: 1,
+    borderColor: t.colors.border,
+    ...t.shadow.card,
   },
   padded: { padding: Spacing.lg },
 })

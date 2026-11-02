@@ -3,8 +3,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import Card from './ui/Card'
 import IconTile from './ui/IconTile'
 import { getKategoriLabel, KategoriProduk, TAMPILAN_KATEGORI } from '../constants/produk'
-import { Colors, FontSize, FontWeight, Spacing } from '../constants/theme'
+import { FontSize, Spacing, Font } from '../constants/theme'
 import { formatRupiah } from '../lib/format'
+import { Theme, useStyles, useTheme } from '../lib/theme'
 
 interface Props {
   nama: string
@@ -17,6 +18,8 @@ interface Props {
 }
 
 export default function ProdukBaris({ nama, kode, harga, kategori, tampilKategori = false, onPress }: Props) {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const tampilan = kategori ? TAMPILAN_KATEGORI[kategori as KategoriProduk] : undefined
 
   return (
@@ -33,18 +36,18 @@ export default function ProdukBaris({ nama, kode, harga, kategori, tampilKategor
             </Text>
           </View>
           <Text style={styles.harga}>{formatRupiah(harga)}</Text>
-          <Ionicons name="chevron-forward" size={16} color={Colors.grey} />
+          <Ionicons name="chevron-forward" size={16} color={colors.grey} />
         </Card>
       )}
     </Pressable>
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   baris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md },
   tekan: { opacity: 0.75 },
   teks: { flex: 1 },
-  nama: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
-  kode: { fontSize: FontSize.xs, color: Colors.textSecondary, marginTop: 2 },
-  harga: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.primaryDark },
+  nama: { fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary },
+  kode: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary, marginTop: 2 },
+  harga: { fontSize: FontSize.md, fontFamily: Font.bold, color: t.colors.primaryDark },
 })

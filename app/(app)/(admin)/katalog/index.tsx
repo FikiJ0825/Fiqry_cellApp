@@ -17,9 +17,10 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { KATEGORI_PRODUK, getKategoriLabel } from '../../../../constants/produk'
-import { Colors, FontSize, Radius } from '../../../../constants/theme'
+import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { formatRupiah } from '../../../../lib/format'
 import { supabase } from '../../../../lib/supabase'
+import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 interface ProdukRow {
   id: string
@@ -32,6 +33,8 @@ interface ProdukRow {
 }
 
 export default function KatalogListScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const router = useRouter()
   const [produk, setProduk] = useState<ProdukRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -125,8 +128,8 @@ export default function KatalogListScreen() {
           value={item.aktif}
           onValueChange={(v) => toggleAktif(item, v)}
           disabled={togglingId === item.id}
-          trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-          thumbColor={item.aktif ? Colors.primary : Colors.grey}
+          trackColor={{ false: colors.border, true: colors.primaryLight }}
+          thumbColor={item.aktif ? colors.primary : colors.grey}
         />
       </View>
 
@@ -161,7 +164,7 @@ export default function KatalogListScreen() {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           activeOpacity={0.7}
         >
-          <Ionicons name="pencil" size={18} color={Colors.primary} />
+          <Ionicons name="pencil" size={18} color={colors.accent} />
         </TouchableOpacity>
       </View>
     </View>
@@ -183,7 +186,7 @@ export default function KatalogListScreen() {
     return (
       <View style={styles.emptyState}>
         <View style={styles.emptyIconCircle}>
-          <Ionicons name="cube-outline" size={56} color={Colors.primary} />
+          <Ionicons name="cube-outline" size={56} color={colors.accent} />
         </View>
         <Text style={styles.emptyTitle}>Belum ada produk</Text>
         <Text style={styles.emptySubtitle}>
@@ -221,7 +224,7 @@ export default function KatalogListScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Cari nama atau kode produk"
-            placeholderTextColor={Colors.grey}
+            placeholderTextColor={colors.grey}
             value={search}
             onChangeText={setSearch}
             autoCapitalize="none"
@@ -259,7 +262,7 @@ export default function KatalogListScreen() {
 
       {loading && produk.length === 0 ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Memuat produk...</Text>
         </View>
       ) : (
@@ -275,8 +278,8 @@ export default function KatalogListScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => fetchProduk(true)}
-              colors={[Colors.primary]}
-              tintColor={Colors.primary}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
         />
@@ -284,7 +287,7 @@ export default function KatalogListScreen() {
 
       {produk.length > 0 ? (
         <TouchableOpacity style={styles.fab} onPress={navigateToCreate} activeOpacity={0.85}>
-          <Ionicons name="add" size={28} color={Colors.textWhite} />
+          <Ionicons name="add" size={28} color={colors.textWhite} />
         </TouchableOpacity>
       ) : null}
     </SafeAreaView>
@@ -313,70 +316,70 @@ const shadowFab = Platform.select({
   default: {},
 })
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.surface },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.surface },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: t.colors.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: Radius.full,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  backButtonText: { fontSize: FontSize.xl, color: Colors.primary, fontWeight: '600' },
+  backButtonText: { fontSize: FontSize.xl, color: t.colors.accent, fontFamily: Font.semibold },
   headerTextWrap: { flex: 1 },
-  headerTitle: { fontSize: FontSize.xl, fontWeight: '700', color: Colors.textPrimary },
-  headerSubtitle: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 2 },
+  headerTitle: { fontSize: FontSize.xl, fontFamily: Font.bold, color: t.colors.textPrimary },
+  headerSubtitle: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary, marginTop: 2 },
   filterWrap: {
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: t.colors.border,
     gap: 10,
   },
-  searchInput: {
-    backgroundColor: Colors.surface,
+  searchInput: { fontFamily: Font.regular,
+    backgroundColor: t.colors.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: FontSize.md,
-    color: Colors.textPrimary,
+    color: t.colors.textPrimary,
   },
   chipRow: { gap: 8, paddingRight: 16 },
   chip: {
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.background,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.background,
     paddingHorizontal: 14,
     paddingVertical: 6,
   },
-  chipSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipText: { fontSize: FontSize.sm, color: Colors.textSecondary, fontWeight: '600' },
-  chipTextSelected: { color: Colors.textWhite },
+  chipSelected: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
+  chipText: { fontSize: FontSize.sm, color: t.colors.textSecondary, fontFamily: Font.semibold },
+  chipTextSelected: { fontFamily: Font.regular, color: t.colors.textWhite },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  loadingText: { fontSize: FontSize.md, color: Colors.textSecondary },
+  loadingText: { fontFamily: Font.regular, fontSize: FontSize.md, color: t.colors.textSecondary },
   listContent: { padding: 16, paddingBottom: 88, gap: 12 },
   listContentEmpty: { flexGrow: 1 },
   card: {
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     padding: 14,
     gap: 10,
     ...shadowCard,
@@ -384,36 +387,36 @@ const styles = StyleSheet.create({
   cardInactive: { opacity: 0.65 },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   cardTitleWrap: { flex: 1, minWidth: 0 },
-  cardTitle: { fontSize: FontSize.md, fontWeight: '600', color: Colors.textPrimary },
-  cardCode: {
+  cardTitle: { fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary },
+  cardCode: { fontFamily: Font.regular,
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 2,
     fontVariant: ['tabular-nums'],
   },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   badge: { borderRadius: Radius.sm, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeText: { fontSize: FontSize.xs, fontWeight: '600' },
-  badgeActive: { backgroundColor: '#E8F5E9' },
-  badgeActiveText: { color: Colors.success },
-  badgeInactive: { backgroundColor: Colors.surface },
-  badgeInactiveText: { color: Colors.grey },
+  badgeText: { fontSize: FontSize.xs, fontFamily: Font.semibold },
+  badgeActive: { backgroundColor: t.pastel.mint.bg },
+  badgeActiveText: { fontFamily: Font.regular, color: t.colors.success },
+  badgeInactive: { backgroundColor: t.colors.surface },
+  badgeInactiveText: { fontFamily: Font.regular, color: t.colors.grey },
   badgeKategori: {
     borderRadius: Radius.sm,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: t.colors.primaryLight,
   },
-  badgeKategoriText: { fontSize: FontSize.xs, fontWeight: '600', color: Colors.primaryDark },
+  badgeKategoriText: { fontSize: FontSize.xs, fontFamily: Font.semibold, color: t.colors.primaryDark },
   cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   priceRow: { flexDirection: 'row', gap: 24 },
-  priceLabel: { fontSize: FontSize.xs, color: Colors.textSecondary },
-  priceValue: { fontSize: FontSize.md, fontWeight: '700', color: Colors.textPrimary, marginTop: 2 },
+  priceLabel: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary },
+  priceValue: { fontSize: FontSize.md, fontFamily: Font.bold, color: t.colors.textPrimary, marginTop: 2 },
   actionButton: {
     width: 36,
     height: 36,
     borderRadius: Radius.full,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -428,33 +431,33 @@ const styles = StyleSheet.create({
     width: 112,
     height: 112,
     borderRadius: Radius.full,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: t.colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
   },
   emptyTitle: {
     fontSize: FontSize.lg,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontFamily: Font.bold,
+    color: t.colors.textPrimary,
     marginBottom: 8,
     textAlign: 'center',
   },
-  emptySubtitle: {
+  emptySubtitle: { fontFamily: Font.regular,
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
   },
   emptyButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: t.colors.primary,
     borderRadius: Radius.md,
     paddingHorizontal: 24,
     paddingVertical: 14,
     ...shadowCard,
   },
-  emptyButtonText: { color: Colors.textWhite, fontSize: FontSize.md, fontWeight: '700' },
+  emptyButtonText: { color: t.colors.textWhite, fontSize: FontSize.md, fontFamily: Font.bold },
   fab: {
     position: 'absolute',
     right: 20,
@@ -462,7 +465,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: Radius.full,
-    backgroundColor: Colors.primary,
+    backgroundColor: t.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     ...shadowFab,

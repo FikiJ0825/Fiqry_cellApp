@@ -14,9 +14,10 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Colors, FontSize, Radius } from '../../../../constants/theme'
+import { Font, FontSize, PastelNama, Radius } from '../../../../constants/theme'
 import { supabase } from '../../../../lib/supabase'
 import { BannerTampilan, deleteBannerImage } from '../../../../lib/uploadBanner'
+import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 const BUCKET_NAME = 'banner-promo'
 
@@ -35,10 +36,10 @@ const TAMPILAN_LABELS: Record<BannerTampilan, string> = {
   popup: 'Pop-up',
 }
 
-const TAMPILAN_BADGE_COLORS: Record<BannerTampilan, { bg: string; text: string }> = {
-  carousel_tetap: { bg: '#E3F2FD', text: '#1565C0' },
-  carousel_promo: { bg: '#FFF3E0', text: '#E65100' },
-  popup: { bg: '#F3E5F5', text: '#7B1FA2' },
+const TAMPILAN_BADGE_PASTEL: Record<BannerTampilan, PastelNama> = {
+  carousel_tetap: 'sky',
+  carousel_promo: 'butter',
+  popup: 'lilac',
 }
 
 function extractStoragePathFromUrl(gambarUrl: string): string | null {
@@ -49,6 +50,8 @@ function extractStoragePathFromUrl(gambarUrl: string): string | null {
 }
 
 export default function BannerListScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors, pastel } = useTheme()
   const router = useRouter()
   const [banners, setBanners] = useState<BannerPromoRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -159,7 +162,7 @@ export default function BannerListScreen() {
   }
 
   const renderBannerCard = ({ item }: { item: BannerPromoRow }) => {
-    const tampilanColors = TAMPILAN_BADGE_COLORS[item.tampilan]
+    const tampilanColors = { bg: pastel[TAMPILAN_BADGE_PASTEL[item.tampilan]].bg, text: pastel[TAMPILAN_BADGE_PASTEL[item.tampilan]].teks }
     const isDeleting = deletingId === item.id
 
     return (
@@ -209,7 +212,7 @@ export default function BannerListScreen() {
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 activeOpacity={0.7}
               >
-                <Ionicons name="pencil" size={18} color={Colors.primary} />
+                <Ionicons name="pencil" size={18} color={colors.accent} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -220,9 +223,9 @@ export default function BannerListScreen() {
                 activeOpacity={0.7}
               >
                 {isDeleting ? (
-                  <ActivityIndicator size="small" color={Colors.error} />
+                  <ActivityIndicator size="small" color={colors.error} />
                 ) : (
-                  <Ionicons name="trash-outline" size={18} color={Colors.error} />
+                  <Ionicons name="trash-outline" size={18} color={colors.error} />
                 )}
               </TouchableOpacity>
             </View>
@@ -238,7 +241,7 @@ export default function BannerListScreen() {
     return (
       <View style={styles.emptyState}>
         <View style={styles.emptyIconCircle}>
-          <Ionicons name="images-outline" size={56} color={Colors.primary} />
+          <Ionicons name="images-outline" size={56} color={colors.accent} />
         </View>
         <Text style={styles.emptyTitle}>Belum ada banner promo</Text>
         <Text style={styles.emptySubtitle}>
@@ -277,7 +280,7 @@ export default function BannerListScreen() {
 
       {loading && banners.length === 0 ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Memuat banner...</Text>
         </View>
       ) : (
@@ -295,8 +298,8 @@ export default function BannerListScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              colors={[Colors.primary]}
-              tintColor={Colors.primary}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
         />
@@ -309,13 +312,13 @@ export default function BannerListScreen() {
           activeOpacity={0.85}
           disabled={deletingId !== null}
         >
-          <Ionicons name="add" size={28} color={Colors.textWhite} />
+          <Ionicons name="add" size={28} color={colors.textWhite} />
         </TouchableOpacity>
       ) : null}
 
       {deletingId !== null ? (
         <View style={styles.deleteOverlay}>
-          <ActivityIndicator size="large" color={Colors.textWhite} />
+          <ActivityIndicator size="large" color={colors.textWhite} />
           <Text style={styles.deleteOverlayText}>Menghapus banner...</Text>
         </View>
       ) : null}
@@ -349,45 +352,45 @@ const shadowFab = Platform.select({
   default: {},
 })
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: t.colors.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: Radius.full,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   backButtonText: {
     fontSize: FontSize.xl,
-    color: Colors.primary,
-    fontWeight: '600',
+    color: t.colors.accent,
+    fontFamily: Font.semibold,
   },
   headerTextWrap: {
     flex: 1,
   },
   headerTitle: {
     fontSize: FontSize.xl,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontFamily: Font.bold,
+    color: t.colors.textPrimary,
   },
-  headerSubtitle: {
+  headerSubtitle: { fontFamily: Font.regular,
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 2,
   },
   loadingWrap: {
@@ -396,9 +399,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
-  loadingText: {
+  loadingText: { fontFamily: Font.regular,
     fontSize: FontSize.md,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
   },
   listContent: {
     padding: 16,
@@ -410,10 +413,10 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     padding: 12,
     gap: 12,
     ...shadowCard,
@@ -422,7 +425,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 50,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
   },
   cardBody: {
     flex: 1,
@@ -430,8 +433,8 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: FontSize.md,
-    fontWeight: '600',
-    color: Colors.textPrimary,
+    fontFamily: Font.semibold,
+    color: t.colors.textPrimary,
     marginBottom: 8,
   },
   badgeRow: {
@@ -447,19 +450,19 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: FontSize.xs,
-    fontWeight: '600',
+    fontFamily: Font.semibold,
   },
   badgeActive: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: t.pastel.mint.bg,
   },
-  badgeActiveText: {
-    color: Colors.success,
+  badgeActiveText: { fontFamily: Font.regular,
+    color: t.colors.success,
   },
   badgeInactive: {
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
   },
-  badgeInactiveText: {
-    color: Colors.grey,
+  badgeInactiveText: { fontFamily: Font.regular,
+    color: t.colors.grey,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -471,15 +474,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  urutanLabel: {
+  urutanLabel: { fontFamily: Font.regular,
     fontSize: FontSize.xs,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
   },
   urutanValue: {
     fontSize: FontSize.sm,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    backgroundColor: Colors.surface,
+    fontFamily: Font.bold,
+    color: t.colors.textPrimary,
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: Radius.sm,
@@ -494,7 +497,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: Radius.full,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -509,36 +512,36 @@ const styles = StyleSheet.create({
     width: 112,
     height: 112,
     borderRadius: Radius.full,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: t.colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
   },
   emptyTitle: {
     fontSize: FontSize.lg,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontFamily: Font.bold,
+    color: t.colors.textPrimary,
     marginBottom: 8,
     textAlign: 'center',
   },
-  emptySubtitle: {
+  emptySubtitle: { fontFamily: Font.regular,
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
   },
   emptyButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: t.colors.primary,
     borderRadius: Radius.md,
     paddingHorizontal: 24,
     paddingVertical: 14,
     ...shadowCard,
   },
   emptyButtonText: {
-    color: Colors.textWhite,
+    color: t.colors.textWhite,
     fontSize: FontSize.md,
-    fontWeight: '700',
+    fontFamily: Font.bold,
   },
   fab: {
     position: 'absolute',
@@ -547,7 +550,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: Radius.full,
-    backgroundColor: Colors.primary,
+    backgroundColor: t.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     ...shadowFab,
@@ -560,8 +563,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   deleteOverlayText: {
-    color: Colors.textWhite,
+    color: t.colors.textWhite,
     fontSize: FontSize.md,
-    fontWeight: '600',
+    fontFamily: Font.semibold,
   },
 })

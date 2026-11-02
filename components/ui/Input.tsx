@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
 import { Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native'
 import { IoniconName } from '../../constants/produk'
-import { Colors, FontSize, FontWeight, Radius, Spacing } from '../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
+import { Theme, useStyles, useTheme } from '../../lib/theme'
 
 interface Props extends Omit<TextInputProps, 'style'> {
   label?: string
@@ -24,6 +25,8 @@ export default function Input({
   onBlur,
   ...rest
 }: Props) {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const [fokus, setFokus] = useState(false)
   const [tampil, setTampil] = useState(false)
 
@@ -38,12 +41,12 @@ export default function Input({
           !editable && styles.kotakNonaktif,
         ]}
       >
-        {ikon ? <Ionicons name={ikon} size={18} color={fokus ? Colors.primary : Colors.grey} /> : null}
+        {ikon ? <Ionicons name={ikon} size={18} color={fokus ? colors.primary : colors.grey} /> : null}
         <TextInput
           {...rest}
           editable={editable}
           secureTextEntry={kataSandi && !tampil}
-          placeholderTextColor={Colors.grey}
+          placeholderTextColor={colors.grey}
           onFocus={(e) => {
             setFokus(true)
             onFocus?.(e)
@@ -61,7 +64,7 @@ export default function Input({
             accessibilityRole="button"
             accessibilityLabel={tampil ? 'Sembunyikan password' : 'Tampilkan password'}
           >
-            <Ionicons name={tampil ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.grey} />
+            <Ionicons name={tampil ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.grey} />
           </Pressable>
         ) : null}
       </View>
@@ -70,11 +73,11 @@ export default function Input({
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   label: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
-    color: Colors.textPrimary,
+    fontFamily: Font.semibold,
+    color: t.colors.textPrimary,
     marginBottom: 6,
   },
   kotak: {
@@ -82,14 +85,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     borderRadius: Radius.md,
     paddingHorizontal: 14,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
   },
-  kotakFokus: { borderColor: Colors.primary },
-  kotakError: { borderColor: Colors.error },
+  kotakFokus: { borderColor: t.colors.accent },
+  kotakError: { borderColor: t.colors.error },
   kotakNonaktif: { opacity: 0.6 },
-  input: { flex: 1, paddingVertical: 12, fontSize: FontSize.md, color: Colors.textPrimary },
-  error: { fontSize: FontSize.xs, color: Colors.error, marginTop: 4 },
+  input: { fontFamily: Font.regular, flex: 1, paddingVertical: 12, fontSize: FontSize.md, color: t.colors.textPrimary },
+  error: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.error, marginTop: 4 },
 })

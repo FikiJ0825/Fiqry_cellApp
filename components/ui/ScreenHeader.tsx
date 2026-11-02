@@ -1,7 +1,8 @@
 import { ReactNode } from 'react'
 import { StyleSheet, Text } from 'react-native'
-import { Colors, FontSize, FontWeight, Pastel, Spacing } from '../../constants/theme'
+import { FontSize, Spacing, Font } from '../../constants/theme'
 import CurvedHeader from './CurvedHeader'
+import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
   judul: string
@@ -13,6 +14,7 @@ interface Props {
 
 /** Header judul layar tab: CurvedHeader dengan judul dan keterangan singkat */
 export default function ScreenHeader({ judul, keterangan, ruangBawah = Spacing.xl, children }: Props) {
+  const styles = useStyles(buatStyles)
   return (
     <CurvedHeader ruangBawah={ruangBawah}>
       <Text style={styles.judul}>{judul}</Text>
@@ -22,7 +24,7 @@ export default function ScreenHeader({ judul, keterangan, ruangBawah = Spacing.x
   )
 }
 
-const styles = StyleSheet.create({
-  judul: { color: Colors.textWhite, fontSize: FontSize.xxl, fontWeight: FontWeight.bold },
-  keterangan: { color: Pastel.rose.bg, fontSize: FontSize.sm, marginTop: 2 },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  judul: { color: t.colors.textWhite, fontSize: FontSize.xxl, fontFamily: Font.bold },
+  keterangan: { fontFamily: Font.regular, color: t.pastel.rose.bg, fontSize: FontSize.sm, marginTop: 2 },
 })

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { StyleSheet, Text, TextInput, View } from 'react-native'
-import { Colors, FontSize, FontWeight, Radius, Spacing } from '../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
+import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
   value: string
@@ -12,6 +13,7 @@ interface Props {
 
 /** Kolom PIN bergaya kotak: TextInput transparan menutupi kotak, jadi ketukan langsung membuka keypad */
 export default function PinInput({ value, onChange, label, editable = true, panjang = 6 }: Props) {
+  const styles = useStyles(buatStyles)
   const [fokus, setFokus] = useState(false)
   const posisiAktif = Math.min(value.length, panjang - 1)
 
@@ -44,11 +46,11 @@ export default function PinInput({ value, onChange, label, editable = true, panj
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   label: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
-    color: Colors.textPrimary,
+    fontFamily: Font.semibold,
+    color: t.colors.textPrimary,
     marginBottom: 6,
   },
   baris: { flexDirection: 'row', gap: Spacing.sm },
@@ -58,12 +60,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
   },
-  kotakAktif: { borderColor: Colors.primary, borderWidth: 2 },
+  kotakAktif: { borderColor: t.colors.accent, borderWidth: 2 },
   nonaktif: { opacity: 0.6 },
-  titik: { width: 12, height: 12, borderRadius: Radius.full, backgroundColor: Colors.primaryDark },
+  titik: { width: 12, height: 12, borderRadius: Radius.full, backgroundColor: t.colors.primaryDark },
   tersembunyi: { ...StyleSheet.absoluteFill, opacity: 0 },
 })

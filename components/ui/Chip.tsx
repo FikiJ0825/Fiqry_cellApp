@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text } from 'react-native'
-import { Colors, FontSize, FontWeight, Radius } from '../../constants/theme'
+import { FontSize, Radius, Font } from '../../constants/theme'
+import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
   label: string
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function Chip({ label, selected, onPress }: Props) {
+  const styles = useStyles(buatStyles)
   return (
     <Pressable
       onPress={onPress}
@@ -20,17 +22,17 @@ export default function Chip({ label, selected, onPress }: Props) {
   )
 }
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   chip: {
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 14,
     paddingVertical: 7,
   },
-  chipSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  chipSelected: { backgroundColor: t.colors.primary, borderColor: t.colors.primary },
   tekan: { opacity: 0.8 },
-  teks: { fontSize: FontSize.sm, color: Colors.textSecondary, fontWeight: FontWeight.semibold },
-  teksSelected: { color: Colors.textWhite },
+  teks: { fontSize: FontSize.sm, color: t.colors.textSecondary, fontFamily: Font.semibold },
+  teksSelected: { fontFamily: Font.regular, color: t.colors.textWhite },
 })

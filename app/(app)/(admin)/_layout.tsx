@@ -1,17 +1,20 @@
 import { Stack } from 'expo-router'
-import { Colors } from '../../../constants/theme'
+import { Font } from '../../../constants/theme'
+import { useTheme } from '../../../lib/theme'
 
 export default function AdminLayout() {
+  const { colors } = useTheme()
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen
         name="agen-detail"
         options={{
           headerShown: true,
           title: 'Detail Agen',
-          headerStyle: { backgroundColor: Colors.primaryDark },
-          headerTintColor: Colors.textWhite,
-          headerTitleStyle: { fontWeight: 'bold' },
+          headerStyle: { backgroundColor: colors.header },
+          headerTintColor: colors.textWhite,
+          headerTitleStyle: { fontFamily: Font.semibold },
+          headerShadowVisible: false,
         }}
       />
     </Stack>

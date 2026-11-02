@@ -15,13 +15,15 @@ import Card from '../../components/ui/Card'
 import CurvedHeader from '../../components/ui/CurvedHeader'
 import Input from '../../components/ui/Input'
 import Logo from '../../components/ui/Logo'
-import { Colors, FontSize, FontWeight, Pastel, Radius, Spacing } from '../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { mapSupabaseError, nomorWaToEmail, normalizeNomorWa } from '../../lib/auth-utils'
 import { supabase } from '../../lib/supabase'
+import { Theme, useStyles } from '../../lib/theme'
 
 const TINGGI_TUMPANG_TINDIH = 36
 
 export default function RegisterScreen() {
+  const styles = useStyles(buatStyles)
   const router = useRouter()
 
   const [nama, setNama] = useState('')
@@ -279,16 +281,16 @@ export default function RegisterScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.background },
   scrollContent: { flexGrow: 1, paddingBottom: Spacing.xxl },
   hero: { alignItems: 'center', gap: Spacing.md, paddingTop: Spacing.lg },
-  subtitle: { color: Pastel.rose.bg, fontSize: FontSize.md },
+  subtitle: { fontFamily: Font.regular, color: t.pastel.rose.bg, fontSize: FontSize.md },
   formWrap: { marginTop: -TINGGI_TUMPANG_TINDIH, paddingHorizontal: Spacing.xl },
   form: { gap: Spacing.lg },
-  errorBox: { backgroundColor: Pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
-  errorText: { color: Pastel.rose.teks, fontSize: FontSize.sm, fontWeight: FontWeight.semibold, textAlign: 'center' },
+  errorBox: { backgroundColor: t.pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
+  errorText: { color: t.pastel.rose.teks, fontSize: FontSize.sm, fontFamily: Font.semibold, textAlign: 'center' },
   link: { marginTop: Spacing.xl, alignItems: 'center' },
-  linkTeks: { fontSize: FontSize.sm, color: Colors.textSecondary },
-  linkSorot: { color: Colors.primary, fontWeight: FontWeight.bold },
+  linkTeks: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
+  linkSorot: { color: t.colors.accent, fontFamily: Font.bold },
 })

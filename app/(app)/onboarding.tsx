@@ -6,11 +6,13 @@ import Button from '../../components/ui/Button'
 import CurvedHeader from '../../components/ui/CurvedHeader'
 import IconTile from '../../components/ui/IconTile'
 import { SLIDE_SAMBUTAN, SlideSambutan } from '../../constants/panduan'
-import { Colors, FontSize, FontWeight, Radius, Spacing } from '../../constants/theme'
+import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { tandaiOnboarding } from '../../lib/onboarding'
 import { supabase } from '../../lib/supabase'
+import { Theme, useStyles } from '../../lib/theme'
 
 export default function OnboardingScreen() {
+  const styles = useStyles(buatStyles)
   const router = useRouter()
   const { width } = useWindowDimensions()
   const insets = useSafeAreaInsets()
@@ -91,8 +93,8 @@ export default function OnboardingScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+const buatStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.background },
   ilustrasi: { alignItems: 'center', paddingTop: Spacing.xxl },
   cincin: {
     width: 176,
@@ -103,12 +105,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   teksWrap: { paddingHorizontal: Spacing.xxl + Spacing.sm, marginTop: Spacing.xxl, alignItems: 'center', gap: Spacing.md },
-  judul: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, color: Colors.textPrimary, textAlign: 'center' },
-  isi: { fontSize: FontSize.md, color: Colors.textSecondary, textAlign: 'center', lineHeight: 23 },
+  judul: { fontSize: FontSize.xxl, fontFamily: Font.bold, color: t.colors.textPrimary, textAlign: 'center' },
+  isi: { fontFamily: Font.regular, fontSize: FontSize.md, color: t.colors.textSecondary, textAlign: 'center', lineHeight: 23 },
   lewati: { position: 'absolute', right: Spacing.xl },
-  lewatiTeks: { color: Colors.textWhite, fontSize: FontSize.md, fontWeight: FontWeight.semibold },
+  lewatiTeks: { color: t.colors.textWhite, fontSize: FontSize.md, fontFamily: Font.semibold },
   kontrol: { paddingHorizontal: Spacing.xl, gap: Spacing.xl },
   titikBaris: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  titik: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.border },
-  titikAktif: { width: 18, backgroundColor: Colors.primary },
+  titik: { width: 6, height: 6, borderRadius: 3, backgroundColor: t.colors.border },
+  titikAktif: { width: 18, backgroundColor: t.colors.primary },
 })

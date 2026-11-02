@@ -19,13 +19,14 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Colors, FontSize, Radius } from '../../../../constants/theme'
+import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { supabase } from '../../../../lib/supabase'
 import {
   BannerTampilan,
   deleteBannerImage,
   uploadBannerImage,
 } from '../../../../lib/uploadBanner'
+import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
 const BUCKET_NAME = 'banner-promo'
 
@@ -107,6 +108,7 @@ function SegmentedControl<T extends string>({
   onChange,
   disabled = false,
 }: SegmentedControlProps<T>) {
+  const styles = useStyles(buatStyles)
   return (
     <View style={styles.fieldGroup}>
       <Text style={styles.label}>{label}</Text>
@@ -156,6 +158,7 @@ function SelectField({
   onChange,
   disabled = false,
 }: SelectFieldProps) {
+  const styles = useStyles(buatStyles)
   const [visible, setVisible] = useState(false)
   const selectedLabel = options.find((o) => o.value === value)?.label
 
@@ -219,6 +222,7 @@ interface DateFieldProps {
 }
 
 function DateField({ label, value, onChange, disabled = false }: DateFieldProps) {
+  const styles = useStyles(buatStyles)
   const [showPicker, setShowPicker] = useState(false)
   const [tempDate, setTempDate] = useState<Date>(value ?? new Date())
 
@@ -313,6 +317,8 @@ function DateField({ label, value, onChange, disabled = false }: DateFieldProps)
 }
 
 export default function BannerFormScreen() {
+  const styles = useStyles(buatStyles)
+  const { colors } = useTheme()
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id?: string }>()
   const isEditMode = Boolean(id)
@@ -627,7 +633,7 @@ export default function BannerFormScreen() {
   if (loadingBanner) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.accent} />
         <Text style={styles.loadingText}>Memuat data banner...</Text>
       </SafeAreaView>
     )
@@ -671,7 +677,7 @@ export default function BannerFormScreen() {
                 value={judul}
                 onChangeText={setJudul}
                 placeholder="Contoh: Promo Pulsa Murah"
-                placeholderTextColor={Colors.textSecondary}
+                placeholderTextColor={colors.textSecondary}
                 editable={!saving}
               />
             </View>
@@ -774,7 +780,7 @@ export default function BannerFormScreen() {
                   value={urlEksternal}
                   onChangeText={setUrlEksternal}
                   placeholder="https://contoh.com/promo"
-                  placeholderTextColor={Colors.textSecondary}
+                  placeholderTextColor={colors.textSecondary}
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="url"
@@ -794,7 +800,7 @@ export default function BannerFormScreen() {
                 value={urutan}
                 onChangeText={setUrutan}
                 placeholder="0"
-                placeholderTextColor={Colors.textSecondary}
+                placeholderTextColor={colors.textSecondary}
                 keyboardType="number-pad"
                 editable={!saving}
               />
@@ -810,8 +816,8 @@ export default function BannerFormScreen() {
                 value={aktif}
                 onValueChange={setAktif}
                 disabled={saving}
-                trackColor={{ false: Colors.border, true: Colors.primaryLight }}
-                thumbColor={aktif ? Colors.primary : Colors.grey}
+                trackColor={{ false: colors.border, true: colors.primaryLight }}
+                thumbColor={aktif ? colors.primary : colors.grey}
               />
             </View>
 
@@ -844,7 +850,7 @@ export default function BannerFormScreen() {
           >
             {saving ? (
               <View style={styles.buttonContent}>
-                <ActivityIndicator color={Colors.textWhite} size="small" />
+                <ActivityIndicator color={colors.textWhite} size="small" />
                 <Text style={styles.primaryButtonText}>Menyimpan...</Text>
               </View>
             ) : (
@@ -870,59 +876,59 @@ const shadowCard = Platform.select({
   default: {},
 })
 
-const styles = StyleSheet.create({
+const buatStyles = (t: Theme) => StyleSheet.create({
   flex: {
     flex: 1,
   },
   container: {
     flex: 1,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
   },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     gap: 12,
   },
-  loadingText: {
+  loadingText: { fontFamily: Font.regular,
     fontSize: FontSize.md,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: t.colors.border,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: Radius.full,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   backButtonText: {
     fontSize: FontSize.xl,
-    color: Colors.primary,
-    fontWeight: '600',
+    color: t.colors.accent,
+    fontFamily: Font.semibold,
   },
   headerTextWrap: {
     flex: 1,
   },
   headerTitle: {
     fontSize: FontSize.xl,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontFamily: Font.bold,
+    color: t.colors.textPrimary,
   },
-  headerSubtitle: {
+  headerSubtitle: { fontFamily: Font.regular,
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 2,
   },
   scrollContent: {
@@ -931,17 +937,17 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   card: {
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderRadius: Radius.lg,
     padding: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     ...shadowCard,
   },
   cardTitle: {
     fontSize: FontSize.lg,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontFamily: Font.bold,
+    color: t.colors.textPrimary,
     marginBottom: 14,
   },
   fieldGroup: {
@@ -949,83 +955,83 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: FontSize.sm,
-    fontWeight: '600',
-    color: Colors.textPrimary,
+    fontFamily: Font.semibold,
+    color: t.colors.textPrimary,
     marginBottom: 6,
   },
-  helperText: {
+  helperText: { fontFamily: Font.regular,
     fontSize: FontSize.xs,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 4,
   },
-  input: {
+  input: { fontFamily: Font.regular,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: FontSize.md,
-    color: Colors.textPrimary,
-    backgroundColor: Colors.background,
+    color: t.colors.textPrimary,
+    backgroundColor: t.colors.background,
   },
   imagePreviewWrap: {
     borderRadius: Radius.md,
     overflow: 'hidden',
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     position: 'relative',
   },
   imagePreview: {
     width: '100%',
     aspectRatio: 16 / 9,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
   },
   imageBadge: {
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: Colors.success,
+    backgroundColor: t.colors.success,
     borderRadius: Radius.sm,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   imageBadgeText: {
-    color: Colors.textWhite,
+    color: t.colors.textWhite,
     fontSize: FontSize.xs,
-    fontWeight: '700',
+    fontFamily: Font.bold,
   },
   imagePlaceholder: {
     aspectRatio: 16 / 9,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     borderStyle: 'dashed',
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
     gap: 6,
   },
-  imagePlaceholderIcon: {
+  imagePlaceholderIcon: { fontFamily: Font.regular,
     fontSize: 28,
   },
-  imagePlaceholderText: {
+  imagePlaceholderText: { fontFamily: Font.regular,
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
   },
   secondaryButton: {
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: t.colors.accent,
     borderRadius: Radius.md,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
   },
   secondaryButtonText: {
-    color: Colors.primary,
+    color: t.colors.accent,
     fontSize: FontSize.md,
-    fontWeight: '600',
+    fontFamily: Font.semibold,
   },
   segmentRow: {
     flexDirection: 'row',
@@ -1034,58 +1040,58 @@ const styles = StyleSheet.create({
   segmentItem: {
     flex: 1,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     borderRadius: Radius.md,
     paddingVertical: 10,
     paddingHorizontal: 8,
-    backgroundColor: Colors.surface,
+    backgroundColor: t.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 52,
   },
   segmentItemSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
+    borderColor: t.colors.accent,
+    backgroundColor: t.colors.primaryLight,
   },
   segmentItemDisabled: {
     opacity: 0.6,
   },
   segmentText: {
     fontSize: FontSize.xs,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
-    fontWeight: '500',
+    fontFamily: Font.medium,
   },
   segmentTextSelected: {
-    color: Colors.primaryDark,
-    fontWeight: '700',
+    color: t.colors.primaryDark,
+    fontFamily: Font.bold,
   },
   selectTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingVertical: 13,
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
   },
   selectTriggerDisabled: {
     opacity: 0.6,
   },
-  selectTriggerText: {
+  selectTriggerText: { fontFamily: Font.regular,
     flex: 1,
     fontSize: FontSize.md,
-    color: Colors.textPrimary,
+    color: t.colors.textPrimary,
     marginRight: 8,
   },
-  selectPlaceholder: {
-    color: Colors.textSecondary,
+  selectPlaceholder: { fontFamily: Font.regular,
+    color: t.colors.textSecondary,
   },
-  selectChevron: {
+  selectChevron: { fontFamily: Font.regular,
     fontSize: FontSize.xs,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
   },
   modalOverlay: {
     flex: 1,
@@ -1093,7 +1099,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderTopLeftRadius: Radius.lg,
     borderTopRightRadius: Radius.lg,
     maxHeight: '70%',
@@ -1101,8 +1107,8 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: FontSize.lg,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontFamily: Font.bold,
+    color: t.colors.textPrimary,
     paddingHorizontal: 20,
     paddingTop: 18,
     paddingBottom: 10,
@@ -1119,21 +1125,21 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
   },
   modalOptionSelected: {
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: t.colors.primaryLight,
   },
-  modalOptionText: {
+  modalOptionText: { fontFamily: Font.regular,
     flex: 1,
     fontSize: FontSize.md,
-    color: Colors.textPrimary,
+    color: t.colors.textPrimary,
   },
   modalOptionTextSelected: {
-    color: Colors.primaryDark,
-    fontWeight: '600',
+    color: t.colors.primaryDark,
+    fontFamily: Font.semibold,
   },
   modalCheck: {
-    color: Colors.primary,
+    color: t.colors.accent,
     fontSize: FontSize.lg,
-    fontWeight: '700',
+    fontFamily: Font.bold,
     marginLeft: 8,
   },
   dateRow: {
@@ -1144,15 +1150,15 @@ const styles = StyleSheet.create({
   dateTrigger: {
     flex: 1,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: t.colors.border,
     borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingVertical: 13,
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
   },
-  dateTriggerText: {
+  dateTriggerText: { fontFamily: Font.regular,
     fontSize: FontSize.md,
-    color: Colors.textPrimary,
+    color: t.colors.textPrimary,
   },
   dateClearButton: {
     paddingHorizontal: 10,
@@ -1160,11 +1166,11 @@ const styles = StyleSheet.create({
   },
   dateClearText: {
     fontSize: FontSize.sm,
-    color: Colors.primary,
-    fontWeight: '600',
+    color: t.colors.accent,
+    fontFamily: Font.semibold,
   },
   datePickerSheet: {
-    backgroundColor: Colors.background,
+    backgroundColor: t.colors.background,
     borderTopLeftRadius: Radius.lg,
     borderTopRightRadius: Radius.lg,
     paddingBottom: 20,
@@ -1176,21 +1182,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: t.colors.border,
   },
   datePickerTitle: {
     fontSize: FontSize.md,
-    fontWeight: '600',
-    color: Colors.textPrimary,
+    fontFamily: Font.semibold,
+    color: t.colors.textPrimary,
   },
-  datePickerCancel: {
+  datePickerCancel: { fontFamily: Font.regular,
     fontSize: FontSize.md,
-    color: Colors.textSecondary,
+    color: t.colors.textSecondary,
   },
   datePickerConfirm: {
     fontSize: FontSize.md,
-    color: Colors.primary,
-    fontWeight: '700',
+    color: t.colors.accent,
+    fontFamily: Font.bold,
   },
   switchRow: {
     flexDirection: 'row',
@@ -1204,19 +1210,19 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   errorBox: {
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: t.colors.primaryLight,
     borderRadius: Radius.md,
     padding: 12,
     borderWidth: 1,
-    borderColor: Colors.error,
+    borderColor: t.colors.error,
   },
-  errorText: {
-    color: Colors.error,
+  errorText: { fontFamily: Font.regular,
+    color: t.colors.error,
     fontSize: FontSize.sm,
     textAlign: 'center',
   },
   primaryButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: t.colors.primary,
     borderRadius: Radius.md,
     paddingVertical: 16,
     alignItems: 'center',
@@ -1231,8 +1237,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   primaryButtonText: {
-    color: Colors.textWhite,
+    color: t.colors.textWhite,
     fontSize: FontSize.lg,
-    fontWeight: '700',
+    fontFamily: Font.bold,
   },
 })
