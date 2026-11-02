@@ -129,6 +129,29 @@ function RootNavigator() {
   return <Slot />
 }
 
+function AppRoot() {
+  const { isDark } = useTheme()
+  return (
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <RootNavigator />
+    </>
+  )
+}
+
+export default function RootLayout() {
+  const [fontSiap, fontError] = useFonts({ Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold })
+
+  // Tunggu font siap supaya teks tidak berkedip dari font sistem ke Poppins
+  if (!fontSiap && !fontError) return null
+
+  return (
+    <ThemeProvider>
+      <AppRoot />
+    </ThemeProvider>
+  )
+}
+
 const buatStyles = (t: Theme) => StyleSheet.create({
   loadingContainer: {
     flex: 1,
