@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
-import { Tabs, router } from 'expo-router'
-import { ComponentProps } from 'react'
-import { Alert } from 'react-native'
+import { Tabs, router, useFocusEffect } from 'expo-router'
+import { ComponentProps, useCallback, useState } from 'react'
+import { Alert, Pressable, View } from 'react-native'
+import Avatar from '../../../../components/ui/Avatar'
 import FloatingTabBar from '../../../../components/ui/FloatingTabBar'
 import ScreenHeader from '../../../../components/ui/ScreenHeader'
 import TombolKotak from '../../../../components/ui/TombolKotak'
@@ -17,6 +18,26 @@ function ikonTab(aktif: IoniconName, nonaktif: IoniconName) {
 }
 
 function AdminHeader({ judul }: { judul: string }) {
+  const [profil, setProfil] = useState<{ nama: string | null; foto_url: string | null } | null>(null)
+
+  // Muat ulang tiap header tampil kembali, supaya foto yang baru diganti langsung terlihat
+  useFocusEffect(
+    useCallback(() => {
+      let batal = false
+      ;(async () => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (!user) return
+        const { data } = await supabase.from('profiles').select('nama, foto_url').eq('id', user.id).single()
+        if (!batal && data) setProfil(data)
+      })()
+      return () => {
+        batal = true
+      }
+    }, []),
+  )
+
   const keluar = () => {
     Alert.alert('Keluar', 'Apakah Anda yakin ingin keluar dari mode Admin?', [
       { text: 'Batal', style: 'cancel' },
@@ -35,7 +56,18 @@ function AdminHeader({ judul }: { judul: string }) {
     <ScreenHeader
       judul={judul}
       keterangan="Mode Admin"
-      kanan={<TombolKotak ikon="log-out-outline" label="Keluar" onPress={keluar} />}
+      kanan={
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Pressable
+            onPress={() => router.push('/(app)/(admin)/profil-admin')}
+            accessibilityRole="button"
+            accessibilityLabel="Profil admin"
+          >
+            <Avatar nama={profil?.nama ?? 'Admin'} fotoUrl={profil?.foto_url} ukuran={40} />
+          </Pressable>
+          <TombolKotak ikon="log-out-outline" label="Keluar" onPress={keluar} />
+        </View>
+      }
     />
   )
 }

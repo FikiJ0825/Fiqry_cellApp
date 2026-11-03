@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import Avatar from '../../../components/ui/Avatar'
 import { FontSize, Radius, Font } from '../../../constants/theme'
 import { formatNomorWaDisplay } from '../../../lib/auth-utils'
 import { formatRupiah } from '../../../lib/format'
@@ -30,6 +31,7 @@ interface AgenDetail {
   aktif: boolean | null
   dibuat_pada: string | null
   kode_referral: string | null
+  foto_url: string | null
 }
 
 export default function AgenDetailScreen() {
@@ -48,7 +50,7 @@ export default function AgenDetailScreen() {
     setErrorMessage('')
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, nama, nomor_wa, saldo, saldo_bonus_pending, tier, aktif, dibuat_pada, kode_referral')
+      .select('id, nama, nomor_wa, saldo, saldo_bonus_pending, tier, aktif, dibuat_pada, kode_referral, foto_url')
       .eq('id', id)
       .single()
 
@@ -137,6 +139,10 @@ export default function AgenDetailScreen() {
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Stack.Screen options={{ title: agen.nama ?? 'Detail Agen' }} />
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <View style={styles.avatarWrap}>
+          <Avatar nama={agen.nama} fotoUrl={agen.foto_url} ukuran={88} timbul />
+        </View>
+
         <View style={styles.card}>
           <Text style={styles.saldoLabel}>Saldo</Text>
           <Text style={styles.saldoValue}>{formatRupiah(agen.saldo)}</Text>
@@ -225,6 +231,7 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: t.colors.surface },
   content: { padding: 16, paddingBottom: 40 },
+  avatarWrap: { alignItems: 'center', marginBottom: 14 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.colors.surface },
   errorText: { fontFamily: Font.regular, color: t.colors.error, fontSize: FontSize.sm, textAlign: 'center' },
   card: {

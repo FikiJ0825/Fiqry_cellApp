@@ -5,11 +5,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import BannerCarousel from '../../../components/BannerCarousel'
 import PromoPopup from '../../../components/PromoPopup'
+import Avatar from '../../../components/ui/Avatar'
 import Button from '../../../components/ui/Button'
 import Card from '../../../components/ui/Card'
 import EmptyState from '../../../components/ui/EmptyState'
 import HeroCard from '../../../components/ui/HeroCard'
 import IconTile from '../../../components/ui/IconTile'
+import Logo from '../../../components/ui/Logo'
 import Screen from '../../../components/ui/Screen'
 import SectionHeader from '../../../components/ui/SectionHeader'
 import Skeleton from '../../../components/ui/Skeleton'
@@ -189,7 +191,7 @@ export default function BerandaScreen() {
     return (
       <Screen>
         <View style={[styles.atas, { paddingTop: insets.top + Spacing.md }]}>
-          <Text style={styles.wordmark}>Ade Pulsa</Text>
+          <Logo ukuran={34} />
         </View>
         <EmptyState
           ikon="alert-circle-outline"
@@ -222,13 +224,14 @@ export default function BerandaScreen() {
     >
       <View style={[styles.atas, { paddingTop: insets.top + Spacing.md }]}>
         <TombolKotak ikon="help-circle-outline" label="Buka panduan" onPress={() => router.push('/(app)/panduan')} />
+        <Avatar nama={profil.nama} fotoUrl={profil.foto_url} ukuran={40} />
         <View style={styles.headerSalam}>
           <Text style={styles.salamKecil}>Selamat datang,</Text>
           <Text style={styles.nama} numberOfLines={1}>
             {profil.nama ?? 'Agen'}
           </Text>
         </View>
-        <Text style={styles.wordmark}>Ade Pulsa</Text>
+        <Logo ukuran={34} />
       </View>
 
       <View style={styles.saldoWrap}>
@@ -448,7 +451,6 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   headerSalam: { flex: 1 },
   salamKecil: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.sm },
   nama: { color: t.colors.textPrimary, fontSize: FontSize.lg, fontFamily: Font.bold },
-  wordmark: { color: t.colors.accent, fontSize: FontSize.md, fontFamily: Font.bold },
   panduan: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   panduanTekan: { opacity: 0.75 },
   panduanTeks: { flex: 1 },

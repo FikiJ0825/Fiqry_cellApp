@@ -17,6 +17,17 @@ export default function AdminLayout() {
           headerShadowVisible: false,
         }}
       />
+      <Stack.Screen
+        name="profil-admin"
+        options={{
+          headerShown: true,
+          title: 'Profil Admin',
+          headerStyle: { backgroundColor: colors.background },
+          headerTintColor: colors.textPrimary,
+          headerTitleStyle: { fontFamily: Font.semibold },
+          headerShadowVisible: false,
+        }}
+      />
     </Stack>
   )
 }

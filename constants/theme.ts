@@ -46,6 +46,8 @@ export interface ThemeColors {
   navBubble: string
   navBubbleIcon: string
   navRing: string
+  /** Garis tepi lengkungan tab bar (terang di mode gelap supaya lekukan terlihat) */
+  navRim: string
 }
 
 export const LightColors: ThemeColors = {
@@ -78,6 +80,7 @@ export const LightColors: ThemeColors = {
   navBubble: '#F7EFEA',
   navBubbleIcon: '#B3122A',
   navRing: '#C8102E',
+  navRim: 'rgba(0,0,0,0)',
 }
 
 export const DarkColors: ThemeColors = {
@@ -110,6 +113,7 @@ export const DarkColors: ThemeColors = {
   navBubble: '#F7EFEA',
   navBubbleIcon: '#B3122A',
   navRing: '#C8102E',
+  navRim: '#EDE3DE',
 }
 
 export interface PastelWarna {

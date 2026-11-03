@@ -14,6 +14,7 @@ import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { formatNomorWaDisplay } from '../../../../lib/auth-utils'
 import { formatRupiah } from '../../../../lib/format'
 import { supabase } from '../../../../lib/supabase'
+import Avatar from '../../../../components/ui/Avatar'
 import Screen from '../../../../components/ui/Screen'
 import { Theme, useStyles, useTheme } from '../../../../lib/theme'
 
@@ -24,6 +25,7 @@ interface AgenRow {
   saldo: number
   tier: string | null
   aktif: boolean | null
+  foto_url: string | null
 }
 
 export default function AdminAgenScreen() {
@@ -42,7 +44,7 @@ export default function AdminAgenScreen() {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, nama, nomor_wa, saldo, tier, aktif')
+      .select('id, nama, nomor_wa, saldo, tier, aktif, foto_url')
       .neq('role', 'admin')
       .order('nama', { ascending: true })
 
@@ -103,6 +105,7 @@ export default function AdminAgenScreen() {
             activeOpacity={0.8}
             onPress={() => router.push({ pathname: '/(app)/(admin)/agen-detail', params: { id: item.id } })}
           >
+            <Avatar nama={item.nama} fotoUrl={item.foto_url} ukuran={44} />
             <View style={styles.cardText}>
               <Text style={styles.nama}>{item.nama ?? '(tanpa nama)'}</Text>
               <Text style={styles.sub}>

@@ -20,6 +20,7 @@ import { formatNomorWaDisplay, mapSupabaseError, normalizeNomorWa } from '../../
 import { formatRupiah } from '../../../lib/format'
 import { supabase } from '../../../lib/supabase'
 import { bukaTopupWa } from '../../../lib/topup'
+import { useFotoProfil } from '../../../lib/useFotoProfil'
 import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
 type Profile = {
@@ -31,6 +32,7 @@ type Profile = {
   aktif: boolean | null
   dibuat_pada: string | null
   kode_referral: string | null
+  foto_url: string | null
 }
 
 const BULAN_INDONESIA = [
@@ -71,6 +73,11 @@ export default function ProfilScreen() {
   const [loggingOut, setLoggingOut] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
+  const { memuat: memuatFoto, ubah: ubahFoto } = useFotoProfil(
+    profile?.foto_url ?? null,
+    useCallback((url: string | null) => setProfile((p) => (p ? { ...p, foto_url: url } : p)), []),
+  )
+
   const showError = (message: string) => {
     setErrorMessage(message)
     Alert.alert('Gagal', message)
@@ -94,7 +101,7 @@ export default function ProfilScreen() {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          'nama, nomor_wa, saldo, saldo_bonus_pending, tier, aktif, dibuat_pada, kode_referral',
+          'nama, nomor_wa, saldo, saldo_bonus_pending, tier, aktif, dibuat_pada, kode_referral, foto_url',
         )
         .eq('id', user.id)
         .single()
@@ -349,6 +356,9 @@ export default function ProfilScreen() {
           nama={profile.nama}
           nomorWa={profile.nomor_wa ? formatNomorWaDisplay(profile.nomor_wa) : null}
           isMaster={isMaster}
+          fotoUrl={profile.foto_url}
+          onUbahFoto={ubahFoto}
+          memuatFoto={memuatFoto}
         />
 
         <View style={styles.saldoWrap}>

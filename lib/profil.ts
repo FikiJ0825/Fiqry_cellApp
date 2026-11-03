@@ -7,6 +7,7 @@ export interface ProfilSaya {
   saldo: number
   tier: string | null
   aktif: boolean | null
+  foto_url: string | null
 }
 
 export async function ambilProfilSaya(): Promise<ProfilSaya> {
@@ -21,7 +22,7 @@ export async function ambilProfilSaya(): Promise<ProfilSaya> {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, nama, nomor_wa, saldo, tier, aktif')
+    .select('id, nama, nomor_wa, saldo, tier, aktif, foto_url')
     .eq('id', user.id)
     .single()
 
