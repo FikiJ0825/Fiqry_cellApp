@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { ComponentRef, useRef, useState } from 'react'
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { Theme, useStyles } from '../../lib/theme'
 
@@ -11,16 +11,27 @@ interface Props {
   panjang?: number
 }
 
-/** Kolom PIN bergaya kotak: TextInput transparan menutupi kotak, jadi ketukan langsung membuka keypad */
+/**
+ * Kolom PIN bergaya kotak. TextInput-nya tersembunyi; ketukan pada kotak memanggil focus() lewat ref.
+ * Jangan mengandalkan ketukan langsung ke TextInput ber-opacity 0: iOS mengabaikan sentuhan pada view
+ * dengan alpha ~0, sehingga keypad tidak pernah muncul.
+ */
 export default function PinInput({ value, onChange, label, editable = true, panjang = 6 }: Props) {
   const styles = useStyles(buatStyles)
   const [fokus, setFokus] = useState(false)
+  const inputRef = useRef<ComponentRef<typeof TextInput>>(null)
   const posisiAktif = Math.min(value.length, panjang - 1)
 
   return (
     <View>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <View style={styles.baris}>
+      <Pressable
+        style={styles.baris}
+        onPress={() => inputRef.current?.focus()}
+        disabled={!editable}
+        accessibilityRole="button"
+        accessibilityLabel={`${label ?? 'PIN'}, ketuk untuk mengisi`}
+      >
         {Array.from({ length: panjang }, (_, i) => (
           <View
             key={i}
@@ -30,18 +41,22 @@ export default function PinInput({ value, onChange, label, editable = true, panj
           </View>
         ))}
         <TextInput
+          ref={inputRef}
           value={value}
           onChangeText={(v) => onChange(v.replace(/\D/g, '').slice(0, panjang))}
           keyboardType="number-pad"
           maxLength={panjang}
           editable={editable}
           caretHidden
+          autoComplete="off"
+          autoCorrect={false}
+          contextMenuHidden
           onFocus={() => setFokus(true)}
           onBlur={() => setFokus(false)}
+          pointerEvents="none"
           style={styles.tersembunyi}
-          accessibilityLabel={label ?? 'PIN'}
         />
-      </View>
+      </Pressable>
     </View>
   )
 }

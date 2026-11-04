@@ -192,6 +192,7 @@ const bayangan = (warna: string, elevation: number, opacity: number, radius: num
       shadowOffset: { width: 0, height: offsetY },
     },
     android: { elevation, shadowColor: warna },
+    web: { boxShadow: `0px ${offsetY}px ${radius}px ${warna}${Math.round(opacity * 255).toString(16).padStart(2, '0')}` },
     default: {},
   }) ?? {}
 

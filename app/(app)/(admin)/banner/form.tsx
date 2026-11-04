@@ -1,4 +1,3 @@
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import * as ImagePicker from 'expo-image-picker'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
@@ -19,6 +18,7 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import DatePickerSheet from '../../../../components/ui/DatePickerSheet'
 import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { supabase } from '../../../../lib/supabase'
 import {
@@ -224,30 +224,6 @@ interface DateFieldProps {
 function DateField({ label, value, onChange, disabled = false }: DateFieldProps) {
   const styles = useStyles(buatStyles)
   const [showPicker, setShowPicker] = useState(false)
-  const [tempDate, setTempDate] = useState<Date>(value ?? new Date())
-
-  const openPicker = () => {
-    if (disabled) return
-    setTempDate(value ?? new Date())
-    setShowPicker(true)
-  }
-
-  const handleChange = (_event: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowPicker(false)
-    }
-    if (selected) {
-      setTempDate(selected)
-      if (Platform.OS === 'android') {
-        onChange(selected)
-      }
-    }
-  }
-
-  const confirmIos = () => {
-    onChange(tempDate)
-    setShowPicker(false)
-  }
 
   const clearDate = () => onChange(null)
 
@@ -257,7 +233,7 @@ function DateField({ label, value, onChange, disabled = false }: DateFieldProps)
       <View style={styles.dateRow}>
         <TouchableOpacity
           style={[styles.dateTrigger, disabled && styles.selectTriggerDisabled]}
-          onPress={openPicker}
+          onPress={() => setShowPicker(true)}
           disabled={disabled}
           activeOpacity={0.75}
         >
@@ -277,41 +253,16 @@ function DateField({ label, value, onChange, disabled = false }: DateFieldProps)
         ) : null}
       </View>
 
-      {showPicker && Platform.OS === 'android' ? (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display="default"
-          onChange={handleChange}
-        />
-      ) : null}
-
-      {showPicker && Platform.OS === 'ios' ? (
-        <Modal visible transparent animationType="slide" onRequestClose={() => setShowPicker(false)}>
-          <Pressable style={styles.modalOverlay} onPress={() => setShowPicker(false)}>
-            <Pressable style={styles.datePickerSheet} onPress={(e) => e.stopPropagation()}>
-              <View style={styles.datePickerHeader}>
-                <TouchableOpacity onPress={() => setShowPicker(false)}>
-                  <Text style={styles.datePickerCancel}>Batal</Text>
-                </TouchableOpacity>
-                <Text style={styles.datePickerTitle}>{label}</Text>
-                <TouchableOpacity onPress={confirmIos}>
-                  <Text style={styles.datePickerConfirm}>Selesai</Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display="spinner"
-                onChange={(_e, selected) => {
-                  if (selected) setTempDate(selected)
-                }}
-                locale="id-ID"
-              />
-            </Pressable>
-          </Pressable>
-        </Modal>
-      ) : null}
+      <DatePickerSheet
+        visible={showPicker}
+        judul={label}
+        nilai={value}
+        onPilih={(tanggal) => {
+          onChange(tanggal)
+          setShowPicker(false)
+        }}
+        onTutup={() => setShowPicker(false)}
+      />
     </View>
   )
 }
@@ -1168,35 +1119,6 @@ const buatStyles = (t: Theme) => StyleSheet.create({
     fontSize: FontSize.sm,
     color: t.colors.accent,
     fontFamily: Font.semibold,
-  },
-  datePickerSheet: {
-    backgroundColor: t.colors.background,
-    borderTopLeftRadius: Radius.lg,
-    borderTopRightRadius: Radius.lg,
-    paddingBottom: 20,
-  },
-  datePickerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: t.colors.border,
-  },
-  datePickerTitle: {
-    fontSize: FontSize.md,
-    fontFamily: Font.semibold,
-    color: t.colors.textPrimary,
-  },
-  datePickerCancel: { fontFamily: Font.regular,
-    fontSize: FontSize.md,
-    color: t.colors.textSecondary,
-  },
-  datePickerConfirm: {
-    fontSize: FontSize.md,
-    color: t.colors.accent,
-    fontFamily: Font.bold,
   },
   switchRow: {
     flexDirection: 'row',

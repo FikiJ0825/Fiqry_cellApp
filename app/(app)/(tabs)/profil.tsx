@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
-import { Alert, KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Alert, bukaTautanLuar } from '../../../lib/dialog'
 import KartuBonus from '../../../components/profil/KartuBonus'
 import KartuReferral from '../../../components/profil/KartuReferral'
 import MenuList from '../../../components/profil/MenuList'
@@ -19,7 +20,6 @@ import { FontSize, Radius, Spacing, Font } from '../../../constants/theme'
 import { formatNomorWaDisplay, mapSupabaseError, normalizeNomorWa } from '../../../lib/auth-utils'
 import { formatRupiah } from '../../../lib/format'
 import { supabase } from '../../../lib/supabase'
-import { bukaTopupWa } from '../../../lib/topup'
 import { useFotoProfil } from '../../../lib/useFotoProfil'
 import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
@@ -264,9 +264,8 @@ export default function ProfilScreen() {
       const nominal = Number(jumlahDiklaim ?? jumlah)
       const nama = profile?.nama ?? 'Agen'
       const pesan = `Halo Admin, saya ${nama} ingin klaim bonus referral sebesar Rp${nominal.toLocaleString('id-ID')}`
-      await Linking.openURL(
-        `https://wa.me/${NOMOR_WA_ADMIN}?text=${encodeURIComponent(pesan)}`,
-      )
+      const urlWa = `https://wa.me/${NOMOR_WA_ADMIN}?text=${encodeURIComponent(pesan)}`
+      if (!bukaTautanLuar(urlWa)) await Linking.openURL(urlWa)
 
       await fetchProfile()
     } catch {
@@ -450,8 +449,8 @@ export default function ProfilScreen() {
                 ikon: 'wallet-outline',
                 warna: 'mint',
                 judul: 'Top-up Saldo',
-                keterangan: 'Lewat WhatsApp Admin',
-                onPress: () => bukaTopupWa(profile.nama, profile.nomor_wa),
+                keterangan: 'Otomatis lewat QRIS',
+                onPress: () => router.push('/(app)/topup'),
               },
               {
                 kunci: 'pin',

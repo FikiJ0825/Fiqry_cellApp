@@ -55,7 +55,19 @@ export function getStatusPastel(status: string): PastelNama {
   }
 }
 
-const BULAN_SINGKAT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+/** Catatan bawaan di halaman detail bila server belum mengisi catatan untuk status tersebut */
+export function catatanBawaan(status: string): string {
+  switch (status) {
+    case 'berhasil':
+      return 'Transaksi berhasil diproses.'
+    case 'gagal':
+      return 'Transaksi gagal diproses. Saldo Anda sudah dikembalikan.'
+    default:
+      return 'Transaksi sedang diproses, mohon ditunggu ya kak.'
+  }
+}
+
+const BULAN_SINGKAT =['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 
 /** Contoh: 26 Okt 2026, 14:05 */
 export function formatWaktu(iso: string | null | undefined): string {

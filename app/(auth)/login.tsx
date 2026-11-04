@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,6 +17,7 @@ import Logo from '../../components/ui/Logo'
 import Screen from '../../components/ui/Screen'
 import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { mapSupabaseError, normalizeNomorWa } from '../../lib/auth-utils'
+import { Alert } from '../../lib/dialog'
 import { supabase } from '../../lib/supabase'
 import { Theme, useStyles } from '../../lib/theme'
 

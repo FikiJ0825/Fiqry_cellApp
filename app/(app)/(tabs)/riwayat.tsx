@@ -1,6 +1,6 @@
-import { useFocusEffect } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { FlatList, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Card from '../../../components/ui/Card'
 import Chip from '../../../components/ui/Chip'
 import EmptyState from '../../../components/ui/EmptyState'
@@ -35,6 +35,7 @@ const BATAS_RIWAYAT = 100
 export default function RiwayatScreen() {
   const styles = useStyles(buatStyles)
   const { colors } = useTheme()
+  const router = useRouter()
   const [data, setData] = useState<TransaksiRow[]>([])
   const [namaProduk, setNamaProduk] = useState<Record<string, string>>({})
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
@@ -159,6 +160,11 @@ export default function RiwayatScreen() {
             )
           }
           renderItem={({ item }) => (
+            <Pressable
+              onPress={() => router.push(`/(app)/transaksi/${item.id}`)}
+              accessibilityRole="button"
+              accessibilityLabel={`Lihat detail transaksi ${namaProduk[item.kode_produk] ?? item.kode_produk}`}
+            >
             <Card style={styles.kartu}>
               <IconTile ikon={getStatusIkon(item.status)} warna={getStatusPastel(item.status)} size={44} />
               <View style={styles.tengah}>
@@ -176,6 +182,7 @@ export default function RiwayatScreen() {
                 <StatusPill status={item.status} />
               </View>
             </Card>
+            </Pressable>
           )}
         />
       )}

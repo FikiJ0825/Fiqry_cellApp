@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native'
 import { Slot, useRouter, useSegments } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import {
@@ -94,6 +94,9 @@ function RootNavigator() {
     const inAdminGroup = segments.includes('(admin)')
     const inTabsGroup = segments.includes('(tabs)')
 
+    // Panel admin hanya lewat APK; di web semua akun diperlakukan sebagai agen.
+    const peranEfektif: UserRole | null = Platform.OS === 'web' ? 'agen' : role
+
     if (!session && !inAuthGroup) {
       router.replace('/(auth)/login')
       return
@@ -102,16 +105,16 @@ function RootNavigator() {
     if (!session) return
 
     if (inAuthGroup) {
-      router.replace(role === 'admin' ? '/(app)/(admin)' : '/(app)/(tabs)')
+      router.replace(peranEfektif === 'admin' ? '/(app)/(admin)' : '/(app)/(tabs)')
       return
     }
 
-    if (role === 'admin' && inTabsGroup) {
+    if (peranEfektif === 'admin' && inTabsGroup) {
       router.replace('/(app)/(admin)')
       return
     }
 
-    if (role !== 'admin' && inAdminGroup) {
+    if (peranEfektif !== 'admin' && inAdminGroup) {
       router.replace('/(app)/(tabs)')
     }
   }, [session, role, loading, segments, router])
@@ -126,7 +129,14 @@ function RootNavigator() {
     )
   }
 
-  return <Slot />
+  // Di web layar dibatasi selebar ponsel dan diletakkan di tengah supaya tidak melebar di desktop.
+  return (
+    <View style={styles.latarWeb}>
+      <View style={styles.kolom}>
+        <Slot />
+      </View>
+    </View>
+  )
 }
 
 function AppRoot() {
@@ -159,4 +169,6 @@ const buatStyles = (t: Theme) => StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: t.colors.background,
   },
+  latarWeb: { flex: 1, backgroundColor: t.colors.background },
+  kolom: { flex: 1, width: '100%', maxWidth: Platform.OS === 'web' ? 520 : undefined, alignSelf: 'center' },
 })

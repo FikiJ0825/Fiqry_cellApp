@@ -62,12 +62,12 @@ export const BAGIAN_PANDUAN: BagianPanduan[] = [
         ikon: 'wallet-outline',
         warna: 'mint',
         judul: 'Top-up Saldo',
-        isi: 'Saldo diisi lewat WhatsApp Admin. Saldo bertambah setelah admin memproses pembayaran Anda.',
+        isi: 'Saldo diisi otomatis lewat QRIS dan bertambah begitu pembayaran diterima. Jika ada kendala, top-up manual lewat WhatsApp Admin tetap tersedia.',
         langkah: [
           'Tekan Top-up di Beranda atau di menu Profil.',
-          'WhatsApp terbuka dengan pesan yang sudah terisi. Tambahkan nominal yang diinginkan, lalu kirim.',
-          'Lakukan pembayaran sesuai arahan admin.',
-          'Saldo masuk setelah admin selesai memproses, dan tampil di Beranda.',
+          'Pilih nominal, lalu tekan Buat QRIS.',
+          'Scan QR dengan aplikasi e-wallet atau mobile banking yang mendukung QRIS sebelum waktunya habis.',
+          'Saldo masuk otomatis dan tampil di Beranda. Jika belum masuk, tekan Cek status atau gunakan top-up manual lewat WhatsApp Admin.',
         ],
       },
       {
@@ -124,7 +124,7 @@ export const BAGIAN_PANDUAN: BagianPanduan[] = [
 export const TANYA_JAWAB_PANDUAN: TanyaJawab[] = [
   {
     tanya: 'Saldo saya tidak cukup, bagaimana?',
-    jawab: 'Isi saldo lewat tombol Top-up di Beranda atau Profil. Anda akan diarahkan ke WhatsApp Admin.',
+    jawab: 'Isi saldo lewat tombol Top-up di Beranda atau Profil, lalu bayar dengan QRIS. Top-up manual lewat WhatsApp Admin juga tersedia di halaman yang sama.',
   },
   {
     tanya: 'Transaksi saya berstatus Gagal, apakah saldo hilang?',
@@ -168,7 +168,7 @@ export const SLIDE_SAMBUTAN: SlideSambutan[] = [
     ikon: 'wallet-outline',
     warna: 'mint',
     judul: 'Isi saldo & pantau transaksi',
-    isi: 'Top-up lewat WhatsApp Admin. Status transaksi di Riwayat berubah otomatis, dan saldo kembali jika transaksi gagal.',
+    isi: 'Top-up otomatis lewat QRIS. Status transaksi di Riwayat berubah otomatis, dan saldo kembali jika transaksi gagal.',
   },
   {
     kunci: 'tier',

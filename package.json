@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/poppins": "^0.4.1",
+    "@expo/metro-runtime": "~58.0.17",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "9.2.1",
@@ -21,11 +22,14 @@
     "expo-status-bar": "~58.0.4",
     "expo-updates": "~58.0.18",
     "react": "19.3.0",
+    "react-dom": "19.3.0",
     "react-native": "0.88.0",
+    "react-native-qrcode-svg": "^6.3.52",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.0",
     "react-native-svg": "15.16.0",
-    "react-native-url-polyfill": "^3.0.0"
+    "react-native-url-polyfill": "^3.0.0",
+    "react-native-web": "^0.21.4"
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
@@ -42,7 +46,10 @@
     "supabase:functions:pull": "supabase functions download wa-webhook",
     "supabase:functions:deploy:wa-webhook": "supabase functions deploy wa-webhook",
     "supabase:functions:deploy:create-transaction": "supabase functions deploy create-transaction",
-    "supabase:functions:deploy:atur-pin": "supabase functions deploy atur-pin"
+    "supabase:functions:deploy:atur-pin": "supabase functions deploy atur-pin",
+    "supabase:functions:deploy:buat-topup": "supabase functions deploy buat-topup",
+    "supabase:functions:deploy:duitku-callback": "supabase functions deploy duitku-callback --no-verify-jwt",
+    "supabase:functions:deploy:cek-topup": "supabase functions deploy cek-topup"
   },
   "private": true
 }

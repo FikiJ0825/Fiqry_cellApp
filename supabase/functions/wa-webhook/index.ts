@@ -1,55 +1,183 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  CATATAN,
+  formatKeDariPesan,
+  type HasilBalasan,
+  MAKS_FORMAT_KE,
+  parseBalasan,
+  susunPesanRequest,
+  susunPesanTersimpan,
+} from "../_shared/balasan.ts";
+import { kirimKeWaCenter } from "../_shared/wa-center.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// =====================
-// PARSER BALASAN JW ADMINISTRASI
-// =====================
-function parseBalasan(teks: string): {
-  tipe: "berhasil" | "gagal" | "diproses" | "tidak_dikenal";
-  kode_produk?: string;
-  nomor_tujuan?: string;
-  alasan?: string;
-} {
-  // Pola: berhasil — "TSEL10.081234567890.SUCCESS.150000"
-  const polaBerhasil = /^(\w+)\.(\d+)\.(SUCCESS|SUKSES|BERHASIL)/i;
-  // Pola: saldo tidak mencukupi
-  const polaSaldoKurang = /TRX (\w+)\.(\d+) tdk diproses, saldo/i;
-  // Pola: PIN salah
-  const polaPinSalah = /kode PIN Anda salah/i;
-  // Pola: nomor diluar area
-  const polaLuarArea = /pembelian (\w+)\.(\d+) gagal diproses, No ponsel diluar area/i;
-  // Pola: sedang diproses (>1 menit)
-  const polaDiproses = /Pembelian (\w+)\.(\d+) Transaksi sdng dlm proses/i;
+type Klien = ReturnType<typeof createClient>;
 
-  if (polaBerhasil.test(teks)) {
-    const match = teks.match(polaBerhasil)!;
-    return { tipe: "berhasil", kode_produk: match[1], nomor_tujuan: match[2] };
+interface TransaksiBerjalan {
+  id: string;
+  agen_id: string;
+  kode_produk: string;
+  nomor_tujuan: string;
+  saldo_sebelum: number;
+  saldo_sesudah: number;
+  status?: string;
+  pesan_request?: string;
+}
+
+function balas(isi: Record<string, unknown>, status = 200): Response {
+  return new Response(JSON.stringify(isi), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+// Perbandingan string tanpa bocor lewat waktu respons (panjang berbeda tetap ditolak)
+function samaWaktuKonstan(a: string, b: string): boolean {
+  const ea = new TextEncoder().encode(a);
+  const eb = new TextEncoder().encode(b);
+  let beda = ea.length ^ eb.length;
+  for (let i = 0; i < Math.max(ea.length, eb.length); i++) {
+    beda |= (ea[i] ?? 0) ^ (eb[i] ?? 0);
+  }
+  return beda === 0;
+}
+
+// Refund pakai saldo_sebelum - saldo_sesudah yang sudah tercatat di transaksi (lebih akurat daripada
+// query ulang harga produk, karena harga bisa saja sudah berubah di tabel produk sejak transaksi dibuat)
+async function refundTransaksi(supabase: Klien, transaksi: TransaksiBerjalan): Promise<void> {
+  const jumlahRefund = transaksi.saldo_sebelum - transaksi.saldo_sesudah;
+  if (jumlahRefund <= 0) return;
+
+  const { error: refundError } = await supabase.rpc("refund_saldo", {
+    p_agen_id: transaksi.agen_id,
+    p_jumlah: jumlahRefund,
+  });
+  if (refundError) {
+    // Status sudah "gagal" tapi saldo belum kembali — harus ditindak manual oleh admin
+    console.error(
+      `REFUND GAGAL transaksi ${transaksi.id} (agen ${transaksi.agen_id}, Rp${jumlahRefund}):`,
+      refundError.message,
+    );
+  }
+}
+
+// SN dan catatan untuk agen disimpan di langkah terpisah dan best-effort: kolomnya baru ada setelah
+// migrasi 010, dan kegagalan di sini tidak boleh membatalkan perubahan status atau refund.
+async function simpanDetail(
+  supabase: Klien,
+  transaksiId: string,
+  detail: { sn?: string; catatan?: string },
+): Promise<void> {
+  const isi: Record<string, string> = {};
+  if (detail.sn) isi.sn = detail.sn;
+  if (detail.catatan) isi.catatan = detail.catatan;
+  if (Object.keys(isi).length === 0) return;
+
+  const { error } = await supabase.from("transaksi").update(isi).eq("id", transaksiId);
+  if (error) console.error(`Gagal menyimpan sn/catatan transaksi ${transaksiId}:`, error.message);
+}
+
+// Tutup transaksi yang masih berjalan sebagai gagal. Guard status membuat ini hanya berlaku sekali.
+async function gagalkanTransaksi(
+  supabase: Klien,
+  transaksi: TransaksiBerjalan,
+  opsi: { catatan: string; refund: boolean; catatanAdmin?: string },
+): Promise<boolean> {
+  const { data: diupdate, error } = await supabase
+    .from("transaksi")
+    .update({
+      status: "gagal",
+      ...(opsi.catatanAdmin ? { pesan_balasan_mentah: opsi.catatanAdmin } : {}),
+    })
+    .eq("id", transaksi.id)
+    .in("status", ["pending", "diproses"])
+    .select("id");
+
+  if (error) {
+    console.error("Gagal menggagalkan transaksi:", error.message);
+    return false;
+  }
+  if (!diupdate || diupdate.length === 0) return false;
+
+  if (opsi.refund) await refundTransaksi(supabase, transaksi);
+  await simpanDetail(supabase, transaksi.id, { catatan: opsi.catatan });
+  return true;
+}
+
+// JW menolak karena produk + tujuan sama sudah pernah dibeli hari ini. Kirim ulang dengan format
+// transaksi ganda KODE.N.TUJUAN.PIN (N = urutan), naik satu tiap kali JW masih menjawab duplikat.
+async function tanganiDuplikat(supabase: Klien, hasil: HasilBalasan): Promise<Response> {
+  let query = supabase
+    .from("transaksi")
+    .select("id, agen_id, kode_produk, nomor_tujuan, saldo_sebelum, saldo_sesudah, pesan_request")
+    .eq("status", "pending")
+    .order("dibuat_pada", { ascending: true })
+    .limit(1);
+  if (hasil.kode_produk) query = query.eq("kode_produk", hasil.kode_produk);
+  if (hasil.nomor_tujuan) query = query.eq("nomor_tujuan", hasil.nomor_tujuan);
+
+  const { data, error } = await query.maybeSingle();
+  const transaksi = data as TransaksiBerjalan | null;
+  if (error || !transaksi) {
+    return balas({ pesan: "Tidak ada transaksi pending yang cocok dengan balasan duplikat" });
   }
 
-  if (polaSaldoKurang.test(teks)) {
-    const match = teks.match(polaSaldoKurang)!;
-    return { tipe: "gagal", kode_produk: match[1], nomor_tujuan: match[2], alasan: "Saldo master tidak mencukupi" };
+  const keBaru = formatKeDariPesan(transaksi.pesan_request) + 1;
+  if (keBaru > MAKS_FORMAT_KE) {
+    await gagalkanTransaksi(supabase, transaksi, {
+      catatan: CATATAN.gandaTerlaluBanyak,
+      refund: true,
+      catatanAdmin: `Duplikat di JW melebihi format ke-${MAKS_FORMAT_KE} (saldo dikembalikan)`,
+    });
+    return balas({ pesan: `Transaksi ${transaksi.id} digagalkan: duplikat melebihi batas` });
   }
 
-  if (polaPinSalah.test(teks)) {
-    return { tipe: "gagal", alasan: "PIN master salah" };
+  const pinMaster = Deno.env.get("PIN_MASTER");
+  if (!pinMaster) {
+    console.error("Env PIN_MASTER belum diatur, tidak bisa kirim ulang format transaksi ganda");
+    await gagalkanTransaksi(supabase, transaksi, { catatan: CATATAN.internal, refund: true });
+    return balas({ pesan: "PIN_MASTER belum diatur, transaksi digagalkan" });
   }
 
-  if (polaLuarArea.test(teks)) {
-    const match = teks.match(polaLuarArea)!;
-    return { tipe: "gagal", kode_produk: match[1], nomor_tujuan: match[2], alasan: "Nomor diluar area" };
+  // Klaim dulu: update dijaga pesan_request lama, jadi balasan duplikat yang datang dua kali
+  // (mis. bridge mengulang kirim) hanya memicu satu kirim ulang.
+  const { data: klaim, error: klaimError } = await supabase
+    .from("transaksi")
+    .update({ pesan_request: susunPesanTersimpan(transaksi.kode_produk, transaksi.nomor_tujuan, keBaru) })
+    .eq("id", transaksi.id)
+    .eq("status", "pending")
+    .eq("pesan_request", transaksi.pesan_request ?? "")
+    .select("id");
+
+  if (klaimError) {
+    console.error("Gagal mengklaim kirim ulang transaksi ganda:", klaimError.message);
+    return balas({ error: "Gagal memproses balasan duplikat" }, 500);
+  }
+  if (!klaim || klaim.length === 0) {
+    return balas({ pesan: "Balasan duplikat sudah ditangani" });
   }
 
-  if (polaDiproses.test(teks)) {
-    const match = teks.match(polaDiproses)!;
-    return { tipe: "diproses", kode_produk: match[1], nomor_tujuan: match[2] };
+  const hasilKirim = await kirimKeWaCenter(
+    susunPesanRequest(transaksi.kode_produk, transaksi.nomor_tujuan, pinMaster, keBaru),
+  );
+
+  if (hasilKirim === "terkirim") {
+    return balas({ pesan: `Transaksi ${transaksi.id} dikirim ulang dengan format ke-${keBaru}` });
   }
 
-  return { tipe: "tidak_dikenal" };
+  const refund = hasilKirim === "pasti_tidak_terkirim";
+  await gagalkanTransaksi(supabase, transaksi, {
+    catatan: CATATAN.internal,
+    refund,
+    catatanAdmin: refund
+      ? "Gagal kirim ulang format transaksi ganda ke WA Bridge (saldo dikembalikan)"
+      : "Kirim ulang format transaksi ganda tidak pasti, cek manual",
+  });
+  return balas({ pesan: `Transaksi ${transaksi.id} digagalkan: kirim ulang ${hasilKirim}` });
 }
 
 // =====================
@@ -62,13 +190,17 @@ Deno.serve(async (req) => {
 
   // Webhook ini verify_jwt = false (lihat config.toml) dan URL-nya publik. Tanpa pengecekan
   // ini siapa pun bisa mengirim balasan "gagal"/"SUCCESS" palsu dan memicu refund / bonus.
-  // wa-bridge sudah mengirim Authorization: Bearer <SERVICE_ROLE_KEY>.
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!serviceKey || req.headers.get("Authorization") !== `Bearer ${serviceKey}`) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  // wa-bridge mengirim Authorization: Bearer <WA_BRIDGE_SECRET>, secret bersama yang stabil.
+  // Jangan menggantungkan ini hanya pada SUPABASE_SERVICE_ROLE_KEY: secret bawaan Supabase bisa
+  // diganti otomatis (terjadi 2026-11-04) sehingga kunci di .env bridge tidak lagi sama dan semua
+  // balasan ditolak 401. Kunci service role tetap diterima agar tidak memutus pemakai lama.
+  const diterima = [
+    Deno.env.get("WA_BRIDGE_SECRET"),
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
+  ].filter((nilai): nilai is string => Boolean(nilai));
+  const header = req.headers.get("Authorization") ?? "";
+  if (!diterima.some((nilai) => samaWaktuKonstan(header, `Bearer ${nilai}`))) {
+    return balas({ error: "Unauthorized" }, 401);
   }
 
   try {
@@ -81,13 +213,11 @@ Deno.serve(async (req) => {
     const { nomor, pesan } = body;
 
     if (typeof pesan !== "string" || !pesan.trim()) {
-      return new Response(
-        JSON.stringify({ error: "Field pesan wajib diisi" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return balas({ error: "Field pesan wajib diisi" }, 400);
     }
 
     // 1. LOG PESAN MASUK KE wa_log
+    // Teks mentah hanya boleh ada di sini (khusus admin): memuat saldo & harga modal master.
     const { error: logError } = await supabase.from("wa_log").insert({
       arah: "masuk",
       nomor: nomor ?? null,
@@ -101,10 +231,11 @@ Deno.serve(async (req) => {
     const hasil = parseBalasan(pesan);
 
     if (hasil.tipe === "tidak_dikenal") {
-      return new Response(
-        JSON.stringify({ pesan: "Balasan tidak dikenal, diabaikan" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return balas({ pesan: "Balasan tidak dikenal, diabaikan" });
+    }
+
+    if (hasil.tipe === "duplikat") {
+      return await tanganiDuplikat(supabase, hasil);
     }
 
     const statusBaru =
@@ -112,7 +243,8 @@ Deno.serve(async (req) => {
       hasil.tipe === "diproses" ? "diproses" : "gagal";
 
     // 3. MATCHING KE TRANSAKSI YANG MASIH BERJALAN
-    // Strategi FIFO: ambil transaksi tertua dengan kode_produk + nomor_tujuan yang cocok.
+    // Strategi FIFO: ambil transaksi tertua dengan kode_produk + nomor_tujuan yang cocok
+    // (balasan H2H dengan SN tidak memuat keduanya, jadi memakai transaksi tertua yang berjalan).
     // - balasan "diproses" hanya boleh menggeser transaksi yang masih pending
     // - balasan final (berhasil/gagal) boleh menutup pending maupun diproses
     //   (sebelumnya transaksi yang sudah "diproses" tidak pernah bisa selesai)
@@ -128,14 +260,12 @@ Deno.serve(async (req) => {
     if (hasil.kode_produk) query = query.eq("kode_produk", hasil.kode_produk);
     if (hasil.nomor_tujuan) query = query.eq("nomor_tujuan", hasil.nomor_tujuan);
 
-    const { data: transaksi, error: transaksiError } = await query.maybeSingle();
+    const { data, error: transaksiError } = await query.maybeSingle();
+    const transaksi = data as TransaksiBerjalan | null;
 
     if (transaksiError || !transaksi) {
       // Tidak ada transaksi yang cocok — mungkin sudah final atau salah parse
-      return new Response(
-        JSON.stringify({ pesan: "Tidak ada transaksi berjalan yang cocok" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return balas({ pesan: "Tidak ada transaksi berjalan yang cocok" });
     }
 
     // 4. UPDATE STATUS TRANSAKSI (idempotent)
@@ -144,28 +274,22 @@ Deno.serve(async (req) => {
     // sehingga refund dan bonus tidak terpanggil dua kali.
     const { data: diupdate, error: updateError } = await supabase
       .from("transaksi")
-      .update({
-        status: statusBaru,
-        pesan_balasan_mentah: pesan,
-      })
+      .update({ status: statusBaru })
       .eq("id", transaksi.id)
       .in("status", statusBisaDiubah)
       .select("id");
 
     if (updateError) {
       console.error("Gagal update status transaksi:", updateError.message);
-      return new Response(
-        JSON.stringify({ error: "Gagal update status transaksi" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return balas({ error: "Gagal update status transaksi" }, 500);
     }
 
     if (!diupdate || diupdate.length === 0) {
-      return new Response(
-        JSON.stringify({ pesan: "Transaksi sudah diproses oleh balasan lain, diabaikan" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return balas({ pesan: "Transaksi sudah diproses oleh balasan lain, diabaikan" });
     }
+
+    // 4A. SN + catatan untuk halaman Detail Transaksi di app
+    await simpanDetail(supabase, transaksi.id, { sn: hasil.sn, catatan: hasil.catatan });
 
     // 4B. KALAU BERHASIL → UPDATE PROGRESS REFERRAL & CEK BONUS HARIAN
     if (statusBaru === "berhasil") {
@@ -192,38 +316,13 @@ Deno.serve(async (req) => {
 
     // 5. KALAU GAGAL → REFUND SALDO AGEN
     if (statusBaru === "gagal") {
-      // Refund pakai saldo_sebelum - saldo_sesudah yang sudah tercatat di transaksi
-      // (lebih akurat daripada query ulang harga produk, karena harga bisa saja
-      // sudah berubah di tabel produk sejak transaksi ini dibuat)
-      const jumlahRefund = transaksi.saldo_sebelum - transaksi.saldo_sesudah;
-
-      if (jumlahRefund > 0) {
-        const { error: refundError } = await supabase.rpc("refund_saldo", {
-          p_agen_id: transaksi.agen_id,
-          p_jumlah: jumlahRefund,
-        });
-        if (refundError) {
-          // Status sudah "gagal" tapi saldo belum kembali — harus ditindak manual oleh admin
-          console.error(
-            `REFUND GAGAL transaksi ${transaksi.id} (agen ${transaksi.agen_id}, Rp${jumlahRefund}):`,
-            refundError.message,
-          );
-        }
-      }
+      await refundTransaksi(supabase, transaksi);
     }
 
-    return new Response(
-      JSON.stringify({
-        pesan: `Transaksi ${transaksi.id} diupdate menjadi ${statusBaru}`,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return balas({ pesan: `Transaksi ${transaksi.id} diupdate menjadi ${statusBaru}` });
 
   } catch (err) {
     console.error("wa-webhook error:", err);
-    return new Response(
-      JSON.stringify({ error: "Terjadi kesalahan sistem" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return balas({ error: "Terjadi kesalahan sistem" }, 500);
   }
 });

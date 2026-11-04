@@ -17,7 +17,9 @@ export default function AppLayout() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen name="produk/[kategori]" options={{ ...headerAgen, title: 'Produk' }} />
       <Stack.Screen name="produk/beli" options={{ ...headerAgen, title: 'Beli Produk' }} />
-      <Stack.Screen name="pin" options={{ ...headerAgen, title: 'PIN Transaksi' }} />
+      <Stack.Screen name="transaksi/[id]" options={{ ...headerAgen, title: 'Detail Transaksi' }} />
+      <Stack.Screen name="topup"options={{ ...headerAgen, title: 'Top-up Saldo' }} />
+      <Stack.Screen name="pin"options={{ ...headerAgen, title: 'PIN Transaksi' }} />
       <Stack.Screen name="panduan" options={{ ...headerAgen, title: 'Panduan' }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
     </Stack>

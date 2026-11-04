@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
-import { Alert } from 'react-native'
+import { Platform } from 'react-native'
+import { Alert } from './dialog'
 import { hapusFotoProfil, pilihDanUnggahFoto } from './uploadAvatar'
 
 /**
@@ -31,7 +32,8 @@ export function useFotoProfil(fotoUrl: string | null, onBerubah: (url: string | 
         return url === null ? undefined : url // dibatalkan -> tidak ada perubahan
       })
 
-    if (!fotoUrl) {
+    // Di web menu tiga pilihan tidak bisa ditampilkan (window.confirm hanya dua), jadi langsung ganti foto.
+    if (!fotoUrl || Platform.OS === 'web') {
       ganti()
       return
     }

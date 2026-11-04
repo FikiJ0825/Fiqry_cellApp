@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { susunPesanRequest, susunPesanTersimpan } from "../_shared/balasan.ts";
 import { periksaPin } from "../_shared/pin.ts";
+import { kirimKeWaCenter } from "../_shared/wa-center.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,8 +144,8 @@ Deno.serve(async (req) => {
     // 5. BUAT BARIS TRANSAKSI
     // Format JW Administrasi: KODE.TUJUAN.PIN (tanpa kurung). PIN master hanya dikirim ke WA
     // Center; yang disimpan di DB adalah versi tersamar supaya PIN tidak tercatat di tabel.
-    const pesan_request = `${kode_produk}.${nomor_tujuan}.${pinMaster}`;
-    const pesan_request_tersimpan = `${kode_produk}.${nomor_tujuan}.****`;
+    const pesan_request = susunPesanRequest(kode_produk, nomor_tujuan, pinMaster, 1);
+    const pesan_request_tersimpan = susunPesanTersimpan(kode_produk, nomor_tujuan, 1);
 
     const { data: transaksi, error: transaksiError } = await supabase
       .from("transaksi")
@@ -171,47 +173,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 6. KIRIM PESAN KE WA BRIDGE
-    const waBridgeUrl = Deno.env.get("WA_BRIDGE_URL");
-    const waCenterNumber = Deno.env.get("WA_CENTER_NUMBER");
-
-    // Endpoint bridge: POST /send-message { nomor_tujuan, pesan } + Bearer WA_BRIDGE_SECRET
-    // (sebelumnya memanggil /send tanpa Authorization dengan field "nomor", sehingga
-    // setiap transaksi pasti gagal di langkah ini).
-    const waBridgeSecret = Deno.env.get("WA_BRIDGE_SECRET");
-
+    // 6. KIRIM PESAN KE WA CENTER (lewat wa-bridge)
     // "pasti_tidak_terkirim" = bridge menjawab error, pesan jelas tidak sampai ke WA Center,
     // aman di-refund. "tidak_pasti" = timeout / koneksi putus, pesan MUNGKIN sudah terkirim;
     // tidak di-refund otomatis supaya tidak rugi dobel, perlu cek manual oleh admin.
-    let kegagalan: "pasti_tidak_terkirim" | "tidak_pasti" | null = null;
-
-    if (!waBridgeUrl || !waCenterNumber || !waBridgeSecret) {
-      console.error("Env WA_BRIDGE_URL / WA_CENTER_NUMBER / WA_BRIDGE_SECRET belum lengkap");
-      kegagalan = "pasti_tidak_terkirim";
-    } else {
-      try {
-        const waResponse = await fetch(`${waBridgeUrl}/send-message`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${waBridgeSecret}`,
-          },
-          body: JSON.stringify({
-            nomor_tujuan: waCenterNumber,
-            pesan: pesan_request,
-          }),
-          signal: AbortSignal.timeout(15000),
-        });
-
-        if (!waResponse.ok) {
-          console.error("WA Bridge menjawab status", waResponse.status);
-          kegagalan = "pasti_tidak_terkirim";
-        }
-      } catch (waError) {
-        console.error("Gagal menghubungi WA Bridge:", waError);
-        kegagalan = "tidak_pasti";
-      }
-    }
+    const hasilKirim = await kirimKeWaCenter(pesan_request);
+    const kegagalan = hasilKirim === "terkirim" ? null : hasilKirim;
 
     if (kegagalan) {
       const direfund = kegagalan === "pasti_tidak_terkirim";

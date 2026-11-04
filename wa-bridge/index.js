@@ -20,9 +20,6 @@ let whatsappConnected = false;
 const AUTH_FOLDER = './auth_info_baileys';
 const PORT = process.env.PORT || 3001;
 
-// UBAH KE false SETELAH TESTING SELESAI, supaya production hanya forward balasan transaksi valid
-const SKIP_PATTERN_FILTER_FOR_TESTING = false;
-
 /**
  * Normalisasi nomor telepon ke format JID WhatsApp.
  * @param {string} nomor
@@ -35,15 +32,6 @@ function normalizeToJid(nomor) {
   }
   return `${digits}@s.whatsapp.net`;
 }
-
-const TRANSACTION_STATUS_KEYWORDS = [
-  'SUKSES',
-  'SUCCESS',
-  'BERHASIL',
-  'GAGAL',
-  'FAILED',
-  'PENDING',
-];
 
 /**
  * Ambil teks dari pesan WhatsApp (conversation atau extendedTextMessage).
@@ -67,62 +55,61 @@ function getMessageText(message) {
 }
 
 /**
- * Cek apakah teks cocok pola balasan transaksi JW Administrasi:
- * <KodeProduk>.<Tujuan>.<StatusTransaksi>.<Deposit>
- * @param {string} text
- * @returns {boolean}
- */
-function isTransactionReply(text) {
-  const parts = text.split('.');
-  if (parts.length < 4) return false;
-
-  const statusPart = parts[2].toUpperCase();
-  return TRANSACTION_STATUS_KEYWORDS.some((keyword) =>
-    statusPart.includes(keyword),
-  );
-}
-
-/**
- * Teruskan balasan transaksi ke Supabase webhook.
+ * Teruskan balasan transaksi ke Supabase webhook. Memakai WA_BRIDGE_SECRET (secret bersama yang
+ * stabil), bukan kunci service role yang bisa diganti Supabase sewaktu-waktu. Gangguan sementara
+ * (jaringan putus / 5xx) diulang; 4xx tidak diulang karena itu salah konfigurasi, bukan gangguan.
  * @param {string} pesan
  */
 async function forwardTransactionReplyToWebhook(pesan) {
   const url = process.env.SUPABASE_WEBHOOK_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const secret = process.env.WA_BRIDGE_SECRET;
 
-  if (!url || !serviceKey) {
+  if (!url || !secret) {
     console.warn(
-      'Webhook tidak dikirim: SUPABASE_WEBHOOK_URL atau SUPABASE_SERVICE_ROLE_KEY belum diset.',
+      'Webhook tidak dikirim: SUPABASE_WEBHOOK_URL atau WA_BRIDGE_SECRET belum diset.',
     );
     return;
   }
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${serviceKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        nomor: process.env.WA_CENTER_LID ? `${process.env.WA_CENTER_LID}@lid` : null,
-        pesan,
-      }),
-    });
+  const jedaUlang = [1000, 3000];
 
-    if (response.ok) {
-      console.log(
-        `Webhook balasan transaksi berhasil (status ${response.status}).`,
+  for (let percobaan = 0; percobaan <= jedaUlang.length; percobaan++) {
+    const sisaUlang = percobaan < jedaUlang.length;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${secret}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nomor: process.env.WA_CENTER_LID ? `${process.env.WA_CENTER_LID}@lid` : null,
+          pesan,
+        }),
+        signal: AbortSignal.timeout(20000),
+      });
+
+      if (response.ok) {
+        console.log(
+          `Webhook balasan transaksi berhasil (status ${response.status}).`,
+        );
+        return;
+      }
+
+      const responseBody = await response.text().catch(() => '');
+      console.error(
+        `Webhook balasan transaksi gagal (status ${response.status}): ${responseBody || '(body kosong)'}`,
       );
-      return;
+      if (response.status < 500) return;
+    } catch (err) {
+      console.error('Gagal kirim webhook balasan transaksi:', err);
     }
 
-    const responseBody = await response.text().catch(() => '');
-    console.error(
-      `Webhook balasan transaksi gagal (status ${response.status}): ${responseBody || '(body kosong)'}`,
-    );
-  } catch (err) {
-    console.error('Gagal kirim webhook balasan transaksi:', err);
+    if (sisaUlang) {
+      console.warn(`Mencoba kirim ulang webhook dalam ${jedaUlang[percobaan] / 1000} detik...`);
+      await new Promise((selesai) => setTimeout(selesai, jedaUlang[percobaan]));
+    }
   }
 }
 
@@ -253,23 +240,9 @@ async function startWhatsApp() {
         continue;
       }
 
-      if (SKIP_PATTERN_FILTER_FOR_TESTING) {
-        console.log(
-          `[TESTING] Filter pola dinonaktifkan — meneruskan ke webhook: ${text}`,
-        );
-        await forwardTransactionReplyToWebhook(text);
-        continue;
-      }
-
-      if (!isTransactionReply(text)) {
-        const snippet = text.length > 80 ? `${text.slice(0, 80)}...` : text;
-        console.info(
-          `Pesan dari WA_CENTER_NUMBER di-skip (bukan balasan transaksi): "${snippet}"`,
-        );
-        continue;
-      }
-
-      console.log(`Balasan transaksi diterima, meneruskan ke webhook: ${text}`);
+      // Semua pesan dari WA Center diteruskan apa adanya. Klasifikasi (sukses / gagal / diproses / abaikan)
+      // dilakukan di wa-webhook, supaya balasan gagal seperti "kode PIN Anda salah" juga sampai ke sana.
+      console.log(`Pesan dari WA Center, meneruskan ke webhook: ${text}`);
       await forwardTransactionReplyToWebhook(text);
     }
   });

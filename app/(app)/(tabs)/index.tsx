@@ -24,7 +24,6 @@ import { formatRupiah } from '../../../lib/format'
 import { sudahOnboarding } from '../../../lib/onboarding'
 import { ambilProfilSaya, ProfilSaya } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
-import { bukaTopupWa } from '../../../lib/topup'
 import { awalHariIniIso, formatWaktu, getStatusIkon, getStatusPastel } from '../../../lib/transaksi'
 import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
@@ -255,7 +254,7 @@ export default function BerandaScreen() {
               variant="light"
               size="sm"
               style={styles.saldoTombol}
-              onPress={() => bukaTopupWa(profil.nama, profil.nomor_wa)}
+              onPress={() => router.push('/(app)/topup')}
             />
             <Button
               label="Riwayat"

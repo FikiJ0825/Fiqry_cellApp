@@ -19,7 +19,6 @@ import { formatRupiah } from '../../../lib/format'
 import { panggilFungsi } from '../../../lib/functions'
 import { ambilProfilSaya, hargaUntukTier, ProfilSaya } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
-import { bukaTopupWa } from '../../../lib/topup'
 import { Theme, useStyles, useTheme } from '../../../lib/theme'
 
 interface ProdukRow {
@@ -171,7 +170,7 @@ export default function BeliScreen() {
               label="Top-up"
               size="sm"
               icon="add-circle-outline"
-              onPress={() => bukaTopupWa(profil.nama, profil.nomor_wa)}
+              onPress={() => router.push('/(app)/topup')}
             />
           </View>
         ) : null}
@@ -205,7 +204,7 @@ export default function BeliScreen() {
           ikon="wallet-outline"
           label="Top-up saldo"
           ukuran={52}
-          onPress={() => bukaTopupWa(profil.nama, profil.nomor_wa)}
+          onPress={() => router.push('/(app)/topup')}
         />
         <Button
           label="Beli Sekarang"
