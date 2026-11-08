@@ -1,6 +1,6 @@
-# AppPulsa — Fiqry Cell
+# AdePulsa — Fiqry Cell
 
-Aplikasi penjualan pulsa, paket data, dan produk digital untuk jaringan agen **Fiqry Cell**. Dibangun dengan **Expo (React Native)** dan **Supabase** sebagai backend.
+Aplikasi reseller pulsa, paket data, dan produk digital untuk jaringan agen **Fiqry Cell**. Dibangun dengan **Expo (React Native)** dan **Supabase** sebagai backend, dengan bridge WhatsApp ke JW Administrasi untuk eksekusi transaksi.
 
 ---
 
@@ -8,10 +8,13 @@ Aplikasi penjualan pulsa, paket data, dan produk digital untuk jaringan agen **F
 
 | Layer | Teknologi |
 |-------|-----------|
-| Mobile | Expo SDK 58, React Native 0.88, React 19.3 |
+| Mobile / Web | Expo SDK 58, React Native 0.88, React 19.3 |
 | Navigasi | Expo Router (file-based routing) |
 | Bahasa | TypeScript |
-| Backend | Supabase (Auth, PostgreSQL, Edge Functions) + WA Bridge (Baileys) ke JW Administrasi |
+| Backend | Supabase (Auth, PostgreSQL + RLS, Realtime, Edge Functions, Storage) |
+| Transaksi | WA Bridge (Baileys) ke JW Administrasi di PC pulsa |
+| Pembayaran top-up | Duitku (QRIS), konfirmasi via callback + cek status API |
+| Font / UI | Poppins, tema Crimson / Off-White, mode terang + gelap |
 | Penyimpanan sesi | AsyncStorage |
 
 ---
@@ -20,154 +23,119 @@ Aplikasi penjualan pulsa, paket data, dan produk digital untuk jaringan agen **F
 
 ```
 app/
-├── _layout.tsx              # Root layout + guard autentikasi
-├── (auth)/                  # Grup layar sebelum login
-│   ├── login.tsx
-│   └── register.tsx
-└── (app)/                   # Grup layar setelah login
-    ├── (tabs)/              # Tab navigasi utama
-    │   ├── index.tsx        # Beranda
-    │   ├── produk.tsx       # Daftar kategori produk
-    │   ├── riwayat.tsx      # Riwayat transaksi
-    │   └── profil.tsx       # Profil agen
-    ├── produk/
-    │   ├── [kategori].tsx   # Daftar produk per kategori
-    │   └── beli.tsx         # Form pembelian produk
-    └── (admin)/             # Area admin (hanya role admin)
-        ├── (panel)/         # Tab admin: Dashboard, Agen, Produk, Transaksi
-        ├── katalog/         # Kelola katalog produk (stack di atas tab)
-        └── banner/          # Kelola banner promo (stack di atas tab)
+├── _layout.tsx                 # Root layout + guard autentikasi
+├── (auth)/                     # login, register
+└── (app)/
+    ├── (tabs)/                 # Beranda, Produk, Riwayat, Profil
+    ├── produk/                 # [kategori], beli
+    ├── transaksi/[id].tsx      # Detail transaksi (SN, catatan)
+    ├── topup.tsx               # Top up saldo via QRIS Duitku
+    ├── pin.tsx                 # Atur / ubah PIN transaksi
+    ├── onboarding.tsx          # Slide sambutan
+    ├── panduan.tsx             # Panduan penggunaan
+    └── (admin)/                # Area admin (hanya role admin)
+        ├── (panel)/            # Dashboard, Agen, Produk, Transaksi
+        ├── agen-detail.tsx     # Detail agen, saldo, tier, aktif
+        ├── katalog/            # Kelola katalog produk
+        └── banner/             # Kelola banner promo
 
-constants/theme.ts           # Warna, ukuran font, radius
-lib/supabase.ts              # Klien Supabase
-components/                  # Komponen UI (belum diisi)
-supabase/functions/          # Edge Function: create-transaction, wa-webhook
-supabase/migrations/         # Migrasi SQL (jalankan manual di SQL Editor)
-wa-bridge/                   # Server Express + Baileys (jalan di PC pulsa)
+components/ui/                  # Button, Input, Card, Chip, PinInput, DatePickerSheet,
+                                # FloatingTabBar, ResultSheet, dst.
+components/                     # BannerCarousel, PromoPopup, ProdukBaris, profil/
+constants/                      # theme, config, produk, panduan
+lib/                            # supabase client, format, transaksi, topup, banner, dll.
+supabase/functions/             # Edge Functions (lihat di bawah)
+supabase/migrations/            # Migrasi SQL 001-010 (jalankan manual di SQL Editor)
+supabase/checks/                # Query/skrip verifikasi (cek_topup_009.sql, dst.)
+wa-bridge/                      # Server Express + Baileys (jalan di PC pulsa)
 ```
 
 > Jangan beri nama grup admin `(tabs)`: guard di `app/_layout.tsx` mengira itu area agen.
 
----
+### Edge Functions
 
-## Yang Sudah Dibuat
+| Function | Fungsi |
+|----------|--------|
+| `create-transaction` | Buat transaksi, potong saldo, kirim ke WA Bridge |
+| `wa-webhook` | Terima balasan WA Center, update status transaksi (SN, catatan) |
+| `atur-pin` | Atur / ubah PIN transaksi |
+| `buat-topup` | Buat QRIS Duitku untuk top up saldo |
+| `cek-topup` | Cek manual status top up (dibatasi frekuensinya) |
+| `duitku-callback` | Terima callback Duitku, kredit saldo idempoten (`--no-verify-jwt`) |
 
-### 1. Setup & Infrastruktur
-- [x] Inisialisasi proyek Expo dengan Expo Router
-- [x] Konfigurasi `app.json` (nama AppPulsa, scheme `apppulsa`, ikon Android/iOS)
-- [x] Integrasi Supabase dengan penyimpanan sesi persisten (AsyncStorage)
-- [x] Sistem desain dasar di `constants/theme.ts` (warna merah Fiqry Cell, tipografi, radius)
+### Migrasi
 
-### 2. Navigasi & Autentikasi
-- [x] **Auth guard** di root layout — pengguna belum login diarahkan ke login, sudah login diarahkan ke tab utama
-- [x] **Tab navigasi** dengan 4 tab: Beranda, Produk, Riwayat, Profil
-- [x] Rute produk: daftar kategori dinamis (`[kategori]`) dan halaman pembelian (`beli`)
-
-### 3. Registrasi Agen (Selesai)
-Layar **Daftar** (`app/(auth)/register.tsx`) sudah fungsional penuh:
-
-- Form: nama lengkap, nomor WhatsApp, password, konfirmasi password, kode referral (opsional)
-- Normalisasi nomor WA (`0812…` → `62812…`)
-- Login via email internal: `{nomor_wa}@apppulsa.app`
-- Validasi duplikat nomor WA di tabel `profiles`
-- Validasi kode referral — harus cocok dengan profil ber-tier **master**
-- Update profil setelah registrasi: `nomor_wa`, `direferensikan_oleh` (jika ada referral)
-- Pesan error dalam Bahasa Indonesia
-- UI form lengkap dengan loading state dan styling tema
-
-### 4. Skema Database (Supabase)
-Berdasarkan implementasi registrasi, tabel yang sudah dipakai:
-
-| Tabel / Field | Keterangan |
-|---------------|------------|
-| `profiles.id` | UUID, sama dengan `auth.users.id` |
-| `profiles.nomor_wa` | Nomor WhatsApp ter-normalisasi |
-| `profiles.kode_referral` | Kode referral unik (tier master) |
-| `profiles.tier` | Level agen, mis. `master` |
-| `profiles.direferensikan_oleh` | ID master yang mereferensikan agen |
+| No | Isi |
+|----|-----|
+| 001 | Auth email internal |
+| 002-003 | Proteksi profil, klaim bonus, kunci RPC dan policy insert |
+| 004 | PIN transaksi |
+| 005 | Admin: saldo dan transaksi |
+| 006 | Perbaikan `catat_pin_gagal` |
+| 007 | Alur referral dan bonus |
+| 008 | Foto profil |
+| 009 | Top up otomatis Duitku (`topup_otomatis`, `kreditkan_topup`) |
+| 010 | Detail transaksi (`sn`, `catatan`) + RLS `wa_log` |
 
 ---
 
-## Status Layar
+## Status Fitur
 
-Layar berikut sudah dibuat strukturnya, tetapi isinya masih placeholder:
+### Selesai
+- **Auth**: login dan register (RPC), kode referral dari semua tier, auto-login email internal `{nomor_wa}@apppulsa.app`
+- **Agen**: Beranda (saldo realtime, ringkasan hari ini, banner + pop-up promo), Produk per kategori, form Beli dengan PIN, Riwayat (filter status/tanggal, realtime), Detail transaksi, Profil (foto, tier, kode referral), Panduan, Onboarding
+- **Top up saldo**: QRIS Duitku otomatis, status live via Realtime
+- **Admin**: Dashboard, Kelola Agen, Transaksi (filter, selesaikan manual), Katalog produk, Banner promo
+- **UI**: komponen reusable di `components/ui`, tema Crimson, tab bar melayang, mode terang/gelap
+- **Backend**: RLS per tabel, RPC terkunci, PIN dengan pembatasan percobaan gagal
 
-| Layar | File | Status |
-|-------|------|--------|
-| Login | `(auth)/login.tsx` | ✅ Selesai |
-| Beranda | `(tabs)/index.tsx` | ✅ Selesai |
-| Produk | `(tabs)/produk.tsx` | ✅ Selesai |
-| Riwayat | `(tabs)/riwayat.tsx` | ✅ Selesai |
-| Profil | `(tabs)/profil.tsx` | ✅ Selesai |
-| Produk per Kategori | `produk/[kategori].tsx` | ✅ Selesai |
-| Pembelian | `produk/beli.tsx` | ✅ Selesai |
-| Komponen UI reusable | `components/` | ⏳ Kosong |
+### Di-hold
+- [ ] Komisi referral (perhitungan dan riwayat)
+- [ ] Panel master / manajemen downline
+- [ ] Transfer saldo antar agen
+
+### Polish / Production
+- [ ] Go-live Duitku production (lihat checklist di bawah)
+- [ ] Notifikasi push
+- [ ] Error handling global dan state offline
+- [ ] Build Android (APK/AAB) via EAS
 
 ---
 
-## Rencana Pengembangan
+## Go-Live Duitku (Production)
 
-### Fase 1 — Autentikasi & Profil
-- [ ] **Login** — form masuk dengan nomor WA + password (mirip alur registrasi)
-- [ ] **Profil agen** — tampilkan nama, nomor WA, saldo, tier, kode referral
-- [ ] **Edit profil** — ubah nama, ganti password
-- [ ] **Logout**
-
-### Fase 2 — Beranda & Saldo
-- [ ] **Dashboard beranda** — ringkasan saldo, transaksi terakhir, promo/announcement
-- [ ] **Top-up saldo** — metode pembayaran (transfer bank, QRIS, dll.)
-- [ ] **Notifikasi** — status top-up dan transaksi
-
-### Fase 3 — Katalog & Pembelian Produk
-- [ ] **Halaman produk** — grid/list kategori (Pulsa, Data, Token Listrik, E-Wallet, Game, dll.)
-- [ ] **Daftar produk per kategori** — harga agen, stok/status operator
-- [ ] **Form pembelian** — input nomor tujuan, konfirmasi, potong saldo
-- [ ] **Integrasi supplier/API** — proses transaksi ke server pulsa
-- [ ] **Status transaksi real-time** — sukses, pending, gagal
-
-### Fase 4 — Riwayat & Laporan
-- [ ] **Riwayat transaksi** — filter tanggal, kategori, status
-- [ ] **Detail transaksi** — SN/ref ID, waktu, harga, status
-- [ ] **Export / cetak struk** (opsional)
-
-### Fase 5 — Sistem Agen Multi-Tier
-- [ ] **Hierarki master → agen** — manajemen downline
-- [ ] **Komisi referral** — perhitungan dan riwayat komisi
-- [ ] **Transfer saldo antar agen** (jika diperlukan)
-- [ ] **Panel master** — lihat dan kelola agen bawahan
-
-### Fase 6 — Polish & Production
-- [ ] Komponen UI reusable (Button, Input, Card, Header, dll.)
-- [ ] Ikon tab bar
-- [ ] Splash screen & loading screen
-- [ ] Error handling global & offline state
-- [ ] Build Android (APK/AAB) & iOS
-- [ ] Environment variables (`.env`) untuk kunci Supabase
+1. **Verifikasi merchant**: isi URL website yang menjelaskan usaha (layanan, kontak, Syarat & Ketentuan, Kebijakan Privasi, Refund). Siapkan akun demo untuk reviewer karena halaman utama app langsung ke login.
+2. **Supabase secrets** (ganti dari sandbox ke production):
+   ```powershell
+   supabase secrets set DUITKU_MERCHANT_CODE=xxxx DUITKU_API_KEY=xxxx
+   supabase secrets set DUITKU_BASE_URL=https://passport.duitku.com/webapi/api/merchant
+   ```
+   Opsional: `DUITKU_RETURN_URL` untuk halaman tujuan setelah bayar.
+3. **Callback URL** di dashboard Duitku: `https://clbinerltxwxobbtxfad.supabase.co/functions/v1/duitku-callback`
+4. **Tes asli** nominal kecil (Rp10-25 ribu): saldo harus bertambah **sekali saja**.
+5. **Verifikasi**: jalankan `supabase/checks/cek_topup_009.sql` untuk memastikan tidak ada kredit ganda.
 
 ---
 
 ## Menjalankan Proyek
 
-```bash
-# Install dependensi
+```powershell
 npm install
-
-# Jalankan development server
-npm start
-
-# Buka di emulator/perangkat
-npm run android   # Android
-npm run ios       # iOS
-npm run web       # Web (preview)
+npm start            # dev server
+npm run android      # Android
+npm run web          # Web
 ```
+
+Deploy Edge Function: lihat script `supabase:functions:deploy:*` di `package.json`.
 
 ---
 
 ## Catatan Pengembangan
 
 - Baca dokumentasi Expo versi proyek di [docs.expo.dev](https://docs.expo.dev/versions/v58.0.0/) sebelum menulis kode baru.
-- Autentikasi menggunakan email sintetis dari nomor WA; tidak perlu verifikasi email terpisah.
-- Tier `master` memiliki `kode_referral` yang bisa dipakai agen baru saat registrasi.
+- Autentikasi memakai email sintetis dari nomor WA; tidak ada verifikasi email.
+- Sumber kebenaran pembayaran top up adalah API status Duitku, bukan isi callback.
+- Isi mentah `wa_log` memuat saldo dan harga modal master; tabel ini hanya boleh dibaca `service_role`.
 
 ---
 
