@@ -10,9 +10,14 @@
  */
 export type HasilKirim = "terkirim" | "pasti_tidak_terkirim" | "tidak_pasti";
 
-export async function kirimKeWaCenter(pesan: string): Promise<HasilKirim> {
+export function kirimKeWaCenter(pesan: string): Promise<HasilKirim> {
+  return kirimPesanWa(Deno.env.get("WA_CENTER_NUMBER"), pesan);
+}
+
+/** Kirim pesan ke nomor WA mana pun lewat wa-bridge (mis. kode OTP ke pengguna). Aturan hasilnya sama. */
+export async function kirimPesanWa(nomorTujuan: string | undefined, pesan: string): Promise<HasilKirim> {
   const waBridgeUrl = Deno.env.get("WA_BRIDGE_URL");
-  const waCenterNumber = Deno.env.get("WA_CENTER_NUMBER");
+  const waCenterNumber = nomorTujuan;
   const waBridgeSecret = Deno.env.get("WA_BRIDGE_SECRET");
 
   if (!waBridgeUrl || !waCenterNumber || !waBridgeSecret) {

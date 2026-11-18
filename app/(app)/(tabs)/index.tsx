@@ -21,6 +21,7 @@ import { IoniconName, KATEGORI_PRODUK, TAMPILAN_KATEGORI } from '../../../consta
 import { FontSize, PastelNama, Radius, Spacing, Font } from '../../../constants/theme'
 import { BannerAktif, ambilBannerAktif, jalankanAksiBanner } from '../../../lib/banner'
 import { formatRupiah } from '../../../lib/format'
+import { useJumlahBelumDibaca } from '../../../lib/notifikasi'
 import { sudahOnboarding } from '../../../lib/onboarding'
 import { ambilProfilSaya, ProfilSaya } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
@@ -154,6 +155,13 @@ export default function BerandaScreen() {
 
   // Saldo & status transaksi berubah live (butuh Realtime aktif; pull-to-refresh sebagai cadangan)
   const profilId = profil?.id
+  const { jumlah: notifBaru, muatUlang: muatUlangNotif } = useJumlahBelumDibaca(profilId)
+  // Badge diperbarui lagi saat layar fokus (mis. kembali dari layar Notifikasi)
+  useFocusEffect(
+    useCallback(() => {
+      muatUlangNotif()
+    }, [muatUlangNotif]),
+  )
   useEffect(() => {
     if (!profilId) return
     const channel = supabase
@@ -230,6 +238,13 @@ export default function BerandaScreen() {
             {profil.nama ?? 'Pengguna'}
           </Text>
         </View>
+        <TombolKotak
+          ikon="notifications-outline"
+          label={notifBaru > 0 ? `Notifikasi, ${notifBaru} belum dibaca` : 'Notifikasi'}
+          ukuran={38}
+          badge={notifBaru}
+          onPress={() => router.push('/(app)/notifikasi')}
+        />
         <Logo ukuran={34} />
       </View>
 

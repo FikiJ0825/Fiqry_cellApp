@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   KeyboardAvoidingView,
@@ -16,8 +16,9 @@ import Input from '../../components/ui/Input'
 import Logo from '../../components/ui/Logo'
 import Screen from '../../components/ui/Screen'
 import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
-import { mapSupabaseError, nomorWaToEmail, normalizeNomorWa } from '../../lib/auth-utils'
+import { formatNomorWaDisplay, mapSupabaseError, normalizeNomorWa } from '../../lib/auth-utils'
 import { Alert } from '../../lib/dialog'
+import { panggilFungsi } from '../../lib/functions'
 import { supabase } from '../../lib/supabase'
 import { Theme, useStyles } from '../../lib/theme'
 
@@ -34,10 +35,80 @@ export default function RegisterScreen() {
   const [kodeReferral, setKodeReferral] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  // Pendaftaran dua langkah: isi data -> masukkan kode OTP yang dikirim ke WhatsApp
+  const [tahap, setTahap] = useState<'form' | 'otp'>('form')
+  const [otp, setOtp] = useState('')
+  const [jeda, setJeda] = useState(0)
+
+  // Hitung mundur sebelum tombol "Kirim ulang kode" aktif lagi (server juga membatasi 60 detik)
+  useEffect(() => {
+    if (jeda <= 0) return
+    const timer = setTimeout(() => setJeda((j) => j - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [jeda])
 
   const showError = (message: string) => {
     setErrorMessage(message)
     Alert.alert('Gagal', message)
+  }
+
+  const kirimOtp = async (nomorNormal: string): Promise<boolean> => {
+    const { error } = await panggilFungsi('kirim-otp', { nomor_wa: nomorNormal })
+    if (error) {
+      showError(error)
+      return false
+    }
+    setJeda(60)
+    return true
+  }
+
+  const handleKirimUlang = async () => {
+    if (jeda > 0 || loading) return
+    setErrorMessage('')
+    setLoading(true)
+    try {
+      await kirimOtp(normalizeNomorWa(nomorWa.trim()))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerifikasi = async () => {
+    setErrorMessage('')
+    if (!/^\d{6}$/.test(otp.trim())) {
+      showError('Masukkan 6 digit kode verifikasi')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { data, error } = await panggilFungsi<{ referral_terpasang?: boolean }>('daftar', {
+        nama: nama.trim(),
+        nomor_wa: normalizeNomorWa(nomorWa.trim()),
+        password,
+        kode_referral: kodeReferral.trim(),
+        otp: otp.trim(),
+      })
+      if (error) {
+        showError(error)
+        return
+      }
+
+      const catatanReferral =
+        kodeReferral.trim() && data?.referral_terpasang === false
+          ? ' Kode referral belum tercatat, hubungi admin bila perlu.'
+          : ''
+
+      Alert.alert(
+        'Berhasil',
+        `Akun berhasil dibuat.${catatanReferral} Silakan masuk dengan nomor WhatsApp dan password Anda.`,
+        [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }],
+      )
+    } catch (error) {
+      showError(mapSupabaseError(error instanceof Error ? error.message : ''))
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleDaftar = async () => {
@@ -122,60 +193,11 @@ export default function RegisterScreen() {
         }
       }
 
-      const email = nomorWaToEmail(trimmedNomorWa)
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            nama: trimmedNama,
-          },
-        },
-      })
-
-      if (signUpError) {
-        showError(mapSupabaseError(signUpError.message))
-        return
+      // Akun baru dibuat server (Edge Function daftar) setelah kode OTP WhatsApp benar
+      if (await kirimOtp(normalizedWa)) {
+        setOtp('')
+        setTahap('otp')
       }
-
-      const userId = signUpData.user?.id
-
-      if (!userId) {
-        showError('Registrasi gagal, data pengguna tidak ditemukan')
-        return
-      }
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ nomor_wa: normalizedWa, email_auth: email })
-        .eq('id', userId)
-
-      if (updateError) {
-        showError(mapSupabaseError(updateError.message))
-        return
-      }
-
-      // Akun sudah jadi; kegagalan memasang referral tidak boleh menggagalkan pendaftaran
-      let catatanReferral = ''
-      if (trimmedKodeReferral) {
-        const { error: pasangError } = await supabase.rpc('pasang_referral', { p_kode: trimmedKodeReferral })
-        if (pasangError) {
-          catatanReferral = ' Kode referral belum tercatat, hubungi admin bila perlu.'
-        }
-      }
-
-      await supabase.auth.signOut()
-
-      Alert.alert(
-        'Berhasil',
-        `Akun berhasil dibuat.${catatanReferral} Silakan masuk dengan nomor WhatsApp dan password Anda.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/(auth)/login'),
-          },
-        ],
-      )
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Terjadi kesalahan, silakan coba lagi'
@@ -209,6 +231,48 @@ export default function RegisterScreen() {
               </View>
             ) : null}
 
+            {tahap === 'otp' ? (
+              <>
+                <Text style={styles.otpJudul}>Verifikasi nomor WhatsApp</Text>
+                <Text style={styles.otpInfo}>
+                  Kami mengirim kode 6 digit ke WhatsApp {formatNomorWaDisplay(normalizeNomorWa(nomorWa.trim()))}.
+                  Kode berlaku 5 menit.
+                </Text>
+                <Input
+                  label="Kode Verifikasi"
+                  ikon="shield-checkmark-outline"
+                  value={otp}
+                  onChangeText={(v) => setOtp(v.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="6 digit kode"
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  editable={!loading}
+                />
+                <Button label="Verifikasi & Daftar" onPress={handleVerifikasi} loading={loading} />
+                <Pressable
+                  onPress={handleKirimUlang}
+                  disabled={jeda > 0 || loading}
+                  accessibilityRole="button"
+                  style={styles.otpUlang}
+                >
+                  <Text style={[styles.linkTeks, (jeda > 0 || loading) && styles.otpUlangMati]}>
+                    {jeda > 0 ? `Kirim ulang kode (${jeda} dtk)` : 'Kirim ulang kode'}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setTahap('form')
+                    setErrorMessage('')
+                  }}
+                  disabled={loading}
+                  accessibilityRole="button"
+                  style={styles.otpUlang}
+                >
+                  <Text style={styles.linkSorot}>Ubah data / nomor</Text>
+                </Pressable>
+              </>
+            ) : (
+            <>
             <Input
               label="Nama Lengkap"
               ikon="person-outline"
@@ -263,6 +327,8 @@ export default function RegisterScreen() {
             />
 
             <Button label="Daftar" onPress={handleDaftar} loading={loading} />
+            </>
+            )}
           </Card>
 
           <Pressable
@@ -291,6 +357,10 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   form: { gap: Spacing.lg },
   errorBox: { backgroundColor: t.pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
   errorText: { color: t.pastel.rose.teks, fontSize: FontSize.sm, fontFamily: Font.semibold, textAlign: 'center' },
+  otpJudul: { fontFamily: Font.bold, fontSize: FontSize.lg, color: t.colors.textPrimary, textAlign: 'center' },
+  otpInfo: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary, textAlign: 'center' },
+  otpUlang: { alignItems: 'center', paddingVertical: Spacing.xs },
+  otpUlangMati: { opacity: 0.5 },
   link: { marginTop: Spacing.xl, alignItems: 'center' },
   linkTeks: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
   linkSorot: { color: t.colors.accent, fontFamily: Font.bold },
