@@ -50,6 +50,8 @@ Deno.serve(async (req) => {
       );
     }
 
+    const metode_bayar = body?.metode_bayar === "qris" ? "qris" : "saldo";
+
     // nomor_tujuan masuk apa adanya ke teks perintah JW Administrasi
     // ({KODE.TUJUAN}.PIN). Tanpa validasi, karakter seperti titik, kurung kurawal atau baris
     // baru bisa menyisipkan perintah lain (mis. produk gratis) ke dalam satu pesan.
@@ -96,15 +98,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // PIN transaksi agen (6 digit) diverifikasi sebelum saldo disentuh
-    const hasilPin = await periksaPin(supabase, user.id, body?.pin);
-    if (!hasilPin.ok) {
-      return new Response(
-        JSON.stringify({ error: hasilPin.error, kode: hasilPin.kode }),
-        { status: hasilPin.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     const hargaBerlaku = Number(
       profil.tier === "master" ? produk.harga_jual_master : produk.harga_jual_biasa,
     );
@@ -113,6 +106,104 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Harga produk belum diatur, hubungi admin" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // PEMBAYARAN QRIS LANGSUNG: tanpa PIN, tanpa potong saldo. Pesanan menunggu pembayaran;
+    // setelah terkonfirmasi (konfirmasi-bayar-qris) baru dikirim ke WA Center.
+    if (metode_bayar === "qris") {
+      const MASA_BAYAR_MENIT = 15;
+      const MAKS_MENUNGGU_PER_USER = 3;
+
+      await supabase.rpc("kedaluwarsakan_qris");
+
+      const { count: sedangMenunggu } = await supabase
+        .from("transaksi")
+        .select("id", { count: "exact", head: true })
+        .eq("agen_id", user.id)
+        .eq("status", "menunggu_pembayaran");
+      if ((sedangMenunggu ?? 0) >= MAKS_MENUNGGU_PER_USER) {
+        return new Response(
+          JSON.stringify({ error: "Masih ada pesanan QRIS yang belum dibayar. Bayar atau batalkan dulu." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: profilSaldo } = await supabase
+        .from("profiles")
+        .select("saldo")
+        .eq("id", user.id)
+        .single();
+      const saldoSekarang = Number(profilSaldo?.saldo ?? 0);
+
+      const kedaluwarsa_at = new Date(Date.now() + MASA_BAYAR_MENIT * 60_000).toISOString();
+      const pesanTersimpan = susunPesanTersimpan(kode_produk, nomor_tujuan, 1);
+
+      // Total bayar unik di antara pesanan yang menunggu (indeks unik di DB); coba beberapa kode unik
+      for (let percobaan = 0; percobaan < 10; percobaan++) {
+        const kode_unik = 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 99);
+        const total_bayar = hargaBerlaku + kode_unik;
+
+        // Jangan bentrok dengan top up QRIS yang juga menunggu pembayaran
+        const { count: bentrokTopup } = await supabase
+          .from("topup_qris")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "menunggu_pembayaran")
+          .eq("total_bayar", total_bayar);
+        if ((bentrokTopup ?? 0) > 0) continue;
+
+        const { data: baru, error: insertError } = await supabase
+          .from("transaksi")
+          .insert({
+            agen_id: user.id,
+            kode_produk,
+            nomor_tujuan,
+            status: "menunggu_pembayaran",
+            metode_bayar: "qris",
+            harga: hargaBerlaku,
+            kode_unik,
+            total_bayar,
+            kedaluwarsa_at,
+            pesan_request: pesanTersimpan,
+            saldo_sebelum: saldoSekarang,
+            saldo_sesudah: saldoSekarang,
+          })
+          .select("id")
+          .single();
+
+        if (!insertError && baru) {
+          return new Response(
+            JSON.stringify({
+              transaksi_id: baru.id,
+              status: "menunggu_pembayaran",
+              harga: hargaBerlaku,
+              kode_unik,
+              total_bayar,
+              kedaluwarsa_at,
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // 23505 = total_bayar bentrok dengan pesanan lain, coba kode unik lain
+        if (insertError?.code !== "23505") {
+          console.error("Gagal membuat pesanan QRIS:", insertError?.message);
+          break;
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ error: "Gagal membuat pesanan QRIS, coba lagi sebentar lagi" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // PIN transaksi agen (6 digit) diverifikasi sebelum saldo disentuh
+    const hasilPin = await periksaPin(supabase, user.id, body?.pin);
+    if (!hasilPin.ok) {
+      return new Response(
+        JSON.stringify({ error: hasilPin.error, kode: hasilPin.kode }),
+        { status: hasilPin.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -154,6 +245,8 @@ Deno.serve(async (req) => {
         kode_produk,
         nomor_tujuan,
         status: "pending",
+        metode_bayar: "saldo",
+        harga: hargaBerlaku,
         pesan_request: pesan_request_tersimpan,
         saldo_sebelum,
         saldo_sesudah,

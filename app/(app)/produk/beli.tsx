@@ -2,7 +2,9 @@ import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCallback, useState } from 'react'
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import QrisSheet, { PesananQris } from '../../../components/ui/QrisSheet'
+import { QRIS_PAYLOAD_STATIS } from '../../../constants/config'
 import Button from '../../../components/ui/Button'
 import Card from '../../../components/ui/Card'
 import EmptyState from '../../../components/ui/EmptyState'
@@ -44,7 +46,7 @@ function ikonTujuan(kategori: string | null): IoniconName {
 
 export default function BeliScreen() {
   const styles = useStyles(buatStyles)
-  const { pastel } = useTheme()
+  const { pastel, colors } = useTheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { kode } = useLocalSearchParams<{ kode: string }>()
@@ -60,6 +62,10 @@ export default function BeliScreen() {
   const [pin, setPin] = useState('')
   const [konfirmasiTampil, setKonfirmasiTampil] = useState(false)
   const [hasil, setHasil] = useState<HasilTransaksi | null>(null)
+  const [metode, setMetode] = useState<'saldo' | 'qris'>('saldo')
+  const [pesananQris, setPesananQris] = useState<PesananQris | null>(null)
+  const qrisTersedia = QRIS_PAYLOAD_STATIS !== ''
+  const pakaiQris = metode === 'qris' && qrisTersedia
 
   const muat = useCallback(async () => {
     setLoading(true)
@@ -100,9 +106,46 @@ export default function BeliScreen() {
   const harga = produk ? hargaUntukTier(profil?.tier ?? null, produk) : 0
   const saldoKurang = profil ? profil.saldo < harga : false
   const tujuanValid = /^[A-Za-z0-9]{4,30}$/.test(tujuan)
-  const siapKirim = tujuanValid && /^\d{6}$/.test(pin) && !saldoKurang && punyaPin && !submitting
+  const siapKirim = pakaiQris
+    ? tujuanValid && !submitting
+    : tujuanValid && /^\d{6}$/.test(pin) && !saldoKurang && punyaPin && !submitting
+
+  const kirimQris = async () => {
+    if (!produk) return
+    setKonfirmasiTampil(false)
+    setSubmitting(true)
+
+    const respons = await panggilFungsi<{
+      transaksi_id: string
+      harga: number
+      kode_unik: number
+      total_bayar: number
+      kedaluwarsa_at: string
+    }>('create-transaction', {
+      kode_produk: produk.kode_produk,
+      nomor_tujuan: tujuan,
+      metode_bayar: 'qris',
+    })
+
+    setSubmitting(false)
+
+    if (respons.error || !respons.data) {
+      setHasil({ tipe: 'gagal', pesan: respons.error ?? 'Gagal membuat pesanan QRIS' })
+      return
+    }
+
+    setPesananQris({
+      transaksiId: respons.data.transaksi_id,
+      namaProduk: produk.nama,
+      harga: respons.data.harga,
+      kodeUnik: respons.data.kode_unik,
+      totalBayar: respons.data.total_bayar,
+      kedaluwarsaAt: respons.data.kedaluwarsa_at,
+    })
+  }
 
   const kirim = async () => {
+    if (pakaiQris) return kirimQris()
     if (!produk) return
     setKonfirmasiTampil(false)
     setSubmitting(true)
@@ -162,7 +205,30 @@ export default function BeliScreen() {
           <BarisRincian label="Saldo Anda" nilai={formatRupiah(profil.saldo)} merah={saldoKurang} />
         </Card>
 
-        {saldoKurang ? (
+        {qrisTersedia ? (
+          <View style={styles.metodeBaris}>
+            <Pressable
+              style={[styles.metode, !pakaiQris && styles.metodeAktif]}
+              onPress={() => setMetode('saldo')}
+              accessibilityRole="button"
+              accessibilityState={{ selected: !pakaiQris }}
+            >
+              <Ionicons name="wallet-outline" size={18} color={!pakaiQris ? pastel.rose.fg : colors.textSecondary} />
+              <Text style={[styles.metodeTeks, !pakaiQris && styles.metodeTeksAktif]}>Saldo</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.metode, pakaiQris && styles.metodeAktif]}
+              onPress={() => setMetode('qris')}
+              accessibilityRole="button"
+              accessibilityState={{ selected: pakaiQris }}
+            >
+              <Ionicons name="qr-code-outline" size={18} color={pakaiQris ? pastel.rose.fg : colors.textSecondary} />
+              <Text style={[styles.metodeTeks, pakaiQris && styles.metodeTeksAktif]}>QRIS</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {saldoKurang && !pakaiQris ? (
           <View style={styles.peringatan}>
             <Ionicons name="alert-circle" size={20} color={pastel.rose.fg} />
             <Text style={styles.peringatanTeks}>Saldo tidak mencukupi untuk produk ini.</Text>
@@ -188,7 +254,11 @@ export default function BeliScreen() {
           wadah={styles.field}
         />
 
-        {punyaPin ? (
+        {pakaiQris ? (
+          <Text style={styles.infoQris}>
+            Bayar langsung lewat QRIS tanpa mengisi saldo. Pesanan diproses setelah pembayaran diterima.
+          </Text>
+        ) : punyaPin ? (
           <PinInput label="PIN Transaksi" value={pin} onChange={setPin} editable={!submitting} />
         ) : (
           <View style={styles.peringatan}>
@@ -207,8 +277,8 @@ export default function BeliScreen() {
           onPress={() => router.push('/(app)/topup')}
         />
         <Button
-          label="Beli Sekarang"
-          icon="cart-outline"
+          label={pakaiQris ? 'Bayar dengan QRIS' : 'Beli Sekarang'}
+          icon={pakaiQris ? 'qr-code-outline' : 'cart-outline'}
           onPress={() => setKonfirmasiTampil(true)}
           disabled={!siapKirim}
           loading={submitting}
@@ -222,7 +292,7 @@ export default function BeliScreen() {
         warna="rose"
         judul="Konfirmasi pembelian"
         pesan="Pastikan nomor tujuan sudah benar."
-        aksi={{ label: 'Beli Sekarang', onPress: kirim }}
+        aksi={{ label: pakaiQris ? 'Lanjut ke QRIS' : 'Beli Sekarang', onPress: kirim }}
         aksiKedua={{ label: 'Batal', onPress: () => setKonfirmasiTampil(false) }}
         onTutup={() => setKonfirmasiTampil(false)}
       >
@@ -232,6 +302,15 @@ export default function BeliScreen() {
           <BarisRincian label="Harga" nilai={formatRupiah(harga)} tebal />
         </Card>
       </ResultSheet>
+
+      <QrisSheet
+        pesanan={pesananQris}
+        onTutup={() => setPesananQris(null)}
+        onLihatRiwayat={() => {
+          setPesananQris(null)
+          router.replace('/(app)/(tabs)/riwayat')
+        }}
+      />
 
       <ResultSheet
         visible={hasil !== null}
@@ -313,5 +392,22 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   },
   peringatanTeks: { flex: 1, minWidth: 140, fontSize: FontSize.sm, color: t.pastel.rose.teks, fontFamily: Font.semibold },
   field: { marginTop: Spacing.xs },
+  metodeBaris: { flexDirection: 'row', gap: Spacing.md },
+  metode: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.background,
+  },
+  metodeAktif: { borderColor: t.pastel.rose.fg, backgroundColor: t.pastel.rose.bg },
+  metodeTeks: { fontFamily: Font.semibold, fontSize: FontSize.md, color: t.colors.textSecondary },
+  metodeTeksAktif: { color: t.pastel.rose.teks },
+  infoQris: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
   submit: { flex: 1 },
 })

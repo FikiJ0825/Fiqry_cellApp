@@ -28,12 +28,12 @@ export default function ProfilHeader({ nama, nomorWa, isMaster, fotoUrl, onUbahF
     <View style={[styles.wadah, { paddingTop: insets.top + Spacing.lg }]}>
       <Avatar nama={nama} fotoUrl={fotoUrl} ukuran={92} timbul onUbah={onUbahFoto} sedangMemuat={memuatFoto} />
       <Text style={styles.nama} numberOfLines={1}>
-        {nama ?? 'Agen'}
+        {nama ?? 'Pengguna'}
       </Text>
       {nomorWa ? <Text style={styles.wa}>{nomorWa}</Text> : null}
       <View style={[styles.tier, { backgroundColor: tierWarna.bg }]}>
         <Ionicons name={isMaster ? 'ribbon' : 'person'} size={13} color={tierWarna.fg} />
-        <Text style={[styles.tierTeks, { color: tierWarna.teks }]}>{isMaster ? 'Agen Master' : 'Agen Biasa'}</Text>
+        <Text style={[styles.tierTeks, { color: tierWarna.teks }]}>{isMaster ? 'Pengguna Master' : 'Pengguna Biasa'}</Text>
       </View>
     </View>
   )

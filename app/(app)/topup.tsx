@@ -9,7 +9,9 @@ import Chip from '../../components/ui/Chip'
 import Input from '../../components/ui/Input'
 import Loading from '../../components/ui/Loading'
 import ResultSheet from '../../components/ui/ResultSheet'
+import QrisSheet, { PesananQris } from '../../components/ui/QrisSheet'
 import Screen from '../../components/ui/Screen'
+import { QRIS_PAYLOAD_STATIS } from '../../constants/config'
 import { Font, FontSize, Radius, Spacing } from '../../constants/theme'
 import { formatRupiah } from '../../lib/format'
 import { panggilFungsi } from '../../lib/functions'
@@ -44,7 +46,221 @@ function formatSisa(detik: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
+/**
+ * Top up otomatis (Duitku) dimatikan sementara selama akun Duitku belum disetujui production.
+ * Ubah ke true setelah fungsi buat-topup / duitku-callback / cek-topup di-deploy dan diuji.
+ */
+const TOPUP_OTOMATIS_AKTIF = false
+
 export default function TopupScreen() {
+  return TOPUP_OTOMATIS_AKTIF ? <TopupOtomatis /> : <TopupManual />
+}
+
+interface TopupQrisRow {
+  id: string
+  jumlah: number
+  total_bayar: number
+  kode_unik: number
+  status: 'menunggu_pembayaran' | 'berhasil' | 'gagal'
+  kedaluwarsa_at: string | null
+  dibuat_pada: string
+}
+
+function TopupManual() {
+  const styles = useStyles(buatStyles)
+  const { pastel } = useTheme()
+  const router = useRouter()
+  const [profil, setProfil] = useState<ProfilSaya | null>(null)
+  const [riwayat, setRiwayat] = useState<TopupQrisRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [nominal, setNominal] = useState('')
+  const [membuat, setMembuat] = useState(false)
+  const [pesanError, setPesanError] = useState('')
+  const [pesanan, setPesanan] = useState<PesananQris | null>(null)
+  const [kodeUnikAktif, setKodeUnikAktif] = useState(0)
+
+  const jumlah = Number(nominal.replace(/\D/g, '')) || 0
+  const jumlahValid = jumlah >= TOPUP_MINIMAL && jumlah <= TOPUP_MAKSIMAL
+
+  const muat = useCallback(async () => {
+    try {
+      const [profilSaya, hasil] = await Promise.all([
+        ambilProfilSaya(),
+        supabase
+          .from('topup_qris')
+          .select('id, jumlah, total_bayar, kode_unik, status, kedaluwarsa_at, dibuat_pada')
+          .order('dibuat_pada', { ascending: false })
+          .limit(5),
+      ])
+      setProfil(profilSaya)
+      if (!hasil.error) {
+        setRiwayat(
+          ((hasil.data ?? []) as TopupQrisRow[]).map((r) => ({
+            ...r,
+            jumlah: Number(r.jumlah),
+            total_bayar: Number(r.total_bayar),
+          })),
+        )
+      }
+    } catch {
+      // saldo/riwayat gagal dimuat: layar tetap bisa dipakai
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    muat()
+  }, [muat])
+
+  const buatQris = async () => {
+    setPesanError('')
+    setMembuat(true)
+    const { data, error } = await supabase.rpc('buat_topup_qris', { p_jumlah: jumlah })
+    setMembuat(false)
+
+    if (error || !data) {
+      setPesanError(error?.message ?? 'Gagal membuat top up QRIS')
+      return
+    }
+
+    const d = data as { id: string; jumlah: number; kode_unik: number; total_bayar: number; kedaluwarsa_at: string }
+    setKodeUnikAktif(d.kode_unik)
+    setPesanan({
+      jenis: 'topup',
+      transaksiId: d.id,
+      namaProduk: 'Top up saldo',
+      harga: Number(d.jumlah),
+      kodeUnik: d.kode_unik,
+      totalBayar: Number(d.total_bayar),
+      kedaluwarsaAt: d.kedaluwarsa_at,
+    })
+    setNominal('')
+  }
+
+  const tutupSheet = () => {
+    setPesanan(null)
+    muat()
+  }
+
+  const labelStatus = (r: TopupQrisRow): { teks: string; warna: 'mint' | 'rose' | 'butter' } => {
+    if (r.status === 'berhasil') return { teks: 'Berhasil', warna: 'mint' }
+    if (r.status === 'gagal') return { teks: 'Gagal / batal', warna: 'rose' }
+    return { teks: 'Menunggu bayar', warna: 'butter' }
+  }
+
+  if (loading) return <Loading />
+
+  return (
+    <Screen>
+      <ScrollView style={styles.flex} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <Card style={styles.saldoKartu}>
+          <Text style={styles.label}>Saldo Anda</Text>
+          <Text style={styles.saldo}>{formatRupiah(profil?.saldo ?? 0)}</Text>
+        </Card>
+
+        {QRIS_PAYLOAD_STATIS ? (
+          <Card style={styles.formKartu}>
+            <Text style={styles.judul}>Top up lewat QRIS</Text>
+            <Text style={styles.petunjuk}>
+              Pilih nominal, bayar lewat QRIS, lalu saldo ditambahkan setelah admin mengonfirmasi. Minimal{' '}
+              {formatRupiah(TOPUP_MINIMAL)}.
+            </Text>
+
+            <View style={styles.pilihan}>
+              {TOPUP_PILIHAN.map((p) => (
+                <Chip
+                  key={p}
+                  label={formatRupiah(p)}
+                  selected={jumlah === p}
+                  onPress={() => {
+                    setNominal(String(p))
+                    setPesanError('')
+                  }}
+                />
+              ))}
+            </View>
+
+            <Input
+              label="Nominal lain"
+              ikon="cash-outline"
+              value={nominal ? jumlah.toLocaleString('id-ID') : ''}
+              onChangeText={(v) => {
+                setNominal(v.replace(/\D/g, '').slice(0, 8))
+                setPesanError('')
+              }}
+              placeholder="Contoh: 75.000"
+              keyboardType="number-pad"
+              editable={!membuat}
+              error={nominal && !jumlahValid ? `Nominal ${formatRupiah(TOPUP_MINIMAL)} - ${formatRupiah(TOPUP_MAKSIMAL)}` : undefined}
+            />
+
+            {pesanError ? <Text style={styles.error}>{pesanError}</Text> : null}
+
+            <Button
+              label="Bayar dengan QRIS"
+              icon="qr-code-outline"
+              onPress={buatQris}
+              disabled={!jumlahValid}
+              loading={membuat}
+              style={styles.tombolPenuh}
+            />
+          </Card>
+        ) : null}
+
+        <Pressable
+          style={styles.manual}
+          onPress={() => bukaTopupWa(profil?.nama ?? null, profil?.nomor_wa ?? null)}
+          accessibilityRole="button"
+        >
+          <Ionicons name="logo-whatsapp" size={18} color={pastel.rose.fg} />
+          <Text style={styles.manualTeks}>Atau top up langsung lewat WhatsApp Admin</Text>
+        </Pressable>
+
+        <Text style={styles.bagian}>Top up terakhir</Text>
+        {riwayat.length === 0 ? (
+          <Text style={styles.kosong}>Belum ada top up lewat QRIS.</Text>
+        ) : (
+          riwayat.map((r) => {
+            const status = labelStatus(r)
+            return (
+              <Card key={r.id} style={styles.baris}>
+                <View style={styles.barisKiri}>
+                  <Text style={styles.barisJumlah}>{formatRupiah(r.jumlah)}</Text>
+                  <Text style={styles.barisWaktu}>{formatWaktu(r.dibuat_pada)}</Text>
+                </View>
+                <View style={[styles.pill, { backgroundColor: pastel[status.warna].bg }]}>
+                  <Text style={[styles.pillTeks, { color: pastel[status.warna].teks }]}>{status.teks}</Text>
+                </View>
+              </Card>
+            )
+          })
+        )}
+      </ScrollView>
+
+      <QrisSheet
+        pesanan={pesanan}
+        onTutup={tutupSheet}
+        onLihatRiwayat={() => {
+          tutupSheet()
+          router.back()
+        }}
+        onChatAdmin={
+          pesanan
+            ? () =>
+                bukaTopupWa(profil?.nama ?? null, profil?.nomor_wa ?? null, {
+                  jumlah: pesanan.harga,
+                  totalBayar: pesanan.totalBayar,
+                  kodeUnik: kodeUnikAktif || pesanan.kodeUnik,
+                })
+            : undefined
+        }
+      />
+    </Screen>
+  )
+}
+
+function TopupOtomatis() {
   const styles = useStyles(buatStyles)
   const { colors, pastel } = useTheme()
   const router = useRouter()

@@ -14,6 +14,7 @@ import {
 } from 'react-native'
 import { FontSize, Radius, Font } from '../../../../constants/theme'
 import { formatRupiah } from '../../../../lib/format'
+import { panggilFungsi } from '../../../../lib/functions'
 import { supabase } from '../../../../lib/supabase'
 import { formatWaktu, getStatusColor, getStatusLabel, STATUS_TRANSAKSI } from '../../../../lib/transaksi'
 import Screen from '../../../../components/ui/Screen'
@@ -28,6 +29,11 @@ interface TransaksiRow {
   saldo_sebelum: number
   saldo_sesudah: number
   dibuat_pada: string
+  metode_bayar: string | null
+  total_bayar: number | null
+  /** 'topup' = baris dari tabel topup_qris (kode_produk 'TOPUP', jumlah = nominal saldo masuk) */
+  jenis?: 'transaksi' | 'topup'
+  jumlah?: number
 }
 
 const BATAS = 200
@@ -47,10 +53,17 @@ export default function AdminTransaksiScreen() {
     if (isRefresh) setRefreshing(true)
     setErrorMessage('')
 
-    const [trx, profil] = await Promise.all([
+    const [topupRes, trx, profil] = await Promise.all([
+      supabase
+        .from('topup_qris')
+        .select('id, agen_id, jumlah, total_bayar, status, dibuat_pada')
+        .order('dibuat_pada', { ascending: false })
+        .limit(BATAS),
       supabase
         .from('transaksi')
-        .select('id, agen_id, kode_produk, nomor_tujuan, status, saldo_sebelum, saldo_sesudah, dibuat_pada')
+        .select(
+          'id, agen_id, kode_produk, nomor_tujuan, status, saldo_sebelum, saldo_sesudah, dibuat_pada, metode_bayar, total_bayar',
+        )
         .order('dibuat_pada', { ascending: false })
         .limit(BATAS),
       supabase.from('profiles').select('id, nama'),
@@ -59,7 +72,24 @@ export default function AdminTransaksiScreen() {
     if (trx.error) {
       setErrorMessage(`Gagal memuat transaksi: ${trx.error.message}`)
     } else {
-      setData((trx.data ?? []) as TransaksiRow[])
+      const topup: TransaksiRow[] = (topupRes.data ?? []).map((t) => ({
+        id: t.id as string,
+        agen_id: t.agen_id as string,
+        kode_produk: 'TOPUP',
+        nomor_tujuan: 'Top up saldo',
+        status: t.status as string,
+        saldo_sebelum: 0,
+        saldo_sesudah: 0,
+        dibuat_pada: t.dibuat_pada as string,
+        metode_bayar: 'qris',
+        total_bayar: Number(t.total_bayar),
+        jenis: 'topup',
+        jumlah: Number(t.jumlah),
+      }))
+      const gabungan = [...((trx.data ?? []) as TransaksiRow[]), ...topup].sort(
+        (a, b) => new Date(b.dibuat_pada).getTime() - new Date(a.dibuat_pada).getTime(),
+      )
+      setData(gabungan)
       setNamaAgen(Object.fromEntries((profil.data ?? []).map((p) => [p.id, (p.nama as string | null) ?? ''])))
     }
 
@@ -112,7 +142,61 @@ export default function AdminTransaksiScreen() {
     ])
   }
 
+  const konfirmasiBayar = (item: TransaksiRow) => {
+    if (item.jenis === 'topup') {
+      Alert.alert(
+        'Konfirmasi top up QRIS',
+        `Pastikan dana ${formatRupiah(item.total_bayar ?? 0)} sudah masuk. Saldo pengguna akan bertambah ${formatRupiah(item.jumlah ?? 0)}.`,
+        [
+          { text: 'Batal', style: 'cancel' },
+          {
+            text: 'Sudah Dibayar',
+            onPress: async () => {
+              const { error } = await supabase.rpc('konfirmasi_topup_qris', { p_id: item.id })
+              if (error) Alert.alert('Gagal', error.message)
+              await muat()
+            },
+          },
+        ],
+      )
+      return
+    }
+    Alert.alert(
+      'Konfirmasi pembayaran QRIS',
+      `Pastikan dana ${formatRupiah(item.total_bayar ?? 0)} sudah masuk. Pesanan ${item.kode_produk} → ${item.nomor_tujuan} akan langsung dikirim.`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Sudah Dibayar',
+          onPress: async () => {
+            const { error } = await panggilFungsi('konfirmasi-bayar-qris', { transaksi_id: item.id })
+            if (error) Alert.alert('Gagal', error)
+            await muat()
+          },
+        },
+      ],
+    )
+  }
+
+  const batalkanBayar = async (item: TransaksiRow) => {
+    const { error } =
+      item.jenis === 'topup'
+        ? await supabase.rpc('batalkan_topup_qris', { p_id: item.id })
+        : await supabase.rpc('batalkan_bayar_qris', { p_transaksi_id: item.id })
+    if (error) Alert.alert('Gagal', error.message)
+    await muat()
+  }
+
   const bukaAksi = (item: TransaksiRow) => {
+    if (item.status === 'menunggu_pembayaran') {
+      const judulAksi = item.jenis === 'topup' ? 'Top up saldo' : `${item.kode_produk} → ${item.nomor_tujuan}`
+      Alert.alert('Menunggu pembayaran QRIS', judulAksi, [
+        { text: 'Konfirmasi Sudah Dibayar', onPress: () => konfirmasiBayar(item) },
+        { text: 'Batalkan Pesanan', style: 'destructive', onPress: () => batalkanBayar(item) },
+        { text: 'Tutup', style: 'cancel' },
+      ])
+      return
+    }
     if (item.status !== 'pending' && item.status !== 'diproses') return
     Alert.alert('Transaksi belum selesai', `${item.kode_produk} → ${item.nomor_tujuan}`, [
       { text: 'Tandai Berhasil', onPress: () => selesaikan(item, 'berhasil') },
@@ -167,7 +251,8 @@ export default function AdminTransaksiScreen() {
         }
         renderItem={({ item }) => {
           const warna = getStatusColor(item.status, colors)
-          const belumSelesai = item.status === 'pending' || item.status === 'diproses'
+          const menungguBayar = item.status === 'menunggu_pembayaran'
+          const belumSelesai = item.status === 'pending' || item.status === 'diproses' || menungguBayar
           return (
             <TouchableOpacity
               style={styles.card}
@@ -176,16 +261,26 @@ export default function AdminTransaksiScreen() {
             >
               <View style={styles.cardTop}>
                 <Text style={styles.judul}>
-                  {item.kode_produk} → {item.nomor_tujuan}
+                  {item.jenis === 'topup' ? 'Top Up Saldo' : `${item.kode_produk} → ${item.nomor_tujuan}`}
                 </Text>
                 <Text style={[styles.status, { color: warna, borderColor: warna }]}>{getStatusLabel(item.status)}</Text>
               </View>
               <Text style={styles.sub}>{namaAgen[item.agen_id] || 'Agen'}</Text>
               <View style={styles.cardBottom}>
                 <Text style={styles.sub}>{formatWaktu(item.dibuat_pada)}</Text>
-                <Text style={styles.harga}>{formatRupiah(item.saldo_sebelum - item.saldo_sesudah)}</Text>
+                <Text style={styles.harga}>
+                  {menungguBayar
+                    ? formatRupiah(item.total_bayar ?? 0)
+                    : item.jenis === 'topup'
+                      ? formatRupiah(item.jumlah ?? 0)
+                      : formatRupiah(item.saldo_sebelum - item.saldo_sesudah)}
+                </Text>
               </View>
-              {belumSelesai ? <Text style={styles.hint}>Ketuk untuk menyelesaikan manual</Text> : null}
+              {belumSelesai ? (
+                <Text style={styles.hint}>
+                  {menungguBayar ? 'QRIS: ketuk untuk konfirmasi pembayaran' : 'Ketuk untuk menyelesaikan manual'}
+                </Text>
+              ) : null}
             </TouchableOpacity>
           )
         }}

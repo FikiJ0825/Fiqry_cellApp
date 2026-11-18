@@ -262,7 +262,7 @@ export default function ProfilScreen() {
       }
 
       const nominal = Number(jumlahDiklaim ?? jumlah)
-      const nama = profile?.nama ?? 'Agen'
+      const nama = profile?.nama ?? 'Pengguna'
       const pesan = `Halo Admin, saya ${nama} ingin klaim bonus referral sebesar Rp${nominal.toLocaleString('id-ID')}`
       const urlWa = `https://wa.me/${NOMOR_WA_ADMIN}?text=${encodeURIComponent(pesan)}`
       if (!bukaTautanLuar(urlWa)) await Linking.openURL(urlWa)

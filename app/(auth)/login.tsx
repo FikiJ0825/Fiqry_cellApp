@@ -101,7 +101,7 @@ export default function LoginScreen() {
       >
         <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
           <Logo ukuran={64} />
-          <Text style={styles.subtitle}>Masuk ke akun agen Anda</Text>
+          <Text style={styles.subtitle}>Masuk ke akun Anda</Text>
         </View>
 
         <View style={styles.formWrap}>

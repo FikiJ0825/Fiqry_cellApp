@@ -20,13 +20,28 @@ export async function bukaWaAdmin(pesan: string): Promise<void> {
 }
 
 /** Buka WhatsApp admin dengan pesan top-up yang sudah terisi nama dan nomor agen. */
-export async function bukaTopupWa(nama: string | null, nomorWa: string | null): Promise<void> {
+export async function bukaTopupWa(
+  nama: string | null,
+  nomorWa: string | null,
+  /** Diisi bila pengguna sudah membayar lewat QRIS bernominal */
+  qris?: { jumlah: number; totalBayar: number; kodeUnik: number },
+): Promise<void> {
   const identitas = [nama, nomorWa].filter(Boolean).join(' / ')
-  await bukaWaAdmin(`Halo Admin, saya ${identitas || 'agen AdePulsa'} ingin top-up saldo sebesar Rp`)
+  const siapa = identitas || 'pengguna AdePulsa'
+
+  if (qris) {
+    await bukaWaAdmin(
+      `Halo Admin, saya ${siapa} sudah top-up saldo Rp${qris.jumlah.toLocaleString('id-ID')} lewat QRIS ` +
+        `(total bayar Rp${qris.totalBayar.toLocaleString('id-ID')}, kode unik ${qris.kodeUnik}). Mohon dicek dan dikonfirmasi, terima kasih.`,
+    )
+    return
+  }
+
+  await bukaWaAdmin(`Halo Admin, saya ${siapa} ingin top-up saldo sebesar Rp`)
 }
 
 /** Buka WhatsApp admin untuk meminta bantuan. */
 export async function bukaBantuanWa(nama: string | null, nomorWa: string | null): Promise<void> {
   const identitas = [nama, nomorWa].filter(Boolean).join(' / ')
-  await bukaWaAdmin(`Halo Admin, saya ${identitas || 'agen AdePulsa'} butuh bantuan`)
+  await bukaWaAdmin(`Halo Admin, saya ${identitas || 'pengguna AdePulsa'} butuh bantuan`)
 }

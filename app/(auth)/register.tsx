@@ -198,7 +198,7 @@ export default function RegisterScreen() {
       >
         <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
           <Logo ukuran={52} />
-          <Text style={styles.subtitle}>Daftar akun agen baru</Text>
+          <Text style={styles.subtitle}>Daftar akun baru</Text>
         </View>
 
         <View style={styles.formWrap}>

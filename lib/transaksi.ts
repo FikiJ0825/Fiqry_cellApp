@@ -1,9 +1,10 @@
 import type { IoniconName } from '../constants/produk'
 import type { PastelNama, ThemeColors } from '../constants/theme'
 
-export type StatusTransaksi = 'pending' | 'diproses' | 'berhasil' | 'gagal'
+export type StatusTransaksi = 'menunggu_pembayaran' | 'pending' | 'diproses' | 'berhasil' | 'gagal'
 
 export const STATUS_TRANSAKSI: { value: StatusTransaksi; label: string }[] = [
+  { value: 'menunggu_pembayaran', label: 'Menunggu Bayar' },
   { value: 'pending', label: 'Menunggu' },
   { value: 'diproses', label: 'Diproses' },
   { value: 'berhasil', label: 'Berhasil' },
@@ -22,6 +23,7 @@ export function getStatusColor(status: string, Colors: ThemeColors): string {
       return Colors.error
     case 'diproses':
     case 'pending':
+    case 'menunggu_pembayaran':
       return Colors.warning
     default:
       return Colors.grey
@@ -49,6 +51,7 @@ export function getStatusPastel(status: string): PastelNama {
       return 'rose'
     case 'diproses':
     case 'pending':
+    case 'menunggu_pembayaran':
       return 'butter'
     default:
       return 'sky'
@@ -62,6 +65,8 @@ export function catatanBawaan(status: string): string {
       return 'Transaksi berhasil diproses.'
     case 'gagal':
       return 'Transaksi gagal diproses. Saldo Anda sudah dikembalikan.'
+    case 'menunggu_pembayaran':
+      return 'Menunggu pembayaran QRIS. Setelah pembayaran diterima, pesanan langsung diproses.'
     default:
       return 'Transaksi sedang diproses, mohon ditunggu ya kak.'
   }

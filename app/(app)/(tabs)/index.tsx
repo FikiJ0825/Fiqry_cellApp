@@ -227,7 +227,7 @@ export default function BerandaScreen() {
         <View style={styles.headerSalam}>
           <Text style={styles.salamKecil}>Selamat datang,</Text>
           <Text style={styles.nama} numberOfLines={1}>
-            {profil.nama ?? 'Agen'}
+            {profil.nama ?? 'Pengguna'}
           </Text>
         </View>
         <Logo ukuran={34} />
@@ -244,7 +244,7 @@ export default function BerandaScreen() {
             </View>
             <View style={styles.tierPill}>
               <Ionicons name={isMaster ? 'ribbon' : 'person'} size={13} color={colors.onHeader} />
-              <Text style={styles.tierText}>{isMaster ? 'Agen Master' : 'Agen Biasa'}</Text>
+              <Text style={styles.tierText}>{isMaster ? 'Pengguna Master' : 'Pengguna Biasa'}</Text>
             </View>
           </View>
           <View style={styles.saldoAksi}>
