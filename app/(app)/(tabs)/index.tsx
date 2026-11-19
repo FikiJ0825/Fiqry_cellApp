@@ -230,21 +230,22 @@ export default function BerandaScreen() {
       }
     >
       <View style={[styles.atas, { paddingTop: insets.top + Spacing.md }]}>
-        <TombolKotak ikon="help-circle-outline" label="Buka panduan" onPress={() => router.push('/(app)/panduan')} />
+        {/* Tombol bantuan dipindah: Panduan tetap bisa dibuka dari kartu Panduan di bawah dan menu Profil */}
+        <TombolKotak
+          ikon="notifications-outline"
+          label={notifBaru > 0 ? `Notifikasi, ${notifBaru} belum dibaca` : 'Notifikasi'}
+          badge={notifBaru}
+          onPress={() => router.push('/(app)/notifikasi')}
+        />
         <Avatar nama={profil.nama} fotoUrl={profil.foto_url} ukuran={40} />
         <View style={styles.headerSalam}>
-          <Text style={styles.salamKecil}>Selamat datang,</Text>
+          <Text style={styles.salamKecil} numberOfLines={1}>
+            Selamat datang,
+          </Text>
           <Text style={styles.nama} numberOfLines={1}>
             {profil.nama ?? 'Pengguna'}
           </Text>
         </View>
-        <TombolKotak
-          ikon="notifications-outline"
-          label={notifBaru > 0 ? `Notifikasi, ${notifBaru} belum dibaca` : 'Notifikasi'}
-          ukuran={38}
-          badge={notifBaru}
-          onPress={() => router.push('/(app)/notifikasi')}
-        />
         <Logo ukuran={34} />
       </View>
 

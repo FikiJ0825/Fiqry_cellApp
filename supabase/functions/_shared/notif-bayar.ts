@@ -1,7 +1,10 @@
 // Membaca teks notifikasi "uang masuk" dari aplikasi merchant (DANA/GoPay/OVO/ShopeePay).
 //
-// PENTING: pola di bawah ini perkiraan umum. Sesuaikan dengan contoh teks notifikasi asli
-// (lihat supabase/checks/uji_notifikasi_bayar.ps1) sebelum dipakai di produksi.
+// Contoh notifikasi asli (DANA Bisnis, 2026-11-19):
+//   judul "Pembayaran Masuk", isi "Rp20.073 diterima DANA Bisnis."
+// Teks ini lolos KATA_MASUK ("diterima") dan menghasilkan nominal 20073. Bila penerus notifikasi
+// mengirim judul + isi digabung, hasilnya sama. Bila format DANA berubah, sesuaikan pola di bawah
+// dan uji lewat supabase/checks/uji_notifikasi_bayar.ps1 -Teks "<isi notifikasi>".
 
 // Kata yang menandakan uang MASUK.
 const KATA_MASUK = [/menerima/i, /diterima/i, /uang masuk/i, /dana masuk/i, /pembayaran (qris )?(dari|berhasil)/i, /received/i];

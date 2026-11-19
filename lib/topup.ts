@@ -26,18 +26,27 @@ export async function bukaTopupWa(
   /** Diisi bila pengguna sudah membayar lewat QRIS bernominal */
   qris?: { jumlah: number; totalBayar: number; kodeUnik: number },
 ): Promise<void> {
-  const identitas = [nama, nomorWa].filter(Boolean).join(' / ')
-  const siapa = identitas || 'pengguna AdePulsa'
+  // Nama dan nomor dibuat berbaris; baris yang datanya kosong dilewati
+  const barisIdentitas = [nama ? `Nama: ${nama}` : '', nomorWa ? `Nomor WA: ${nomorWa}` : ''].filter(Boolean)
 
   if (qris) {
     await bukaWaAdmin(
-      `Halo Admin, saya ${siapa} sudah top-up saldo Rp${qris.jumlah.toLocaleString('id-ID')} lewat QRIS ` +
-        `(total bayar Rp${qris.totalBayar.toLocaleString('id-ID')}, kode unik ${qris.kodeUnik}). Mohon dicek dan dikonfirmasi, terima kasih.`,
+      [
+        'Halo Admin, saya sudah top-up saldo lewat QRIS. Mohon dicek dan dikonfirmasi.',
+        '',
+        ...barisIdentitas,
+        `Nominal top-up: Rp${qris.jumlah.toLocaleString('id-ID')}`,
+        `Total bayar: Rp${qris.totalBayar.toLocaleString('id-ID')} (kode unik ${qris.kodeUnik})`,
+        '',
+        'Terima kasih.',
+      ].join('\n'),
     )
     return
   }
 
-  await bukaWaAdmin(`Halo Admin, saya ${siapa} ingin top-up saldo sebesar Rp`)
+  await bukaWaAdmin(
+    ['Halo Admin, saya ingin top-up saldo.', '', ...barisIdentitas, 'Nominal top-up: Rp'].join('\n'),
+  )
 }
 
 /** Buka WhatsApp admin untuk meminta bantuan. */
