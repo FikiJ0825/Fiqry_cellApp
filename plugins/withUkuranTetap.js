@@ -2,8 +2,9 @@
 //
 // Masalah: Android mengikuti pengaturan "Ukuran font" dan "Ukuran tampilan" milik pengguna, sehingga di
 // HP yang disetel besar seluruh layout, teks, ikon, dan tombol ikut membesar (jauh lebih besar dari iOS).
-// Solusi: MainActivity dan MainApplication memakai konteks dengan fontScale = 1.0 dan kepadatan layar
-// bawaan perangkat (DENSITY_DEVICE_STABLE, mengabaikan "Ukuran tampilan"). Keduanya dipasang karena
+// Solusi: MainActivity dan MainApplication memakai konteks dengan fontScale dibatasi maks 1.15. Kepadatan
+// layar tidak lagi dikunci (dulu DENSITY_DEVICE_STABLE membuat UI mungil di Samsung); ukuran UI kini
+// diatur oleh lib/skala.ts menurut lebar layar. Keduanya dipasang karena
 // React Native membaca metrik layar dari konteks aplikasi, bukan hanya dari Activity.
 //
 // Berlaku setelah build native ulang (eas build); tidak bisa dikirim lewat EAS Update.
@@ -16,7 +17,6 @@ const PENANDA = 'AdePulsa: ukuran tetap'
 const IMPOR = [
   'android.content.Context',
   'android.content.res.Configuration',
-  'android.util.DisplayMetrics',
 ]
 
 const METODE = (eol) =>
@@ -25,8 +25,9 @@ const METODE = (eol) =>
     `  // ${PENANDA}`,
     '  override fun attachBaseContext(newBase: Context) {',
     '    val konfigurasi = Configuration(newBase.resources.configuration)',
-    '    konfigurasi.fontScale = 1.0f',
-    '    konfigurasi.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE',
+    // Hanya batasi ukuran font sistem (maks 1.15x); kepadatan layar TIDAK dikunci supaya
+    // "Screen zoom"/resolusi pengguna (mis. Samsung) tetap dihormati dan UI tidak jadi mungil.
+    '    konfigurasi.fontScale = Math.min(konfigurasi.fontScale, 1.15f)',
     '    super.attachBaseContext(newBase.createConfigurationContext(konfigurasi))',
     '  }',
     '',

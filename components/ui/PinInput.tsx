@@ -1,6 +1,7 @@
 import { ComponentRef, useRef, useState } from 'react'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
+import { s } from '../../lib/skala'
 import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
@@ -71,7 +72,7 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   baris: { flexDirection: 'row', gap: Spacing.sm },
   kotak: {
     flex: 1,
-    height: 52,
+    height: s(56),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,

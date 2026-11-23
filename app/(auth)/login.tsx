@@ -18,6 +18,7 @@ import Screen from '../../components/ui/Screen'
 import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { mapSupabaseError, normalizeNomorWa } from '../../lib/auth-utils'
 import { Alert } from '../../lib/dialog'
+import { LEBAR_MAKS } from '../../lib/skala'
 import { supabase } from '../../lib/supabase'
 import { Theme, useStyles } from '../../lib/theme'
 
@@ -100,7 +101,7 @@ export default function LoginScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
-          <Logo ukuran={64} />
+          <Logo ukuran={84} />
           <Text style={styles.subtitle}>Masuk ke akun Anda</Text>
         </View>
 
@@ -155,14 +156,14 @@ export default function LoginScreen() {
 
 const buatStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingBottom: Spacing.xxl },
-  hero: { alignItems: 'center', gap: Spacing.md, paddingBottom: Spacing.lg },
-  subtitle: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.md },
-  formWrap: { paddingHorizontal: Spacing.xl },
-  form: { gap: Spacing.lg },
+  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingBottom: Spacing.xxl },
+  hero: { alignItems: 'center', gap: Spacing.md, paddingBottom: Spacing.xl },
+  subtitle: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.lg },
+  formWrap: { paddingHorizontal: Spacing.xl, width: '100%', maxWidth: LEBAR_MAKS, alignSelf: 'center' },
+  form: { gap: Spacing.lg, padding: Spacing.xl },
   errorBox: { backgroundColor: t.pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
   errorText: { color: t.pastel.rose.teks, fontSize: FontSize.sm, fontFamily: Font.semibold, textAlign: 'center' },
   link: { marginTop: Spacing.xl, alignItems: 'center' },
-  linkTeks: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
+  linkTeks: { fontFamily: Font.regular, fontSize: FontSize.md, color: t.colors.textSecondary },
   linkSorot: { color: t.colors.accent, fontFamily: Font.bold },
 })

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { Font, Radius } from '../../constants/theme'
+import { s } from '../../lib/skala'
 import { Theme, useStyles } from '../../lib/theme'
 
 interface Props {
@@ -16,8 +17,9 @@ interface Props {
 }
 
 /** Foto profil bulat; bila belum ada foto (atau gagal dimuat) menampilkan huruf awal nama */
-export default function Avatar({ nama, fotoUrl, ukuran = 44, onUbah, sedangMemuat = false, timbul = false }: Props) {
+export default function Avatar({ nama, fotoUrl, ukuran: ukuranDasar = 44, onUbah, sedangMemuat = false, timbul = false }: Props) {
   const styles = useStyles(buatStyles)
+  const ukuran = s(ukuranDasar)
   const [gagal, setGagal] = useState(false)
   useEffect(() => setGagal(false), [fotoUrl])
 

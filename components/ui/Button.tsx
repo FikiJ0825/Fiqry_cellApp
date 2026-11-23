@@ -3,6 +3,7 @@ import { useRef } from 'react'
 import { ActivityIndicator, Animated, Pressable, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native'
 import { IoniconName } from '../../constants/produk'
 import { Font, FontSize, Radius, Spacing } from '../../constants/theme'
+import { s } from '../../lib/skala'
 import { Theme, useStyles, useTheme } from '../../lib/theme'
 
 type Variant = 'primary' | 'dark' | 'light' | 'glass' | 'soft' | 'outline' | 'danger'
@@ -72,7 +73,7 @@ export default function Button({
           <ActivityIndicator size="small" color={warna.teks} />
         ) : (
           <>
-            {icon ? <Ionicons name={icon} size={size === 'sm' ? 16 : 18} color={warna.teks} /> : null}
+            {icon ? <Ionicons name={icon} size={size === 'sm' ? s(16) : s(20)} color={warna.teks} /> : null}
             <Text style={[styles.label, size === 'sm' && styles.labelSm, { color: warna.teks }]}>{label}</Text>
           </>
         )}
@@ -91,9 +92,9 @@ const buatStyles = (t: Theme) =>
       borderWidth: 1,
       borderRadius: Radius.full,
     },
-    md: { paddingVertical: 14, paddingHorizontal: Spacing.xl },
-    sm: { paddingVertical: 10, paddingHorizontal: Spacing.lg },
+    md: { minHeight: s(52), paddingVertical: s(14), paddingHorizontal: Spacing.xl },
+    sm: { minHeight: s(40), paddingVertical: s(10), paddingHorizontal: Spacing.lg },
     disabled: { opacity: 0.5 },
-    label: { fontSize: FontSize.md, fontFamily: Font.semibold, letterSpacing: 0.2 },
+    label: { fontSize: FontSize.lg, fontFamily: Font.semibold, letterSpacing: 0.2 },
     labelSm: { fontSize: FontSize.sm },
   })

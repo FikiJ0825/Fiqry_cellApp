@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, Platform, StyleSheet, Text, TextInput, View } from 'react-native'
 import { Slot, useRouter, useSegments } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import {
@@ -138,6 +138,12 @@ function RootNavigator() {
     </View>
   )
 }
+
+// Batasi pembesaran font sistem agar layout tidak pecah di HP dengan "Ukuran font" besar
+const TextBase = Text as unknown as { defaultProps?: { maxFontSizeMultiplier?: number } }
+TextBase.defaultProps = { ...TextBase.defaultProps, maxFontSizeMultiplier: 1.15 }
+const InputBase = TextInput as unknown as { defaultProps?: { maxFontSizeMultiplier?: number } }
+InputBase.defaultProps = { ...InputBase.defaultProps, maxFontSizeMultiplier: 1.15 }
 
 function AppRoot() {
   const { isDark } = useTheme()

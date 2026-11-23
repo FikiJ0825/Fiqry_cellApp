@@ -1,4 +1,5 @@
 import { Image, StyleSheet, View } from 'react-native'
+import { s } from '../../lib/skala'
 import { useTheme } from '../../lib/theme'
 
 interface Props {
@@ -18,7 +19,7 @@ const LOGO_TERANG = require('../../assets/logo-adepulsa-putih.png')
 export default function Logo({ ukuran = 56, terang = false }: Props) {
   const { isDark } = useTheme()
   // Logo horizontal lebih rendah dari ubin lama, jadi tinggi diperkecil agar tampilannya seimbang
-  const tinggi = Math.round(ukuran * 0.62)
+  const tinggi = Math.round(s(ukuran) * 0.62)
   return (
     <View style={styles.wadah}>
       <Image

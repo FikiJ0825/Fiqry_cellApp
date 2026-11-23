@@ -18,6 +18,7 @@ import Screen from '../../components/ui/Screen'
 import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { formatNomorWaDisplay, mapSupabaseError, normalizeNomorWa } from '../../lib/auth-utils'
 import { Alert } from '../../lib/dialog'
+import { LEBAR_MAKS } from '../../lib/skala'
 import { panggilFungsi } from '../../lib/functions'
 import { supabase } from '../../lib/supabase'
 import { Theme, useStyles } from '../../lib/theme'
@@ -219,7 +220,7 @@ export default function RegisterScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
-          <Logo ukuran={52} />
+          <Logo ukuran={72} />
           <Text style={styles.subtitle}>Daftar akun baru</Text>
         </View>
 
@@ -353,7 +354,7 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   scrollContent: { flexGrow: 1, paddingBottom: Spacing.xxl },
   hero: { alignItems: 'center', gap: Spacing.md, paddingBottom: Spacing.lg },
   subtitle: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.md },
-  formWrap: { paddingHorizontal: Spacing.xl },
+  formWrap: { paddingHorizontal: Spacing.xl, width: '100%', maxWidth: LEBAR_MAKS, alignSelf: 'center' },
   form: { gap: Spacing.lg },
   errorBox: { backgroundColor: t.pastel.rose.bg, borderRadius: Radius.md, padding: Spacing.md },
   errorText: { color: t.pastel.rose.teks, fontSize: FontSize.sm, fontFamily: Font.semibold, textAlign: 'center' },

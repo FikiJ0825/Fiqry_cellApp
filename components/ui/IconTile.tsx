@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { StyleProp, View, ViewStyle } from 'react-native'
 import { IoniconName } from '../../constants/produk'
 import { PastelNama } from '../../constants/theme'
+import { s } from '../../lib/skala'
 import { useTheme } from '../../lib/theme'
 
 interface Props {
@@ -12,7 +13,8 @@ interface Props {
 }
 
 /** Kotak ikon berwarna pastel (menu kategori, baris transaksi, dll.) */
-export default function IconTile({ ikon, warna, size = 48, style }: Props) {
+export default function IconTile({ ikon, warna, size: sizeDasar = 48, style }: Props) {
+  const size = s(sizeDasar)
   const { pastel } = useTheme()
   return (
     <View

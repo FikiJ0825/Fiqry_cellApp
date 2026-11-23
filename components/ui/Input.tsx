@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native'
 import { IoniconName } from '../../constants/produk'
 import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
+import { s } from '../../lib/skala'
 import { Theme, useStyles, useTheme } from '../../lib/theme'
 
 interface Props extends Omit<TextInputProps, 'style'> {
@@ -41,7 +42,7 @@ export default function Input({
           !editable && styles.kotakNonaktif,
         ]}
       >
-        {ikon ? <Ionicons name={ikon} size={18} color={fokus ? colors.primary : colors.grey} /> : null}
+        {ikon ? <Ionicons name={ikon} size={s(20)} color={fokus ? colors.primary : colors.grey} /> : null}
         <TextInput
           {...rest}
           editable={editable}
@@ -64,7 +65,7 @@ export default function Input({
             accessibilityRole="button"
             accessibilityLabel={tampil ? 'Sembunyikan password' : 'Tampilkan password'}
           >
-            <Ionicons name={tampil ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.grey} />
+            <Ionicons name={tampil ? 'eye-off-outline' : 'eye-outline'} size={s(22)} color={colors.grey} />
           </Pressable>
         ) : null}
       </View>
@@ -78,21 +79,22 @@ const buatStyles = (t: Theme) => StyleSheet.create({
     fontSize: FontSize.sm,
     fontFamily: Font.semibold,
     color: t.colors.textPrimary,
-    marginBottom: 6,
+    marginBottom: s(8),
   },
   kotak: {
+    minHeight: s(52),
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
     borderWidth: 1,
     borderColor: t.colors.border,
     borderRadius: Radius.md,
-    paddingHorizontal: 14,
+    paddingHorizontal: s(16),
     backgroundColor: t.colors.surface,
   },
   kotakFokus: { borderColor: t.colors.accent },
   kotakError: { borderColor: t.colors.error },
   kotakNonaktif: { opacity: 0.6 },
-  input: { fontFamily: Font.regular, flex: 1, paddingVertical: 12, fontSize: FontSize.md, color: t.colors.textPrimary },
+  input: { fontFamily: Font.regular, flex: 1, paddingVertical: s(12), fontSize: FontSize.md, color: t.colors.textPrimary },
   error: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.error, marginTop: 4 },
 })

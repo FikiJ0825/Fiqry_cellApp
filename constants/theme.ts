@@ -1,4 +1,5 @@
 import { Platform, ViewStyle } from 'react-native'
+import { ms, s } from '../lib/skala'
 
 /**
  * Palet crimson bergaya "Tema 1": latar terang lembut (blush), kartu putih, aksen crimson #8B0D1A,
@@ -144,13 +145,15 @@ export const PastelGelap: PastelSet = {
   lilac: { bg: 'rgba(181,138,168,0.16)', fg: '#B58AA8', teks: '#CBAAC0' },
 }
 
+// Ukuran dasar dinaikkan (body ~15.5) mengikuti aplikasi seperti My Telkomsel / DANA, lalu diskalakan
+// menurut lebar layar lewat lib/skala (font setengah kekuatan, jarak & radius penuh).
 export const FontSize = {
-  xs: 11,
-  sm: 12.5,
-  md: 14.5,
-  lg: 16.5,
-  xl: 19,
-  xxl: 23,
+  xs: ms(12),
+  sm: ms(13.5),
+  md: ms(15.5),
+  lg: ms(17),
+  xl: ms(20),
+  xxl: ms(24),
 }
 
 /** Poppins per bobot (di Android fontWeight tidak memilih bobot font kustom, jadi pakai fontFamily) */
@@ -162,20 +165,20 @@ export const Font = {
 } as const
 
 export const Radius = {
-  sm: 10,
-  md: 14,
-  lg: 22,
-  xl: 30,
+  sm: s(10),
+  md: s(14),
+  lg: s(22),
+  xl: s(30),
   full: 999,
 }
 
 export const Spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
+  xs: s(4),
+  sm: s(8),
+  md: s(12),
+  lg: s(16),
+  xl: s(20),
+  xxl: s(24),
 }
 
 export interface ThemeShadow {

@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { ReactNode } from 'react'
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native'
+import { s } from '../../lib/skala'
 import { Theme, useStyles, useTheme } from '../../lib/theme'
 
 interface Props {
@@ -31,6 +32,6 @@ const buatStyles = (t: Theme) =>
       borderRadius: 999,
       backgroundColor: t.isDark ? 'rgba(240,112,127,0.07)' : 'rgba(139,13,26,0.06)',
     },
-    blobAtas: { width: 340, height: 340, top: -150, right: -120 },
-    blobBawah: { width: 280, height: 280, bottom: 80, left: -140 },
+    blobAtas: { width: s(340), height: s(340), top: -s(150), right: -s(120) },
+    blobBawah: { width: s(280), height: s(280), bottom: s(80), left: -s(140) },
   })

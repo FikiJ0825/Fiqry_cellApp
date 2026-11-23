@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Pressable, StyleSheet, Text } from 'react-native'
 import { IoniconName } from '../../constants/produk'
 import { Font, FontSize, Radius } from '../../constants/theme'
+import { s } from '../../lib/skala'
 import { Theme, useStyles, useTheme } from '../../lib/theme'
 
 interface Props {
@@ -22,7 +23,7 @@ export default function Chip({ label, selected, onPress, ikon }: Props) {
       accessibilityState={{ selected }}
       style={({ pressed }) => [styles.chip, selected && styles.chipSelected, pressed && styles.tekan]}
     >
-      {ikon ? <Ionicons name={ikon} size={15} color={selected ? colors.textWhite : colors.textSecondary} /> : null}
+      {ikon ? <Ionicons name={ikon} size={s(16)} color={selected ? colors.textWhite : colors.textSecondary} /> : null}
       <Text style={[styles.teks, selected && styles.teksSelected]}>{label}</Text>
     </Pressable>
   )
@@ -38,8 +39,8 @@ const buatStyles = (t: Theme) =>
       borderWidth: 1,
       borderColor: t.colors.border,
       backgroundColor: t.colors.surface,
-      paddingHorizontal: 16,
-      paddingVertical: 9,
+      paddingHorizontal: s(16),
+      paddingVertical: s(10),
     },
     chipSelected: { backgroundColor: t.colors.primary, borderColor: t.colors.primary, ...t.shadow.card },
     tekan: { opacity: 0.8 },
