@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
-import { useFocusEffect, useRouter } from 'expo-router'
+import { useFocusEffect, useIsFocused, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
@@ -17,7 +17,9 @@ import SectionHeader from '../../../components/ui/SectionHeader'
 import Skeleton from '../../../components/ui/Skeleton'
 import StatusPill from '../../../components/ui/StatusPill'
 import TombolKotak from '../../../components/ui/TombolKotak'
+import TourTarget from '../../../components/tour/TourTarget'
 import { IoniconName, KATEGORI_PRODUK, TAMPILAN_KATEGORI } from '../../../constants/produk'
+import { TUR_BERANDA } from '../../../constants/tour'
 import { FontSize, PastelNama, Radius, Spacing, Font } from '../../../constants/theme'
 import { BannerAktif, ambilBannerAktif, jalankanAksiBanner } from '../../../lib/banner'
 import { formatRupiah } from '../../../lib/format'
@@ -27,6 +29,7 @@ import { ambilProfilSaya, ProfilSaya } from '../../../lib/profil'
 import { supabase } from '../../../lib/supabase'
 import { awalHariIniIso, formatWaktu, getStatusIkon, getStatusPastel } from '../../../lib/transaksi'
 import { Theme, useStyles, useTheme } from '../../../lib/theme'
+import { useTour, useTourScroll } from '../../../lib/tour/useTour'
 
 interface RingkasanHariIni {
   total: number
@@ -93,6 +96,11 @@ export default function BerandaScreen() {
   const [errorMessage, setErrorMessage] = useState('')
   const [perluOnboarding, setPerluOnboarding] = useState(false)
   const sudahDiarahkan = useRef(false)
+  const scrollTour = useTourScroll()
+  const { mulai, mulaiOtomatis, mulaiTertunda, selesaikanTertunda } = useTour()
+  const [popupTampil, setPopupTampil] = useState(false)
+  const tourDicoba = useRef(false)
+  const fokus = useIsFocused()
 
   const muat = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true)
@@ -187,6 +195,22 @@ export default function BerandaScreen() {
     }
   }, [perluOnboarding, router])
 
+  // Tur Coach Marks: otomatis sekali per akun (setelah slide sambutan & pop-up promo), atau saat diminta dari Panduan/Profil
+  const tourSiap = fokus && !loading && !!profilId && !perluOnboarding && !popupTampil
+  useEffect(() => {
+    if (!tourSiap || !profilId) return
+    if (mulaiTertunda) {
+      selesaikanTertunda()
+      const timer = setTimeout(() => mulai(TUR_BERANDA, profilId), 500)
+      return () => clearTimeout(timer)
+    }
+    if (tourDicoba.current) return
+    tourDicoba.current = true
+    // Beri waktu pop-up promo (ukuran gambar dimuat dulu) dan animasi layar selesai
+    const timer = setTimeout(() => void mulaiOtomatis(TUR_BERANDA, profilId), 1500)
+    return () => clearTimeout(timer)
+  }, [tourSiap, profilId, mulaiTertunda, selesaikanTertunda, mulai, mulaiOtomatis])
+
   const onPressBanner = async (banner: BannerAktif) => {
     const kode = await jalankanAksiBanner(banner)
     if (kode) router.push({ pathname: '/(app)/produk/beli', params: { kode } })
@@ -223,6 +247,7 @@ export default function BerandaScreen() {
   return (
     <Screen>
     <ScrollView
+      {...scrollTour}
       style={styles.scroll}
       contentContainerStyle={styles.content}
       refreshControl={
@@ -231,12 +256,14 @@ export default function BerandaScreen() {
     >
       <View style={[styles.atas, { paddingTop: insets.top + Spacing.md }]}>
         {/* Tombol bantuan dipindah: Panduan tetap bisa dibuka dari kartu Panduan di bawah dan menu Profil */}
-        <TombolKotak
-          ikon="notifications-outline"
-          label={notifBaru > 0 ? `Notifikasi, ${notifBaru} belum dibaca` : 'Notifikasi'}
-          badge={notifBaru}
-          onPress={() => router.push('/(app)/notifikasi')}
-        />
+        <TourTarget id="beranda.notifikasi" radius={Radius.md}>
+          <TombolKotak
+            ikon="notifications-outline"
+            label={notifBaru > 0 ? `Notifikasi, ${notifBaru} belum dibaca` : 'Notifikasi'}
+            badge={notifBaru}
+            onPress={() => router.push('/(app)/notifikasi')}
+          />
+        </TourTarget>
         <Avatar nama={profil.nama} fotoUrl={profil.foto_url} ukuran={40} />
         <View style={styles.headerSalam}>
           <Text style={styles.salamKecil} numberOfLines={1}>
@@ -264,14 +291,15 @@ export default function BerandaScreen() {
             </View>
           </View>
           <View style={styles.saldoAksi}>
-            <Button
-              label="Top-up"
-              icon="add-circle-outline"
-              variant="light"
-              size="sm"
-              style={styles.saldoTombol}
-              onPress={() => router.push('/(app)/topup')}
-            />
+            <TourTarget id="beranda.topup" radius={Radius.full} style={styles.saldoTombol}>
+              <Button
+                label="Top-up"
+                icon="add-circle-outline"
+                variant="light"
+                size="sm"
+                onPress={() => router.push('/(app)/topup')}
+              />
+            </TourTarget>
             <Button
               label="Riwayat"
               icon="receipt-outline"
@@ -289,6 +317,7 @@ export default function BerandaScreen() {
 
         <View>
           <SectionHeader judul="Beli Produk" />
+          <TourTarget id="beranda.produk" radius={Radius.lg}>
           <Card>
             {kategoriTersedia.length === 0 ? (
               <Text style={styles.kosongText}>Belum ada produk yang tersedia.</Text>
@@ -316,10 +345,12 @@ export default function BerandaScreen() {
               </View>
             )}
           </Card>
+          </TourTarget>
         </View>
 
         {carousel.length > 0 ? <BannerCarousel banners={carousel} onPressBanner={onPressBanner} /> : null}
 
+        <TourTarget id="beranda.panduan" radius={Radius.lg}>
         <Pressable
           onPress={() => router.push('/(app)/panduan')}
           accessibilityRole="button"
@@ -336,6 +367,7 @@ export default function BerandaScreen() {
             </Card>
           )}
         </Pressable>
+        </TourTarget>
 
         <View>
           <SectionHeader judul="Transaksi Hari Ini" />
@@ -392,7 +424,7 @@ export default function BerandaScreen() {
         </View>
       </View>
 
-      <PromoPopup banner={perluOnboarding ? null : popup} onPressBanner={onPressBanner} />
+      <PromoPopup banner={perluOnboarding ? null : popup} onPressBanner={onPressBanner} onTampilBerubah={setPopupTampil} />
     </ScrollView>
     </Screen>
   )

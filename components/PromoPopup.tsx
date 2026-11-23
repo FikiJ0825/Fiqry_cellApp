@@ -17,9 +17,11 @@ const TINGGI_MAKS_PERSEN = 0.7
 interface Props {
   banner: BannerAktif | null
   onPressBanner: (banner: BannerAktif) => void
+  /** Dikabari saat pop-up tampil/tertutup (dipakai Beranda agar tur tidak menimpa pop-up) */
+  onTampilBerubah?: (tampil: boolean) => void
 }
 
-export default function PromoPopup({ banner, onPressBanner }: Props) {
+export default function PromoPopup({ banner, onPressBanner, onTampilBerubah }: Props) {
   const styles = useStyles(buatStyles)
   const { colors } = useTheme()
   const { width, height } = useWindowDimensions()
@@ -60,6 +62,10 @@ export default function PromoPopup({ banner, onPressBanner }: Props) {
     }
     Animated.spring(anim, { toValue: 1, friction: 7, tension: 70, useNativeDriver: true }).start()
   }, [visible, anim])
+
+  useEffect(() => {
+    onTampilBerubah?.(visible)
+  }, [visible, onTampilBerubah])
 
   const tutup = () => setVisible(false)
 

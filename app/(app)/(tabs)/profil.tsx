@@ -22,6 +22,7 @@ import { formatRupiah } from '../../../lib/format'
 import { supabase } from '../../../lib/supabase'
 import { useFotoProfil } from '../../../lib/useFotoProfil'
 import { Theme, useStyles, useTheme } from '../../../lib/theme'
+import { useTour } from '../../../lib/tour/useTour'
 
 type Profile = {
   nama: string | null
@@ -62,6 +63,7 @@ export default function ProfilScreen() {
   const styles = useStyles(buatStyles)
   const { pastel } = useTheme()
   const router = useRouter()
+  const { mintaMulai } = useTour()
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
@@ -467,6 +469,17 @@ export default function ProfilScreen() {
                 judul: 'Panduan',
                 keterangan: 'Cara memakai AdePulsa',
                 onPress: () => router.push('/(app)/panduan'),
+              },
+              {
+                kunci: 'tur',
+                ikon: 'compass-outline',
+                warna: 'rose',
+                judul: 'Tur Aplikasi',
+                keterangan: 'Ulangi petunjuk fitur di Beranda',
+                onPress: () => {
+                  mintaMulai()
+                  router.navigate('/(app)/(tabs)')
+                },
               },
             ]}
           />

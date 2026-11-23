@@ -2,11 +2,11 @@ import { Platform, ViewStyle } from 'react-native'
 import { ms, s } from '../lib/skala'
 
 /**
- * Palet crimson bergaya "Tema 1": latar terang lembut (blush), kartu putih, aksen crimson #8B0D1A,
- * bar navigasi merah tua. Dua mode (terang & gelap) dengan nama token yang sama; dipilih lewat useTheme().
+ * Palet baru: Terang = blush pink + crimson #E5203A + burgundy (ref. Gradient & Burgundy);
+ * Gelap = Royal Charcoal + vanilla #FFFCD0 + crimson (ref. Vanillia & Royal Charcoal). Dua mode (terang & gelap) dengan nama token yang sama; dipilih lewat useTheme().
  */
 export interface ThemeColors {
-  /** Isi tombol, chip terpilih, indikator (selalu crimson #8B0D1A) */
+  /** Isi tombol, chip terpilih, indikator (selalu crimson #E5203A) */
   primary: string
   /** Teks/ikon penekanan crimson tua di atas latar netral (di mode gelap lebih terang agar terbaca) */
   primaryDark: string
@@ -52,69 +52,69 @@ export interface ThemeColors {
 }
 
 export const LightColors: ThemeColors = {
-  primary: '#8B0D1A',
-  primaryDark: '#5E0912',
-  primaryLight: '#F8E1E1',
-  accent: '#B3122A',
-  background: '#FCF3F1',
+  primary: '#E5203A',
+  primaryDark: '#660F24',
+  primaryLight: '#FFDBE8',
+  accent: '#D41E38',
+  background: '#FFF4F8',
   surface: '#FFFFFF',
-  surfaceAlt: '#F8E6E4',
-  border: '#F1DAD7',
-  textPrimary: '#2A1114',
-  textSecondary: '#715659',
+  surfaceAlt: '#F8E6EA',
+  border: '#F1DDE0',
+  textPrimary: '#1D1015',
+  textSecondary: '#6E4A55',
   textWhite: '#FFFFFF',
   success: '#2F6F46',
   warning: '#9A5B0B',
   error: '#C62833',
-  grey: '#A38D90',
-  header: '#8B0D1A',
-  ink: '#2B0B11',
+  grey: '#A38D93',
+  header: '#E5203A',
+  ink: '#1D1015',
   onHeader: '#FFFFFF',
-  onHeaderSoft: 'rgba(255,255,255,0.86)',
-  heroFrom: '#8B0D1A',
-  heroTo: '#C73A4E',
-  bgFrom: '#FFF8F6',
-  bgTo: '#F9E4E2',
-  navBar: '#2B0B11',
-  navBarEnd: '#3D1119',
-  navIcon: '#F08A96',
-  navBubble: '#F7EFEA',
-  navBubbleIcon: '#B3122A',
-  navRing: '#C8102E',
+  onHeaderSoft: 'rgba(255,255,255,0.88)',
+  heroFrom: '#E5203A',
+  heroTo: '#660F24',
+  bgFrom: '#FFF7FA',
+  bgTo: '#FFE6EE',
+  navBar: '#421B29',
+  navBarEnd: '#1D1015',
+  navIcon: '#D28B96',
+  navBubble: '#FFF1F5',
+  navBubbleIcon: '#E5203A',
+  navRing: '#E5203A',
   navRim: 'rgba(0,0,0,0)',
 }
 
 export const DarkColors: ThemeColors = {
-  primary: '#8B0D1A',
-  primaryDark: '#F4A0AA',
-  primaryLight: '#3A1820',
-  accent: '#F0707F',
-  background: '#1A0C0F',
-  surface: '#26151A',
-  surfaceAlt: '#301A20',
-  border: '#3D2429',
-  textPrimary: '#F7EFEA',
-  textSecondary: '#C2ABAE',
+  primary: '#E5203A',
+  primaryDark: '#FF94B2',
+  primaryLight: '#3A2228',
+  accent: '#FF94B2',
+  background: '#1E2023',
+  surface: '#2A2C30',
+  surfaceAlt: '#33353A',
+  border: '#47484C',
+  textPrimary: '#FFFCD0',
+  textSecondary: '#A6A4A9',
   textWhite: '#FFFFFF',
   success: '#6FBF8A',
   warning: '#E0B055',
   error: '#FF7A82',
-  grey: '#8A7276',
-  header: '#2B0B11',
-  ink: '#2B0B11',
+  grey: '#807E83',
+  header: '#262323',
+  ink: '#1E1F22',
   onHeader: '#FFFFFF',
-  onHeaderSoft: 'rgba(255,255,255,0.86)',
-  heroFrom: '#7A0B17',
-  heroTo: '#B5303F',
-  bgFrom: '#1A0C0F',
-  bgTo: '#221015',
-  navBar: '#1F080D',
-  navBarEnd: '#2E0E15',
-  navIcon: '#F08A96',
-  navBubble: '#F7EFEA',
-  navBubbleIcon: '#B3122A',
-  navRing: '#C8102E',
-  navRim: '#EDE3DE',
+  onHeaderSoft: 'rgba(255,255,255,0.88)',
+  heroFrom: '#E5203A',
+  heroTo: '#660F24',
+  bgFrom: '#1E2023',
+  bgTo: '#1E1F22',
+  navBar: '#1E1F22',
+  navBarEnd: '#262323',
+  navIcon: '#A6A4A9',
+  navBubble: '#FFFCD0',
+  navBubbleIcon: '#E5203A',
+  navRing: '#E5203A',
+  navRim: '#807E83',
 }
 
 export interface PastelWarna {
@@ -125,7 +125,7 @@ export interface PastelWarna {
 
 /** Warna latar (bg), ikon (fg), dan teks (teks) bernuansa teredam agar serasi dengan merah-hitam */
 export const PastelTerang = {
-  rose: { bg: '#F4DEDF', fg: '#8B0D1A', teks: '#6E0A15' },
+  rose: { bg: '#FFDBE8', fg: '#E5203A', teks: '#8A1630' },
   peach: { bg: '#F3E6D8', fg: '#B8742F', teks: '#7D4A14' },
   mint: { bg: '#DFEBE1', fg: '#3F7A55', teks: '#2B5B3D' },
   sky: { bg: '#DFE8EE', fg: '#4A6F8F', teks: '#33516B' },
@@ -137,7 +137,7 @@ export type PastelNama = keyof typeof PastelTerang
 export type PastelSet = Record<PastelNama, PastelWarna>
 
 export const PastelGelap: PastelSet = {
-  rose: { bg: 'rgba(229,80,95,0.16)', fg: '#E5505F', teks: '#F09AA2' },
+  rose: { bg: 'rgba(255,148,178,0.16)', fg: '#FF94B2', teks: '#FFB8CC' },
   peach: { bg: 'rgba(224,161,92,0.16)', fg: '#E0A15C', teks: '#EDBF8A' },
   mint: { bg: 'rgba(111,191,138,0.16)', fg: '#6FBF8A', teks: '#9AD7AF' },
   sky: { bg: 'rgba(127,169,204,0.16)', fg: '#7FA9CC', teks: '#A5C4DF' },
@@ -200,8 +200,8 @@ const bayangan = (warna: string, elevation: number, opacity: number, radius: num
   }) ?? {}
 
 export const ShadowTerang: ThemeShadow = {
-  card: bayangan('#8B0D1A', 3, 0.09, 16, 5),
-  float: bayangan('#8B0D1A', 10, 0.2, 24, 10),
+  card: bayangan('#660F24', 3, 0.09, 16, 5),
+  float: bayangan('#660F24', 10, 0.2, 24, 10),
 }
 
 /** Mode gelap: kedalaman dari border tipis, bukan bayangan */

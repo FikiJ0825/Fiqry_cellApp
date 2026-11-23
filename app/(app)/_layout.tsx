@@ -3,6 +3,7 @@ import { View } from 'react-native'
 import NotifToast from '../../components/NotifToast'
 import { Font } from '../../constants/theme'
 import { useTheme } from '../../lib/theme'
+import { TourProvider } from '../../lib/tour/TourProvider'
 
 export default function AppLayout() {
   const { colors } = useTheme()
@@ -16,6 +17,7 @@ export default function AppLayout() {
   }
 
   return (
+    <TourProvider>
     <View style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="produk/[kategori]" options={{ ...headerAgen, title: 'Produk' }} />
@@ -29,5 +31,6 @@ export default function AppLayout() {
       </Stack>
       <NotifToast />
     </View>
+    </TourProvider>
   )
 }

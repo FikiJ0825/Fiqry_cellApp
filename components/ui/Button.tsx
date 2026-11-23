@@ -36,10 +36,10 @@ export default function Button({
 
   const WARNA: Record<Variant, { bg: string; teks: string; border: string }> = {
     primary: { bg: colors.primary, teks: colors.textWhite, border: colors.primary },
-    // Hitam di mode terang, off-white di mode gelap: kontras maksimal untuk aksi penting
+    // Burgundy-hitam di mode terang, vanilla di mode gelap: kontras maksimal untuk aksi penting
     dark: isDark
-      ? { bg: colors.textPrimary, teks: '#0B0B0B', border: colors.textPrimary }
-      : { bg: '#0B0B0B', teks: '#F5F2ED', border: '#0B0B0B' },
+      ? { bg: colors.textPrimary, teks: '#1E2023', border: colors.textPrimary }
+      : { bg: '#1D1015', teks: '#FFF4F8', border: '#1D1015' },
     // Off-white penuh, untuk dipasang di atas permukaan hitam (mis. kartu saldo)
     light: { bg: '#FFFFFF', teks: colors.primary, border: '#FFFFFF' },
     // Transparan berlapis putih, untuk di atas gradien/hero

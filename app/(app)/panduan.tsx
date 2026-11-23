@@ -11,10 +11,12 @@ import { FontSize, Radius, Spacing, Font } from '../../constants/theme'
 import { ambilProfilSaya, ProfilSaya } from '../../lib/profil'
 import { bukaBantuanWa } from '../../lib/topup'
 import { Theme, useStyles } from '../../lib/theme'
+import { useTour } from '../../lib/tour/useTour'
 
 export default function PanduanScreen() {
   const styles = useStyles(buatStyles)
   const router = useRouter()
+  const { mintaMulai } = useTour()
   const [profil, setProfil] = useState<ProfilSaya | null>(null)
 
   useEffect(() => {
@@ -38,6 +40,17 @@ export default function PanduanScreen() {
           variant="soft"
           size="sm"
           onPress={() => router.push('/(app)/onboarding')}
+          style={styles.heroTombol}
+        />
+        <Button
+          label="Ulangi tur aplikasi"
+          icon="compass-outline"
+          variant="soft"
+          size="sm"
+          onPress={() => {
+            mintaMulai()
+            router.navigate('/(app)/(tabs)')
+          }}
           style={styles.heroTombol}
         />
       </Card>
