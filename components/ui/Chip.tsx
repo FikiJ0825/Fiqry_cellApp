@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons'
-import { Pressable, StyleSheet, Text } from 'react-native'
+import { StyleSheet, Text } from 'react-native'
 import { IoniconName } from '../../constants/produk'
 import { Font, FontSize, Radius } from '../../constants/theme'
 import { s } from '../../lib/skala'
 import { Theme, useStyles, useTheme } from '../../lib/theme'
+import PressScale from './PressScale'
 
 interface Props {
   label: string
@@ -17,15 +18,16 @@ export default function Chip({ label, selected, onPress, ikon }: Props) {
   const styles = useStyles(buatStyles)
   const { colors } = useTheme()
   return (
-    <Pressable
+    <PressScale
       onPress={onPress}
+      haptik="pilih"
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      style={({ pressed }) => [styles.chip, selected && styles.chipSelected, pressed && styles.tekan]}
+      style={[styles.chip, selected && styles.chipSelected]}
     >
       {ikon ? <Ionicons name={ikon} size={s(16)} color={selected ? colors.textWhite : colors.textSecondary} /> : null}
       <Text style={[styles.teks, selected && styles.teksSelected]}>{label}</Text>
-    </Pressable>
+    </PressScale>
   )
 }
 

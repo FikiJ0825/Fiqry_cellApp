@@ -2,7 +2,9 @@ import { Ionicons } from '@expo/vector-icons'
 import { useSegments } from 'expo-router'
 import { useState } from 'react'
 import { Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native'
+import Animated, { ZoomIn } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import PressScale from './ui/PressScale'
 import { NOMOR_ADMIN_BANTUAN } from '../constants/config'
 import { Font, FontSize, Radius, Spacing } from '../constants/theme'
 import { Alert, bukaTautanLuar } from '../lib/dialog'
@@ -62,18 +64,19 @@ export default function BantuanWa() {
 
   return (
     <>
-      <Pressable
-        onPress={() => void bukaSheet()}
-        accessibilityRole="button"
-        accessibilityLabel="Tanya admin lewat WhatsApp"
-        style={({ pressed }) => [
-          styles.fab,
-          { bottom: insets.bottom + JARAK_DARI_BAWAH },
-          pressed && styles.fabTekan,
-        ]}
+      <Animated.View
+        entering={ZoomIn.springify().damping(14)}
+        style={[styles.fabWadah, { bottom: insets.bottom + JARAK_DARI_BAWAH }]}
       >
-        <Ionicons name="logo-whatsapp" size={26} color="#FFFFFF" />
-      </Pressable>
+        <PressScale
+          onPress={() => void bukaSheet()}
+          accessibilityRole="button"
+          accessibilityLabel="Tanya admin lewat WhatsApp"
+          style={styles.fab}
+        >
+          <Ionicons name="logo-whatsapp" size={26} color="#FFFFFF" />
+        </PressScale>
+      </Animated.View>
 
       <Modal visible={terbuka} transparent animationType="fade" onRequestClose={() => setTerbuka(false)}>
         <Pressable style={styles.latar} onPress={() => setTerbuka(false)} accessibilityLabel="Tutup">
@@ -83,12 +86,12 @@ export default function BantuanWa() {
             <Text style={styles.keterangan}>Tanyakan transaksi atau kendala di AdePulsa lewat WhatsApp.</Text>
 
             {NOMOR_ADMIN_BANTUAN.map((admin) => (
-              <Pressable
+              <PressScale
                 key={admin.nomor}
                 onPress={() => void kirim(admin.nomor)}
                 accessibilityRole="button"
                 accessibilityLabel={`Chat ${admin.label} di WhatsApp`}
-                style={({ pressed }) => [styles.opsi, pressed && styles.opsiTekan]}
+                style={styles.opsi}
               >
                 <View style={styles.ikonWa}>
                   <Ionicons name="logo-whatsapp" size={20} color="#FFFFFF" />
@@ -98,7 +101,7 @@ export default function BantuanWa() {
                   <Text style={styles.opsiNomor}>+{admin.nomor}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={colors.grey} />
-              </Pressable>
+              </PressScale>
             ))}
           </Pressable>
         </Pressable>
@@ -109,23 +112,20 @@ export default function BantuanWa() {
 
 const buatStyles = (t: Theme) =>
   StyleSheet.create({
+    fabWadah: { position: 'absolute', right: Spacing.lg, zIndex: 40 },
     fab: {
-      position: 'absolute',
-      right: Spacing.lg,
       width: 52,
       height: 52,
       borderRadius: 26,
       backgroundColor: WARNA_WA,
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 40,
       elevation: 6,
       shadowColor: '#000000',
       shadowOpacity: 0.2,
       shadowRadius: 8,
       shadowOffset: { width: 0, height: 4 },
     },
-    fabTekan: { transform: [{ scale: 0.95 }] },
     latar: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
     sheet: {
       backgroundColor: t.colors.surface,

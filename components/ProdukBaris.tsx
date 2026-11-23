@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import Card from './ui/Card'
 import IconTile from './ui/IconTile'
+import PressScale from './ui/PressScale'
 import { getKategoriLabel, KategoriProduk, TAMPILAN_KATEGORI } from '../constants/produk'
 import { FontSize, Spacing, Font } from '../constants/theme'
 import { formatRupiah } from '../lib/format'
@@ -23,29 +24,26 @@ export default function ProdukBaris({ nama, kode, harga, kategori, tampilKategor
   const tampilan = kategori ? TAMPILAN_KATEGORI[kategori as KategoriProduk] : undefined
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${nama}, ${formatRupiah(harga)}`}>
-      {({ pressed }) => (
-        <Card style={[styles.baris, pressed && styles.tekan]}>
-          <IconTile ikon={tampilan?.ikon ?? 'cube-outline'} warna={tampilan?.warna ?? 'rose'} size={44} />
-          <View style={styles.teks}>
-            <Text style={styles.nama} numberOfLines={2}>
-              {nama}
-            </Text>
-            <Text style={styles.kode} numberOfLines={1}>
-              {tampilKategori ? `${getKategoriLabel(kategori)} · ${kode}` : kode}
-            </Text>
-          </View>
-          <Text style={styles.harga}>{formatRupiah(harga)}</Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.grey} />
-        </Card>
-      )}
-    </Pressable>
+    <PressScale onPress={onPress} accessibilityRole="button" accessibilityLabel={`${nama}, ${formatRupiah(harga)}`}>
+      <Card style={styles.baris}>
+        <IconTile ikon={tampilan?.ikon ?? 'cube-outline'} warna={tampilan?.warna ?? 'rose'} size={44} />
+        <View style={styles.teks}>
+          <Text style={styles.nama} numberOfLines={2}>
+            {nama}
+          </Text>
+          <Text style={styles.kode} numberOfLines={1}>
+            {tampilKategori ? `${getKategoriLabel(kategori)} · ${kode}` : kode}
+          </Text>
+        </View>
+        <Text style={styles.harga}>{formatRupiah(harga)}</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.grey} />
+      </Card>
+    </PressScale>
   )
 }
 
 const buatStyles = (t: Theme) => StyleSheet.create({
   baris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md },
-  tekan: { opacity: 0.75 },
   teks: { flex: 1 },
   nama: { fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary },
   kode: { fontFamily: Font.regular, fontSize: FontSize.xs, color: t.colors.textSecondary, marginTop: 2 },

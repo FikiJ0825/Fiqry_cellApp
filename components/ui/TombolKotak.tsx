@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import { IoniconName } from '../../constants/produk'
 import { Font, Radius } from '../../constants/theme'
 import { Theme, useStyles, useTheme } from '../../lib/theme'
+import PressScale from './PressScale'
 
 interface Props {
   ikon: IoniconName
@@ -19,12 +20,12 @@ export default function TombolKotak({ ikon, onPress, label, ukuran = 42, badge =
   const { colors } = useTheme()
 
   return (
-    <Pressable
+    <PressScale
       onPress={onPress}
       hitSlop={6}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [styles.tombol, { width: ukuran, height: ukuran }, pressed && styles.tekan]}
+      style={[styles.tombol, { width: ukuran, height: ukuran }]}
     >
       <Ionicons name={ikon} size={Math.round(ukuran * 0.5)} color={colors.textPrimary} />
       {badge > 0 ? (
@@ -32,7 +33,7 @@ export default function TombolKotak({ ikon, onPress, label, ukuran = 42, badge =
           <Text style={styles.badgeTeks}>{badge > 9 ? '9+' : badge}</Text>
         </View>
       ) : null}
-    </Pressable>
+    </PressScale>
   )
 }
 

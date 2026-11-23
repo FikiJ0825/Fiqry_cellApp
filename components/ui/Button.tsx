@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons'
-import { useRef } from 'react'
-import { ActivityIndicator, Animated, Pressable, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native'
+import { ActivityIndicator, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native'
 import { IoniconName } from '../../constants/produk'
 import { Font, FontSize, Radius, Spacing } from '../../constants/theme'
 import { s } from '../../lib/skala'
 import { Theme, useStyles, useTheme } from '../../lib/theme'
+import PressScale from './PressScale'
 
 type Variant = 'primary' | 'dark' | 'light' | 'glass' | 'soft' | 'outline' | 'danger'
 
@@ -31,7 +31,6 @@ export default function Button({
 }: Props) {
   const styles = useStyles(buatStyles)
   const { colors, isDark } = useTheme()
-  const skala = useRef(new Animated.Value(1)).current
   const nonaktif = disabled || loading
 
   const WARNA: Record<Variant, { bg: string; teks: string; border: string }> = {
@@ -50,35 +49,30 @@ export default function Button({
   }
   const warna = WARNA[variant]
 
-  const animasi = (ke: number) =>
-    Animated.spring(skala, { toValue: ke, useNativeDriver: true, speed: 40, bounciness: 6 }).start()
-
   return (
-    <Animated.View style={[{ transform: [{ scale: skala }] }, style]}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={() => animasi(0.97)}
-        onPressOut={() => animasi(1)}
-        disabled={nonaktif}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: nonaktif, busy: loading }}
-        style={[
-          styles.base,
-          size === 'sm' ? styles.sm : styles.md,
-          { backgroundColor: warna.bg, borderColor: warna.border },
-          nonaktif && styles.disabled,
-        ]}
-      >
-        {loading ? (
-          <ActivityIndicator size="small" color={warna.teks} />
-        ) : (
-          <>
-            {icon ? <Ionicons name={icon} size={size === 'sm' ? s(16) : s(20)} color={warna.teks} /> : null}
-            <Text style={[styles.label, size === 'sm' && styles.labelSm, { color: warna.teks }]}>{label}</Text>
-          </>
-        )}
-      </Pressable>
-    </Animated.View>
+    <PressScale
+      onPress={onPress}
+      disabled={nonaktif}
+      haptik="ringan"
+      accessibilityRole="button"
+      accessibilityState={{ disabled: nonaktif, busy: loading }}
+      style={[
+        styles.base,
+        size === 'sm' ? styles.sm : styles.md,
+        { backgroundColor: warna.bg, borderColor: warna.border },
+        nonaktif && styles.disabled,
+        style,
+      ]}
+    >
+      {loading ? (
+        <ActivityIndicator size="small" color={warna.teks} />
+      ) : (
+        <>
+          {icon ? <Ionicons name={icon} size={size === 'sm' ? s(16) : s(20)} color={warna.teks} /> : null}
+          <Text style={[styles.label, size === 'sm' && styles.labelSm, { color: warna.teks }]}>{label}</Text>
+        </>
+      )}
+    </PressScale>
   )
 }
 

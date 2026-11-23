@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import Card from '../ui/Card'
 import IconTile from '../ui/IconTile'
+import PressScale from '../ui/PressScale'
 import { IoniconName } from '../../constants/produk'
 import { FontSize, PastelNama, Spacing, Font } from '../../constants/theme'
 import { Theme, useStyles, useTheme } from '../../lib/theme'
@@ -22,12 +23,12 @@ export default function MenuList({ item }: { item: ItemMenu[] }) {
   return (
     <Card padded={false}>
       {item.map((m, i) => (
-        <Pressable
+        <PressScale
           key={m.kunci}
           onPress={m.onPress}
           accessibilityRole="button"
           accessibilityLabel={m.judul}
-          style={({ pressed }) => [styles.baris, i > 0 && styles.garis, pressed && styles.tekan]}
+          style={[styles.baris, i > 0 && styles.garis]}
         >
           <IconTile ikon={m.ikon} warna={m.warna} size={40} />
           <View style={styles.teks}>
@@ -35,7 +36,7 @@ export default function MenuList({ item }: { item: ItemMenu[] }) {
             {m.keterangan ? <Text style={styles.keterangan}>{m.keterangan}</Text> : null}
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.grey} />
-        </Pressable>
+        </PressScale>
       ))}
     </Card>
   )

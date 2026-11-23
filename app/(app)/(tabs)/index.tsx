@@ -3,7 +3,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useFocusEffect, useIsFocused, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import BannerCarousel from '../../../components/BannerCarousel'
 import PromoPopup from '../../../components/PromoPopup'
 import Avatar from '../../../components/ui/Avatar'
@@ -18,6 +18,9 @@ import SectionHeader from '../../../components/ui/SectionHeader'
 import Skeleton from '../../../components/ui/Skeleton'
 import StatusPill from '../../../components/ui/StatusPill'
 import TombolKotak from '../../../components/ui/TombolKotak'
+import PressScale from '../../../components/ui/PressScale'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { MOTION_UI } from '../../../lib/motion'
 import TourTarget from '../../../components/tour/TourTarget'
 import { IoniconName, KATEGORI_PRODUK, TAMPILAN_KATEGORI } from '../../../constants/produk'
 import type { NamaIkonProduk } from '../../../components/ui/IkonProduk'
@@ -284,7 +287,7 @@ export default function BerandaScreen() {
         <Logo ukuran={34} />
       </View>
 
-      <View style={styles.saldoWrap}>
+      <Animated.View entering={FadeInDown.duration(MOTION_UI.durasiMasuk).delay(MOTION_UI.jedaBertahap)} style={styles.saldoWrap}>
         <HeroCard>
           <View style={styles.saldoBaris}>
             <View style={styles.saldoKolom}>
@@ -318,9 +321,9 @@ export default function BerandaScreen() {
             />
           </View>
         </HeroCard>
-      </View>
+      </Animated.View>
 
-      <View style={styles.body}>
+      <Animated.View entering={FadeInDown.duration(MOTION_UI.durasiMasuk).delay(MOTION_UI.jedaBertahap * 2)} style={styles.body}>
         {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
         <View>
@@ -359,22 +362,20 @@ export default function BerandaScreen() {
         {carousel.length > 0 ? <BannerCarousel banners={carousel} onPressBanner={onPressBanner} /> : null}
 
         <TourTarget id="beranda.panduan" radius={Radius.lg}>
-        <Pressable
+        <PressScale
           onPress={() => router.push('/(app)/panduan')}
           accessibilityRole="button"
           accessibilityLabel="Panduan AdePulsa"
         >
-          {({ pressed }) => (
-            <Card style={[styles.panduan, pressed && styles.panduanTekan]}>
-              <IconTile ikon="book-outline" warna="sky" size={38} />
-              <View style={styles.panduanTeks}>
-                <Text style={styles.panduanJudul}>Panduan AdePulsa</Text>
-                <Text style={styles.panduanSub}>Pelajari fitur utama, promo, dan tanya jawab</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.grey} />
-            </Card>
-          )}
-        </Pressable>
+          <Card style={styles.panduan}>
+            <IconTile ikon="book-outline" warna="sky" size={38} />
+            <View style={styles.panduanTeks}>
+              <Text style={styles.panduanJudul}>Panduan AdePulsa</Text>
+              <Text style={styles.panduanSub}>Pelajari fitur utama, promo, dan tanya jawab</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.grey} />
+          </Card>
+        </PressScale>
         </TourTarget>
 
         <View>
@@ -430,7 +431,7 @@ export default function BerandaScreen() {
             )}
           </Card>
         </View>
-      </View>
+      </Animated.View>
 
       <PromoPopup banner={perluOnboarding ? null : popup} onPressBanner={onPressBanner} onTampilBerubah={setPopupTampil} />
     </ScrollView>
@@ -451,8 +452,8 @@ function MenuItem({
 }) {
   const styles = useStyles(buatStyles)
   return (
-    <Pressable
-      style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemTekan]}
+    <PressScale
+      style={styles.menuItem}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
@@ -461,7 +462,7 @@ function MenuItem({
       <Text style={styles.menuLabel} numberOfLines={2}>
         {label}
       </Text>
-    </Pressable>
+    </PressScale>
   )
 }
 

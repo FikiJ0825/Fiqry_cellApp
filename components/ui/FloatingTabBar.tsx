@@ -3,6 +3,7 @@ import { ReactNode, useCallback, useEffect, useId, useRef, useState } from 'reac
 import { Animated, Easing, Keyboard, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Defs, LinearGradient, Mask, Path, Rect, Stop } from 'react-native-svg'
+import { getaranPilih } from '../../lib/motion'
 import { buatPathCekungan, buatPathGaris } from '../../lib/notchPath'
 import { Theme, useStyles, useTheme } from '../../lib/theme'
 
@@ -262,7 +263,10 @@ export default function FloatingTabBar({ state, descriptors, emitter, navigateTo
 
             const onPress = () => {
               const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true })
-              if (!fokus && !event.defaultPrevented) navigateToTab(route.key)
+              if (!fokus && !event.defaultPrevented) {
+                getaranPilih()
+                navigateToTab(route.key)
+              }
             }
             const onLongPress = () => {
               emitter.emit({ type: 'tabLongPress', target: route.key })
