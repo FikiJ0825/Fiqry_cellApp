@@ -144,13 +144,16 @@ Deno.serve(async (req) => {
         const kode_unik = 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 99);
         const total_bayar = hargaBerlaku + kode_unik;
 
-        // Jangan bentrok dengan top up QRIS yang juga menunggu pembayaran
-        const { count: bentrokTopup } = await supabase
-          .from("topup_qris")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "menunggu_pembayaran")
-          .eq("total_bayar", total_bayar);
-        if ((bentrokTopup ?? 0) > 0) continue;
+        // Lewati total bayar yang dipakai pesanan/top up QRIS mana pun (menunggu, atau dibuat dalam 1 jam
+        // terakhir) supaya notifikasi pembayaran yang telat tidak salah mengonfirmasi pesanan baru (migrasi 016)
+        const { data: terpakai, error: errTerpakai } = await supabase.rpc("total_bayar_terpakai", {
+          p_total: total_bayar,
+        });
+        if (errTerpakai) {
+          console.error("total_bayar_terpakai gagal:", errTerpakai.message);
+          break;
+        }
+        if (terpakai === true) continue;
 
         const { data: baru, error: insertError } = await supabase
           .from("transaksi")
