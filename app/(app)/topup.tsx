@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useRouter } from 'expo-router'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import QRCode from 'react-native-qrcode-svg'
 import Button from '../../components/ui/Button'
@@ -316,28 +317,34 @@ function TopupOtomatis() {
 
   // Status top up & saldo berubah live saat callback Duitku masuk (butuh Realtime aktif).
   const profilId = profil?.id
+  const idRealtime = useId().replace(/[^a-zA-Z0-9]/g, '')
   useEffect(() => {
     if (!profilId) return
-    const channel = supabase
-      .channel(`topup-${profilId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'topup_otomatis', filter: `agen_id=eq.${profilId}` },
-        (payload) => {
-          const baru = payload.new as { id?: string; status?: string; jumlah?: number }
-          if (baru?.id && baru.id === aktifId.current && baru.status === 'berhasil') {
-            setBerhasilJumlah(Number(baru.jumlah))
-            setAktif(null)
-          }
-          muat()
-        },
-      )
-      .subscribe()
+    let channel: RealtimeChannel | null = null
+    try {
+      channel = supabase
+        .channel(`topup-${profilId}-${idRealtime}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'topup_otomatis', filter: `agen_id=eq.${profilId}` },
+          (payload) => {
+            const baru = payload.new as { id?: string; status?: string; jumlah?: number }
+            if (baru?.id && baru.id === aktifId.current && baru.status === 'berhasil') {
+              setBerhasilJumlah(Number(baru.jumlah))
+              setAktif(null)
+            }
+            muat()
+          },
+        )
+        .subscribe()
+    } catch (err) {
+      console.warn('Realtime topup gagal dimulai', err)
+    }
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channel) void supabase.removeChannel(channel)
     }
-  }, [profilId, muat])
+  }, [profilId, muat, idRealtime])
 
   // Hitung mundur masa berlaku QR
   useEffect(() => {

@@ -110,7 +110,7 @@ export default function AdminAgenScreen() {
               <Text style={styles.nama}>{item.nama ?? '(tanpa nama)'}</Text>
               <Text style={styles.sub}>
                 {item.nomor_wa ? formatNomorWaDisplay(item.nomor_wa) : '-'} ·{' '}
-                {item.tier === 'master' ? 'Master' : 'Biasa'}
+                {item.tier === 'master' ? 'Agen Master' : 'Agen Reguler'}
                 {item.aktif === false ? ' · Nonaktif' : ''}
               </Text>
             </View>

@@ -113,7 +113,7 @@ export default function AgenDetailScreen() {
 
   const gantiTier = (tierBaru: 'biasa' | 'master') => {
     if (agen?.tier === tierBaru) return
-    Alert.alert('Ubah tier', `Ubah tier ${agen?.nama ?? 'agen'} menjadi ${tierBaru === 'master' ? 'Master' : 'Biasa'}?`, [
+    Alert.alert('Ubah tier', `Ubah tier ${agen?.nama ?? 'agen'} menjadi ${tierBaru === 'master' ? 'Agen Master' : 'Agen Reguler'}?`, [
       { text: 'Batal', style: 'cancel' },
       { text: 'Ubah', onPress: () => ubahProfil({ tier: tierBaru }) },
     ])
@@ -205,7 +205,7 @@ export default function AgenDetailScreen() {
                   disabled={busy}
                 >
                   <Text style={dipilih ? styles.btnPrimaryText : styles.btnOutlineText}>
-                    {t === 'master' ? 'Master' : 'Biasa'}
+                    {t === 'master' ? 'Agen Master' : 'Agen Reguler'}
                   </Text>
                 </TouchableOpacity>
               )

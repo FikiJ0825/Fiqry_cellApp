@@ -1,5 +1,6 @@
+import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Card from '../../../components/ui/Card'
 import Chip from '../../../components/ui/Chip'
@@ -87,23 +88,29 @@ export default function RiwayatScreen() {
 
   // Status berubah live saat balasan JW masuk (butuh Realtime aktif untuk tabel transaksi;
   // kalau belum aktif, tarik layar ke bawah untuk memuat ulang).
+  const idRealtime = useId().replace(/[^a-zA-Z0-9]/g, '')
   useEffect(() => {
     if (!userId) return
-    const channel = supabase
-      .channel(`riwayat-${userId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'transaksi', filter: `agen_id=eq.${userId}` },
-        () => {
-          muat()
-        },
-      )
-      .subscribe()
+    let channel: RealtimeChannel | null = null
+    try {
+      channel = supabase
+        .channel(`riwayat-${userId}-${idRealtime}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'transaksi', filter: `agen_id=eq.${userId}` },
+          () => {
+            muat()
+          },
+        )
+        .subscribe()
+    } catch (err) {
+      console.warn('Realtime riwayat gagal dimulai', err)
+    }
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channel) void supabase.removeChannel(channel)
     }
-  }, [userId, muat])
+  }, [userId, muat, idRealtime])
 
   const tampil = useMemo(
     () => (statusFilter ? data.filter((t) => t.status === statusFilter) : data),

@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router'
 import { View } from 'react-native'
+import BantuanWa from '../../components/BantuanWa'
 import NotifToast from '../../components/NotifToast'
 import { Font } from '../../constants/theme'
 import { useTheme } from '../../lib/theme'
@@ -30,6 +31,7 @@ export default function AppLayout() {
         <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
       </Stack>
       <NotifToast />
+      <BantuanWa />
     </View>
     </TourProvider>
   )

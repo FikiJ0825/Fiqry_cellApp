@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useFocusEffect, useIsFocused, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import BannerCarousel from '../../../components/BannerCarousel'
 import PromoPopup from '../../../components/PromoPopup'
@@ -19,6 +20,7 @@ import StatusPill from '../../../components/ui/StatusPill'
 import TombolKotak from '../../../components/ui/TombolKotak'
 import TourTarget from '../../../components/tour/TourTarget'
 import { IoniconName, KATEGORI_PRODUK, TAMPILAN_KATEGORI } from '../../../constants/produk'
+import type { NamaIkonProduk } from '../../../components/ui/IkonProduk'
 import { TUR_BERANDA } from '../../../constants/tour'
 import { FontSize, PastelNama, Radius, Spacing, Font } from '../../../constants/theme'
 import { BannerAktif, ambilBannerAktif, jalankanAksiBanner } from '../../../lib/banner'
@@ -170,22 +172,28 @@ export default function BerandaScreen() {
       muatUlangNotif()
     }, [muatUlangNotif]),
   )
+  const idRealtime = useId().replace(/[^a-zA-Z0-9]/g, '')
   useEffect(() => {
     if (!profilId) return
-    const channel = supabase
-      .channel(`beranda-${profilId}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${profilId}` }, () => {
-        muat()
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'transaksi', filter: `agen_id=eq.${profilId}` }, () => {
-        muat()
-      })
-      .subscribe()
+    let channel: RealtimeChannel | null = null
+    try {
+      channel = supabase
+        .channel(`beranda-${profilId}-${idRealtime}`)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${profilId}` }, () => {
+          muat()
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transaksi', filter: `agen_id=eq.${profilId}` }, () => {
+          muat()
+        })
+        .subscribe()
+    } catch (err) {
+      console.warn('Realtime beranda gagal dimulai', err)
+    }
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channel) void supabase.removeChannel(channel)
     }
-  }, [profilId, muat])
+  }, [profilId, muat, idRealtime])
 
   // Slide sambutan: sekali per akun. Slide menandai dirinya sendiri saat dibuka, jadi tidak berulang.
   useEffect(() => {
@@ -287,7 +295,7 @@ export default function BerandaScreen() {
             </View>
             <View style={styles.tierPill}>
               <Ionicons name={isMaster ? 'ribbon' : 'person'} size={13} color={colors.onHeader} />
-              <Text style={styles.tierText}>{isMaster ? 'Pengguna Master' : 'Pengguna Biasa'}</Text>
+              <Text style={styles.tierText}>{isMaster ? 'Agen Master' : 'Agen Reguler'}</Text>
             </View>
           </View>
           <View style={styles.saldoAksi}>
@@ -358,7 +366,7 @@ export default function BerandaScreen() {
         >
           {({ pressed }) => (
             <Card style={[styles.panduan, pressed && styles.panduanTekan]}>
-              <IconTile ikon="book-outline" warna="sky" size={44} />
+              <IconTile ikon="book-outline" warna="sky" size={38} />
               <View style={styles.panduanTeks}>
                 <Text style={styles.panduanJudul}>Panduan AdePulsa</Text>
                 <Text style={styles.panduanSub}>Pelajari fitur utama, promo, dan tanya jawab</Text>
@@ -379,7 +387,7 @@ export default function BerandaScreen() {
           </View>
           {isMaster ? (
             <Card style={styles.omsetCard}>
-              <IconTile ikon="cash-outline" warna="mint" size={44} />
+              <IconTile ikon="cash-outline" warna="mint" size={38} />
               <View>
                 <Text style={styles.omsetLabel}>Total Omset Hari Ini</Text>
                 <Text style={styles.omsetValue}>{formatRupiah(ringkasan.omset)}</Text>
@@ -404,7 +412,7 @@ export default function BerandaScreen() {
             ) : (
               terakhir.map((t, i) => (
                 <View key={t.id} style={[styles.trxBaris, i > 0 && styles.trxGaris]}>
-                  <IconTile ikon={getStatusIkon(t.status)} warna={getStatusPastel(t.status)} size={42} />
+                  <IconTile ikon={getStatusIkon(t.status)} warna={getStatusPastel(t.status)} size={36} />
                   <View style={styles.trxTengah}>
                     <Text style={styles.trxNama} numberOfLines={1}>
                       {namaProduk[t.kode_produk] ?? t.kode_produk}
@@ -437,7 +445,7 @@ function MenuItem({
   onPress,
 }: {
   label: string
-  ikon: IoniconName
+  ikon: IoniconName | NamaIkonProduk
   warna: PastelNama
   onPress: () => void
 }) {
@@ -449,7 +457,7 @@ function MenuItem({
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      <IconTile ikon={ikon} warna={warna} size={52} />
+      <IconTile ikon={ikon} warna={warna} size={44} />
       <Text style={styles.menuLabel} numberOfLines={2}>
         {label}
       </Text>
@@ -520,13 +528,13 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   tierText: { color: t.colors.onHeader, fontSize: FontSize.xs, fontFamily: Font.semibold },
   saldoAksi: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg },
   saldoTombol: { flex: 1 },
-  body: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, gap: Spacing.xl },
+  body: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg, gap: Spacing.lg },
   errorText: { fontFamily: Font.regular, color: t.colors.error, fontSize: FontSize.sm, textAlign: 'center' },
   kosongText: { fontFamily: Font.regular, color: t.colors.textSecondary, fontSize: FontSize.sm, textAlign: 'center' },
-  menuGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: Spacing.lg },
-  menuItem: { width: '25%', alignItems: 'center', gap: 6 },
+  menuGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: Spacing.md, padding: Spacing.xs },
+  menuItem: { width: '25%', alignItems: 'center', gap: Spacing.xs, paddingVertical: Spacing.xs },
   menuItemTekan: { opacity: 0.6 },
-  menuLabel: { fontSize: FontSize.xs, color: t.colors.textPrimary, fontFamily: Font.semibold, textAlign: 'center' },
+  menuLabel: { fontSize: FontSize.xs, color: t.colors.textPrimary, fontFamily: Font.medium, textAlign: 'center' },
   statBaris: { flexDirection: 'row', gap: Spacing.sm },
   stat: { flex: 1, borderRadius: Radius.md, paddingVertical: Spacing.md, alignItems: 'center' },
   statValue: { fontSize: FontSize.xl, fontFamily: Font.bold },
@@ -534,7 +542,7 @@ const buatStyles = (t: Theme) => StyleSheet.create({
   omsetCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginTop: Spacing.md },
   omsetLabel: { fontFamily: Font.regular, fontSize: FontSize.sm, color: t.colors.textSecondary },
   omsetValue: { fontSize: FontSize.xl, fontFamily: Font.bold, color: t.colors.textPrimary, marginTop: 2 },
-  trxBaris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg },
+  trxBaris: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
   trxGaris: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.colors.border },
   trxTengah: { flex: 1 },
   trxNama: { fontSize: FontSize.md, fontFamily: Font.semibold, color: t.colors.textPrimary },

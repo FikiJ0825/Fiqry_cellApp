@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { useEffect, useRef, useState } from 'react'
+import type { RealtimeChannel } from '@supabase/supabase-js'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Font, FontSize, Radius, Spacing } from '../constants/theme'
@@ -43,30 +44,37 @@ export default function NotifToast() {
     Animated.timing(geser, { toValue: -160, duration: 220, useNativeDriver: true }).start(() => setBaris(null))
   }
 
+  const idInstan = useId().replace(/[^a-zA-Z0-9]/g, '')
+
   useEffect(() => {
     if (!userId) return
-    const channel = supabase
-      .channel(`notif-toast-${userId}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifikasi', filter: `agen_id=eq.${userId}` },
-        (payload) => {
-          const n = payload.new as { judul?: string; isi?: string }
-          setBaris({ judul: n.judul ?? 'Notifikasi baru', isi: n.isi ?? '' })
-          Animated.spring(geser, { toValue: 0, useNativeDriver: true, bounciness: 6 }).start()
-          if (timer.current) clearTimeout(timer.current)
-          timer.current = setTimeout(sembunyikan, LAMA_TAMPIL_MS)
-        },
-      )
-      .subscribe()
+    let channel: RealtimeChannel | null = null
+    try {
+      channel = supabase
+        .channel(`notif-toast-${userId}-${idInstan}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'notifikasi', filter: `agen_id=eq.${userId}` },
+          (payload) => {
+            const n = payload.new as { judul?: string; isi?: string }
+            setBaris({ judul: n.judul ?? 'Notifikasi baru', isi: n.isi ?? '' })
+            Animated.spring(geser, { toValue: 0, useNativeDriver: true, bounciness: 6 }).start()
+            if (timer.current) clearTimeout(timer.current)
+            timer.current = setTimeout(sembunyikan, LAMA_TAMPIL_MS)
+          },
+        )
+        .subscribe()
+    } catch (err) {
+      console.warn('Realtime notifikasi toast gagal dimulai', err)
+    }
 
     return () => {
       if (timer.current) clearTimeout(timer.current)
-      supabase.removeChannel(channel)
+      if (channel) void supabase.removeChannel(channel)
     }
     // sembunyikan hanya memakai ref/animated value yang stabil
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId])
+  }, [userId, idInstan])
 
   if (!baris) return null
 

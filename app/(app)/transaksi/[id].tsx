@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 import * as Clipboard from 'expo-clipboard'
 import { useLocalSearchParams } from 'expo-router'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Card from '../../../components/ui/Card'
 import EmptyState from '../../../components/ui/EmptyState'
@@ -71,19 +72,25 @@ export default function DetailTransaksiScreen() {
   }, [muat])
 
   // Status/SN berubah live saat balasan WA Center masuk (butuh Realtime aktif untuk tabel transaksi)
+  const idRealtime = useId().replace(/[^a-zA-Z0-9]/g, '')
   useEffect(() => {
     if (!id) return
-    const channel = supabase
-      .channel(`detail-transaksi-${id}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'transaksi', filter: `id=eq.${id}` }, () => {
-        muat()
-      })
-      .subscribe()
+    let channel: RealtimeChannel | null = null
+    try {
+      channel = supabase
+        .channel(`detail-transaksi-${id}-${idRealtime}`)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'transaksi', filter: `id=eq.${id}` }, () => {
+          muat()
+        })
+        .subscribe()
+    } catch (err) {
+      console.warn('Realtime detail transaksi gagal dimulai', err)
+    }
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channel) void supabase.removeChannel(channel)
     }
-  }, [id, muat])
+  }, [id, muat, idRealtime])
 
   useEffect(
     () => () => {

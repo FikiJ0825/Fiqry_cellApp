@@ -148,12 +148,12 @@ export const PastelGelap: PastelSet = {
 // Ukuran dasar dinaikkan (body ~15.5) mengikuti aplikasi seperti My Telkomsel / DANA, lalu diskalakan
 // menurut lebar layar lewat lib/skala (font setengah kekuatan, jarak & radius penuh).
 export const FontSize = {
-  xs: ms(12),
-  sm: ms(13.5),
-  md: ms(15.5),
-  lg: ms(17),
-  xl: ms(20),
-  xxl: ms(24),
+  xs: ms(11.5),
+  sm: ms(12.5),
+  md: ms(14),
+  lg: ms(15.5),
+  xl: ms(18),
+  xxl: ms(22),
 }
 
 /** Poppins per bobot (di Android fontWeight tidak memilih bobot font kustom, jadi pakai fontFamily) */
@@ -164,21 +164,22 @@ export const Font = {
   bold: 'Poppins_700Bold',
 } as const
 
+// Gaya minimalis (ringkas seperti My Telkomsel): radius & jarak lebih rapat dari versi sebelumnya
 export const Radius = {
-  sm: s(10),
-  md: s(14),
-  lg: s(22),
-  xl: s(30),
+  sm: s(8),
+  md: s(12),
+  lg: s(16),
+  xl: s(22),
   full: 999,
 }
 
 export const Spacing = {
-  xs: s(4),
-  sm: s(8),
-  md: s(12),
-  lg: s(16),
-  xl: s(20),
-  xxl: s(24),
+  xs: s(3),
+  sm: s(6),
+  md: s(10),
+  lg: s(14),
+  xl: s(16),
+  xxl: s(20),
 }
 
 export interface ThemeShadow {
@@ -200,8 +201,8 @@ const bayangan = (warna: string, elevation: number, opacity: number, radius: num
   }) ?? {}
 
 export const ShadowTerang: ThemeShadow = {
-  card: bayangan('#660F24', 3, 0.09, 16, 5),
-  float: bayangan('#660F24', 10, 0.2, 24, 10),
+  card: bayangan('#660F24', 2, 0.06, 10, 3),
+  float: bayangan('#660F24', 6, 0.14, 16, 6),
 }
 
 /** Mode gelap: kedalaman dari border tipis, bukan bayangan */

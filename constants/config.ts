@@ -1,6 +1,12 @@
 /** Nomor WhatsApp admin (format internasional tanpa +, contoh: 6281234567890) */
 export const NOMOR_WA_ADMIN = '6285241909400'
 
+/** Daftar admin untuk tombol bantuan WhatsApp melayang (format internasional tanpa +) */
+export const NOMOR_ADMIN_BANTUAN = [
+  { label: 'Admin 1', nomor: '6282194186225' },
+  { label: 'Admin 2', nomor: '6285241909400' },
+] as const
+
 /**
  * Isi QRIS statis milik pemilik (teks hasil decode gambar QRIS, diawali "000201...").
  * Dipakai lib/qris.ts untuk membuat QRIS bernominal. Kosongkan untuk menyembunyikan

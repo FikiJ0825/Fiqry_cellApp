@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useId, useState } from 'react'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
 export interface Notifikasi {
@@ -43,21 +44,30 @@ export function useJumlahBelumDibaca(profilId: string | undefined): { jumlah: nu
       .then(({ count }) => setJumlah(count ?? 0))
   }, [profilId])
 
+  // Nama channel unik per instance: channel dengan topik yang sama masih terdaftar di klien Realtime
+  // saat layar di-mount ulang (mis. setelah Tur Aplikasi), dan .on() setelah subscribe() melempar error.
+  const idInstan = useId().replace(/[^a-zA-Z0-9]/g, '')
+
   useEffect(() => {
     if (!profilId) return
     muatUlang()
-    const channel = supabase
-      .channel(`notif-badge-${profilId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'notifikasi', filter: `agen_id=eq.${profilId}` },
-        () => muatUlang(),
-      )
-      .subscribe()
-    return () => {
-      supabase.removeChannel(channel)
+    let channel: RealtimeChannel | null = null
+    try {
+      channel = supabase
+        .channel(`notif-badge-${profilId}-${idInstan}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'notifikasi', filter: `agen_id=eq.${profilId}` },
+          () => muatUlang(),
+        )
+        .subscribe()
+    } catch (err) {
+      console.warn('Realtime badge notifikasi gagal dimulai', err)
     }
-  }, [profilId, muatUlang])
+    return () => {
+      if (channel) void supabase.removeChannel(channel)
+    }
+  }, [profilId, muatUlang, idInstan])
 
   return { jumlah, muatUlang }
 }

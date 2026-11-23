@@ -87,15 +87,15 @@ export const BAGIAN_PANDUAN: BagianPanduan[] = [
         kunci: 'tier',
         ikon: 'ribbon-outline',
         warna: 'butter',
-        judul: 'Tier Pengguna Biasa & Master',
-        isi: 'Pengguna Master mendapat harga produk yang lebih murah daripada Pengguna Biasa. Semua pengguna punya kode referral. Anda naik otomatis menjadi Master ketika 5 pengguna yang mendaftar dengan kode referral Anda masing-masing sudah menyelesaikan 3 transaksi berhasil. Tier Master kembali menjadi Biasa jika tidak ada transaksi selama 2 bulan.',
+        judul: 'Tier Agen Reguler & Master',
+        isi: 'Agen Master mendapat harga produk yang lebih murah daripada Agen Reguler. Semua agen punya kode referral. Anda naik otomatis menjadi Agen Master ketika 5 agen yang mendaftar dengan kode referral Anda masing-masing sudah menyelesaikan 3 transaksi berhasil. Tier Agen Master kembali menjadi Agen Reguler jika tidak ada transaksi selama 2 bulan.',
       },
       {
         kunci: 'referral',
         ikon: 'gift-outline',
         warna: 'peach',
         judul: 'Kode Referral & Bonus',
-        isi: 'Setiap pengguna punya kode referral. Calon pengguna baru bisa memasukkan kode ini saat mendaftar (opsional). Kode Anda ada di tab Profil, tekan Salin lalu bagikan. Pengguna Master mendapat bonus Rp5.000 setiap 10 transaksi berhasil dalam sehari (transaksi ke-10, ke-20, dan seterusnya). Bonus yang tersedia muncul di Profil; tekan Klaim Sekarang dan Anda diarahkan ke WhatsApp Admin untuk prosesnya.',
+        isi: 'Setiap pengguna punya kode referral. Calon pengguna baru bisa memasukkan kode ini saat mendaftar (opsional). Kode Anda ada di tab Profil, tekan Salin lalu bagikan. Agen Master mendapat bonus Rp5.000 setiap 10 transaksi berhasil dalam sehari (transaksi ke-10, ke-20, dan seterusnya). Bonus yang tersedia muncul di Profil; tekan Klaim Sekarang dan Anda diarahkan ke WhatsApp Admin untuk prosesnya.',
       },
       {
         kunci: 'profil',
@@ -143,7 +143,7 @@ export const TANYA_JAWAB_PANDUAN: TanyaJawab[] = [
     jawab: 'Transaksi yang sudah dikirim tidak bisa dibatalkan dari aplikasi. Segera hubungi admin dan sebutkan nomor serta waktu transaksinya.',
   },
   {
-    tanya: 'Bagaimana cara naik menjadi Pengguna Master?',
+    tanya: 'Bagaimana cara naik menjadi Agen Master?',
     jawab: 'Bagikan kode referral Anda (ada di tab Profil) ke calon pengguna baru. Setelah 5 pengguna yang Anda ajak masing-masing menyelesaikan 3 transaksi berhasil, tier Anda naik otomatis menjadi Master.',
   },
 ]
@@ -175,6 +175,6 @@ export const SLIDE_SAMBUTAN: SlideSambutan[] = [
     ikon: 'ribbon-outline',
     warna: 'butter',
     judul: 'Naik tier, untung lebih besar',
-    isi: 'Ajak pengguna baru lewat kode referral. Pengguna Master mendapat harga lebih murah dan bonus transaksi.',
+    isi: 'Ajak pengguna baru lewat kode referral. Agen Master mendapat harga lebih murah dan bonus transaksi.',
   },
 ]

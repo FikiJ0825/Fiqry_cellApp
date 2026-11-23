@@ -33,7 +33,7 @@ export default function ProfilHeader({ nama, nomorWa, isMaster, fotoUrl, onUbahF
       {nomorWa ? <Text style={styles.wa}>{nomorWa}</Text> : null}
       <View style={[styles.tier, { backgroundColor: tierWarna.bg }]}>
         <Ionicons name={isMaster ? 'ribbon' : 'person'} size={13} color={tierWarna.fg} />
-        <Text style={[styles.tierTeks, { color: tierWarna.teks }]}>{isMaster ? 'Pengguna Master' : 'Pengguna Biasa'}</Text>
+        <Text style={[styles.tierTeks, { color: tierWarna.teks }]}>{isMaster ? 'Agen Master' : 'Agen Reguler'}</Text>
       </View>
     </View>
   )
